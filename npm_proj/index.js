@@ -5,7 +5,7 @@ const { stdout } = require('process');
 
 
 const db = 'https://replicate.npmjs.com';
-const output_file = '../data/npm_projects.json'
+const output_file = './data/npm_projects.json'
 
 var changes = new ChangesStream({
   db: db,
@@ -89,6 +89,7 @@ Request.get(db, function (err, req, body) {
       }
     }
 
+    // Writes progress update in console.
     if (total_processed % 5 === 0) {
       stdout.clearLine(0)
       stdout.cursorTo(0)
