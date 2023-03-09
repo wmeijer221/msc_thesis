@@ -91,12 +91,14 @@ function BuildEntry(doc) {
 }
 
 function IsValidEntry(entry) {
-  if (entry === undefined ||
-    entry.repo_url === undefined ||
-    entry.versions.find(e => e.repo_url !== undefined) === undefined) {
+  if (entry === undefined)
     return false
-  }
-  return true
+
+  has_main_url = entry.repo_url !== undefined
+  has_version_url = entry.versions
+    .find(e => e.repo_url !== undefined) !== undefined
+
+  return has_main_url || has_version_url
 }
 
 function StoreEntry(entry) {
