@@ -9,6 +9,8 @@ from perceval.backends.core.github import GitHub, CATEGORY_PULL_REQUEST, CATEGOR
 from watchdog.events import FileSystemEventHandler, FileClosedEvent
 from watchdog.observers import Observer
 
+from filters.gl_github_filters import IssueFilter, PullFilter
+
 dotenv.load_dotenv()
 github_token = getenv("GITHUB_TOKEN")
 github_token_2 = getenv("GITHUB_TOKEN_2")
@@ -51,9 +53,11 @@ class NewNPMProjHandler(FileSystemEventHandler):
             output_path = self.output_path.format(type="pr", name=entry["id"])
 
             with open(output_path, "w+", encoding="utf-8") as output_file:
-
+                
                 pr_count = 0
+                pr_filter = PullFilter()
                 for count, pr in enumerate(repo.fetch(category=CATEGORY_PULL_REQUEST)):
+                    filtered_pr = pr_filter.filter(pr["data"])
                     output_file.write(json.dumps(pr) + "\n")
                     pr_count = count
 
@@ -61,7 +65,7 @@ class NewNPMProjHandler(FileSystemEventHandler):
                     name=entry['id'], count=pr_count))
         except HTTPError as herr:
             if herr.response.status_code == 404:
-                print("Repo for {name} doesn't exist.".format(
+                print("Couldn't get PRs because repo for {name} doesn't exist.".format(
                     name=entry['id']))
         except Exception as e:
             print("Could not get PRs for {name}.".format(name=entry['id']))
@@ -73,12 +77,13 @@ class NewNPMProjHandler(FileSystemEventHandler):
     def grab_issues(self, entry: str, repo: GitHub):
         # TODO: Filter Issue results; currently way too much is stored.
         try:
+            issue_filter = IssueFilter()
             output_path = self.output_path.format(
                 type="issue", name=entry["id"])
             with open(output_path, "w+", encoding="utf-8") as output_file:
-
                 iss_count = 0
                 for count, issue in enumerate(repo.fetch(category=CATEGORY_ISSUE)):
+                    filtered_issue = issue_filter.filter(issue["data"])
                     output_file.write(json.dumps(issue) + "\n")
                     iss_count = count
 
@@ -86,7 +91,7 @@ class NewNPMProjHandler(FileSystemEventHandler):
                 name=entry['id'], count=iss_count))
         except HTTPError as herr:
             if herr.response.status_code == 404:
-                print("Repo for {name} doesn't exist.".format(
+                print("Couldn't get issues because repo for {name} doesn't exist.".format(
                     name=entry['id']))
         except Exception as e:
             print("Could not get issues for {name}.".format(name=entry['id']))
@@ -112,6 +117,7 @@ while is_running:
     try:
         sleep(1)
     except KeyboardInterrupt:
-        print("Stopping...")
+        print("Stopping because I was interrupted...")
         is_running = False
         observer.stop()
+        exception_output_file.close()
