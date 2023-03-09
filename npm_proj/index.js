@@ -5,16 +5,56 @@ const { stdout } = require('process');
 
 
 const db = 'https://replicate.npmjs.com';
-const output_file = './data/npm_projects.json'
+const output_file_prefix = "./data/npm/"
+const output_file_suffix = ".json"
 
 var changes = new ChangesStream({
   db: db,
   include_docs: true
 });
 
-function BuildEntry(doc) {
-  // Filters unnecessary data from entry.
+console.log("Starting to collect NPM packages.")
 
+start_time = Date.now()
+total_processed = 0
+total_stored = 0
+
+// Gets data from NPM using a changes stream.
+Request.get(db, function (err, req, body) {
+  var end_sequence = JSON.parse(body).update_seq;
+  changes.on('data', function (change) {
+    total_processed += 1
+    if (change.seq >= end_sequence) {
+      console.log("Done!")
+      process.exit(0);
+    }
+
+    HandleChange(change)
+    LogProgress()
+  });
+});
+
+
+
+function HandleChange(change) {
+  if (change.doc) {
+    // If a valid entry is received 
+    // it's parsed and stored.
+    try {
+      entry = BuildEntry(change.doc)
+      if (IsValidEntry(entry)) {
+        StoreEntry(entry)
+        total_stored += 1
+      }
+    }
+    catch (e) {
+      console.log(e)
+      console.log(change.doc)
+    }
+  }
+}
+
+function BuildEntry(doc) {
   if (!doc.versions)
     return undefined
 
@@ -50,55 +90,38 @@ function BuildEntry(doc) {
   return entry
 }
 
+function IsValidEntry(entry) {
+  if (entry === undefined ||
+    entry.repo_url === undefined ||
+    entry.versions.find(e => e.repo_url !== undefined) === undefined) {
+    return false
+  }
+  return true
+}
+
 function StoreEntry(entry) {
-  // Appends result to file.
+  // Builds filename and replaces illegal characters with _.
+  out_path = output_file_prefix + entry['id'] + output_file_suffix
+  out_path = out_path.replace(/[/\\?%*:|"<>]/g, '_');
+  // Stores json object.
   json_entry = JSON.stringify(entry) + "\n"
-  fs.appendFile(output_file, json_entry, err => {
+  fs.writeFile(out_path, json_entry, err => {
     if (err) {
       console.error(err)
     }
   })
 }
 
-start_time = Date.now()
-total_processed = 0
-total_stored = 0
-
-// Gets data from NPM using a changes stream.
-Request.get(db, function (err, req, body) {
-  var end_sequence = JSON.parse(body).update_seq;
-  changes.on('data', function (change) {
-    total_processed += 1
-    if (change.seq >= end_sequence) {
-      console.log("Done!")
-      process.exit(0);
-    }
-    if (change.doc) {
-      // If a valid entry is received 
-      // it's parsed and stored.
-      try {
-        entry = BuildEntry(change.doc)
-        if (entry) {
-          StoreEntry(entry)
-          total_stored += 1
-        }
-      }
-      catch (e) {
-        console.log(e)
-        console.log(doc)
-      }
-    }
-
-    // Writes progress update in console.
-    if (total_processed % 5 === 0) {
-      stdout.clearLine(0)
-      stdout.cursorTo(0)
-      cur_time = Date.now()
-      dtime = cur_time - start_time
-      str_dtime = new Date(dtime)
-        .toISOString().slice(11, 19)   // HH:MM:SS
-      p_per_sec = Math.floor((total_processed / Math.floor((dtime / 1000)) * 100)) / 100;
-      stdout.write(`Processed (${total_processed}), Stored (${total_stored}), Time spent (${str_dtime}), ${p_per_sec}/s.`)
-    }
-  });
-});
+function LogProgress() {
+  // Writes progress update in console.
+  if (total_processed % 5 === 0) {
+    stdout.clearLine(0)
+    stdout.cursorTo(0)
+    cur_time = Date.now()
+    dtime = cur_time - start_time
+    str_dtime = new Date(dtime)
+      .toISOString().slice(11, 19)   // HH:MM:SS
+    p_per_sec = Math.floor((total_processed / Math.floor((dtime / 1000)) * 100)) / 100;
+    stdout.write(`Processed ${total_processed} packages (${p_per_sec}/s) and of which ${total_stored} were relevant (${str_dtime}).`)
+  }
+}
