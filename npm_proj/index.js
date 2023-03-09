@@ -34,8 +34,6 @@ Request.get(db, function (err, req, body) {
   });
 });
 
-
-
 function HandleChange(change) {
   if (change.doc) {
     // If a valid entry is received 
@@ -103,8 +101,8 @@ function IsValidEntry(entry) {
 
 function StoreEntry(entry) {
   // Builds filename and replaces illegal characters with _.
+  safe_entry_id = entry['id'].replace(/[/\\?%*:|"<>]/g, '_')
   out_path = output_file_prefix + entry['id'] + output_file_suffix
-  out_path = out_path.replace(/[/\\?%*:|"<>]/g, '_');
   // Stores json object.
   json_entry = JSON.stringify(entry) + "\n"
   fs.writeFile(out_path, json_entry, err => {
