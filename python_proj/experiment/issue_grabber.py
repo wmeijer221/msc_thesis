@@ -46,7 +46,7 @@ class NewNPMProjHandler(FileSystemEventHandler):
         return repo
 
     def grab_pull_requests(self, entry: str, repo: GitHub):
-        # TODO: filter using this: curl https://api.github.com/repos/OWNER/REPO/pulls | jq length this will save a lot of time.
+        # TODO: Filter PR results; currently way too much is stored.
         try:
             output_path = self.output_path.format(type="pr", name=entry["id"])
 
@@ -71,6 +71,7 @@ class NewNPMProjHandler(FileSystemEventHandler):
             exception_output_file.flush()
 
     def grab_issues(self, entry: str, repo: GitHub):
+        # TODO: Filter Issue results; currently way too much is stored.
         try:
             output_path = self.output_path.format(
                 type="issue", name=entry["id"])
@@ -83,6 +84,10 @@ class NewNPMProjHandler(FileSystemEventHandler):
 
             print("Collected {count} issues for {name}.".format(
                 name=entry['id'], count=iss_count))
+        except HTTPError as herr:
+            if herr.response.status_code == 404:
+                print("Repo for {name} doesn't exist.".format(
+                    name=entry['id']))
         except Exception as e:
             print("Could not get issues for {name}.".format(name=entry['id']))
             exception_output_file.write(
