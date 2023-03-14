@@ -19,22 +19,20 @@ exception_output_file = open(
     "./data/col_exceptions.out", "a+", encoding="utf-8")
 
 
-class NewNPMProjHandler(FileSystemEventHandler):
+class GitHubDataGrabber:
     def __init__(self, output_path: str):
         self.output_path = output_path
 
-    def on_closed(self, event: FileClosedEvent):
-        src_path = event.src_path
-
+    def start_grabbing(self, src_path: str):
         with open(src_path, "r", encoding="utf-8") as input_file:
             entry = json.loads(input_file.read())
             print('\nGetting PRs and issues for {name}'.format(
                 name=entry['id']))
-            repo = self.make_repo(entry)
-            self.grab_pull_requests(entry, repo)
-            self.grab_issues(entry, repo)
+            repo = self.__make_repo(entry)
+            self.__grab_pull_requests(entry, repo)
+            self.__grab_issues(entry, repo)
 
-    def make_repo(self, package) -> GitHub:
+    def __make_repo(self, package) -> GitHub:
         if package['repo_type'] is None \
                 or package['repo_type'] != 'git':
             return None
@@ -47,13 +45,13 @@ class NewNPMProjHandler(FileSystemEventHandler):
 
         return repo
 
-    def grab_pull_requests(self, entry: str, repo: GitHub):
+    def __grab_pull_requests(self, entry: str, repo: GitHub):
         # TODO: Filter PR results; currently way too much is stored.
         try:
             output_path = self.output_path.format(type="pr", name=entry["id"])
 
             with open(output_path, "w+", encoding="utf-8") as output_file:
-                
+
                 pr_count = 0
                 pr_filter = PullFilter()
                 for count, pr in enumerate(repo.fetch(category=CATEGORY_PULL_REQUEST)):
@@ -74,7 +72,7 @@ class NewNPMProjHandler(FileSystemEventHandler):
             traceback.print_exc(file=exception_output_file)
             exception_output_file.flush()
 
-    def grab_issues(self, entry: str, repo: GitHub):
+    def __grab_issues(self, entry: str, repo: GitHub):
         # TODO: Filter Issue results; currently way too much is stored.
         try:
             issue_filter = IssueFilter()
@@ -99,6 +97,13 @@ class NewNPMProjHandler(FileSystemEventHandler):
                 '\n\nIssue failure for {name}'.format(name=entry['id']))
             traceback.print_exc(file=exception_output_file)
             exception_output_file.flush()
+
+
+class NewNPMProjHandler(GitHubDataGrabber, FileSystemEventHandler):
+    """Responds to files outputted by the npm_proj."""
+    def on_closed(self, event: FileClosedEvent):
+        src_path = event.src_path
+        self.start_grabbing(src_path)
 
 
 print("Starting with PR/issue collecting.")

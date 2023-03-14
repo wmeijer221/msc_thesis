@@ -63,23 +63,23 @@ function BuildEntry(doc) {
 
   // Gathers general repository details.
   if (doc.repository) {
-    entry.repo_type = doc.repository.type
-    entry.repo_url = doc.repository.url
+    entry.repo = doc.repository.url
   }
 
   // Gathers details for the different package versions.
   for (const [semver, details] of Object.entries(doc.versions)) {
     version_entry = {
-      version: semver,
-      license: details.license,
-      dependencies: details.dependencies,
-      devDependencies: details.devDependencies
+      v: semver,
+      lic: details.license,
+      deps: details.dependencies,
+      devDeps: details.devDependencies
     }
 
-    // Gathers repo details of version.
-    if (details.repository) {
-      version_entry.repo_type = details.repository.type
-      version_entry.repo_url = details.repository.url
+    // Gathers repo details of version
+    // if they're different from the main repo.
+    if (details.repository
+      && details.repository.url !== entry.repo) {
+      version_entry.repo = details.repository.url
     }
 
     entry.versions.push(version_entry)
@@ -92,9 +92,9 @@ function IsValidEntry(entry) {
   if (entry === undefined)
     return false
 
-  has_main_url = entry.repo_url !== undefined
+  has_main_url = entry.repo !== undefined
   has_version_url = entry.versions
-    .find(e => e.repo_url !== undefined) !== undefined
+    .find(e => e.repo !== undefined) !== undefined
 
   return has_main_url || has_version_url
 }
