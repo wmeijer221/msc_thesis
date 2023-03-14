@@ -102,7 +102,7 @@ function IsValidEntry(entry) {
 function StoreEntry(entry) {
   // Builds filename and replaces illegal characters with _.
   safe_entry_id = entry['id'].replace(/[/\\?%*:|"<>\/\@]/g, '_')
-  out_path = output_file_prefix + entry['id'] + output_file_suffix
+  out_path = output_file_prefix + safe_entry_id + output_file_suffix
   // Stores json object.
   json_entry = JSON.stringify(entry) + "\n"
   fs.writeFile(out_path, json_entry, err => {
