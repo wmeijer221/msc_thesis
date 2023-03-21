@@ -41,7 +41,8 @@ def has_sufficient_closed_prs(owner, repo_name, threshold: int) -> bool:
     pr_file_name = source_file.format(owner=owner, repo_name=repo_name)
     count = 0
     with open(pr_file_name, "r", encoding="utf-8") as input_file:
-        pull_requests = json.loads(input_file.read())
+        input = input_file.read()
+        pull_requests = json.loads(input)
         for pr in pull_requests:
             # PR has to be closed.
             if pr["state"] != "closed":
@@ -59,8 +60,14 @@ def has_sufficient_monthly_downloads(d_start_date: datetime, d_end_date: datetim
     url = f'https://api.npmjs.org/downloads/range/{start_date}:{end_date}/{project_name}'
 
     response: requests.Response = requests.get(url)
-    content = json.loads(response.content.decode("utf-8"))
+    
+    if response.status_code // 100 != 2:
+        print(f"Can't get downloads data for {project_name}")
+        return False
 
+    reponse_string = response.content.decode("utf-8")
+    content = json.loads(reponse_string)
+    
     downloads_per_month = {}
     for dl in content["downloads"]:
         downloads = dl["downloads"]
@@ -70,7 +77,7 @@ def has_sufficient_monthly_downloads(d_start_date: datetime, d_end_date: datetim
             downloads_per_month[my] = downloads
         else:
             downloads_per_month[my] += downloads
-    print(downloads_per_month)
+
     # TODO: Figure out how this is calculated.
     # This tests if EACH month has passes the threshold.
     enough_downloads = all([value >= threshold for value
@@ -85,17 +92,25 @@ def generate():
         repo_name = entry[repo_name_index]
         if repo_name == '':
             continue
-        owner, repo = repo_name.split("/")
-        proj_name = entry[proj_name_index]
 
-        # Skip if:
-        #   - Has no PR file.
-        #   - Number of CLOSED PRs before 12-02-2020 is less than 5.
-        #   - Monthly downloads since November 2018
-        if not has_pr_file(owner, repo) or \
-                not has_sufficient_closed_prs(owner, repo, 5) or \
-                not has_sufficient_monthly_downloads(download_start_date, download_end_date, proj_name, 10000):
+        try:
+            owner, repo = repo_name.split("/")
+            proj_name = entry[proj_name_index]
+        
+            # Skip if:
+            #   - Has no PR file.
+            #   - Number of CLOSED PRs before 12-02-2020 is less than 5.
+            #   - Monthly downloads since November 2018
+            if not has_pr_file(owner, repo) or \
+                    not has_sufficient_closed_prs(owner, repo, 5) or \
+                    not has_sufficient_monthly_downloads(download_start_date, download_end_date, proj_name, 10000):
+                continue
+        except Exception as e:
+            print(f'Failed with: {proj_name}')
+            print(entry)
+            print(e)
             continue
+        print(proj_name)
 
 
 if __name__ == "__main__":
