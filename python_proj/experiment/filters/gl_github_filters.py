@@ -57,6 +57,10 @@ class BaseFilter:
     __kwargs = {}
 
     def __init__(self, ignore_empty: bool = False) -> None:
+        """
+        :param ignore_empty: Whether empty fields (i.e., empty arrays, empty dictionaries, and null-values) should be ignored or not.
+        """
+        
         self._ignore_empty = ignore_empty
         self.__kwargs["ignore_empty"] = ignore_empty
 
@@ -76,7 +80,8 @@ class BaseFilter:
         if not field in self._source:
             return True
         source_field = self._source[field]
-        return (_seq_but_not_str(source_field) and len(source_field) == 0) or \
+        return source_field is None or \
+            (_seq_but_not_str(source_field) and len(source_field) == 0) or \
             (isinstance(source_field, dict) and len(source_field) == 0)
 
     def __filter_fields(self):
@@ -148,11 +153,11 @@ class PullFilter(BaseFilter):
                         "milestone", "author_association", "auto_merge", "active_lock_reason",
                         "merged", "mergeable", "rebaseable", "mergeable_state",
                         "comments", "review_comments", "commits", "additions",
-                        "deletions", "changed_files", "review_comments_data",
-                        "reviews_data"]
+                        "deletions", "changed_files"]
 
         self._subfilter_fields = {
-            UserFilter: ["user_data", "merged_by_data", "assignee"]
+            UserFilter: ["user_data", "merged_by_data", "assignee"],
+            ReviewFilter: ["reviews_data"]
         }
 
         self._listsubfilter_fields = {
@@ -176,3 +181,14 @@ class OrganizationFilter(BaseFilter):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self._fields = ["login", "id", "description"]
+
+
+class ReviewFilter(BaseFilter):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
+        self._fields = ["id", "body", "state",
+                        "author_association", "submitted_at", "commit_id"]
+
+        self._subfilter_fields - {
+            UserFilter: ["user_data"]
+        }

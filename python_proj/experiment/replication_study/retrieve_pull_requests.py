@@ -1,5 +1,6 @@
 """
-This script retrieves all data necessary to replicate the results of Dey et al. (2020); i.e., pull request data.
+This script retrieves all data necessary to replicate
+the results of Dey et al. (2020); i.e., pull request data.
 """
 
 import json
@@ -22,6 +23,9 @@ headers = ['ID', 'Platform', 'Name', 'Created Timestamp', 'Updated Timestamp', '
            'Repository Pages enabled?', 'Repository Forks Count', 'Repository Mirror URL', 'Repository Open Issues Count', 'Repository Default branch', 'Repository Watchers Count', 'Repository UUID', 'Repository Fork Source Name with Owner', 'Repository License', 'Repository Contributors Count', 'Repository Readme filename', 'Repository Changelog filename', 'Repository Contributing guidelines filename', 'Repository License filename', 'Repository Code of Conduct filename', 'Repository Security Threat Model filename', 'Repository Security Audit filename', 'Repository Status', 'Repository Last Synced Timestamp', 'Repository SourceRank', 'Repository Display Name', 'Repository SCM type', 'Repository Pull requests enabled?', 'Repository Logo URL', 'Repository Keywords']
 
 repo_name_index = headers.index("Repository Name with Owner")
+is_fork_index = headers.index("Repository Fork?")
+prs_enabled_index = headers.index("Repository Pull requests enabled?") + 1
+
 end_date = datetime(year=2020, month=1, day=12)
 
 # To log retrieval errors without stopping the program.
@@ -43,6 +47,23 @@ count_output.flush()
 dotenv.load_dotenv()
 github_token = getenv("GITHUB_TOKEN")
 github_token_2 = getenv("GITHUB_TOKEN_2")
+github_token_3 = getenv("GITHUB_TOKEN_3")
+
+
+def matches_inclusion_criteria(entry):
+    # TODO filter on is_fork (ignore forks), pull_request_enabled (requirement), repository_pushed (last month?), repo_contrib_count (min 2), repo_status (active), proj_status (active). Maybe popularity metrics (stars, or dependent project count)
+    # It must have a repository entry.
+    if entry[repo_name_index] == '':
+        return False
+    # It can't be a fork.
+    if entry[is_fork_index] == 'true':
+        return False
+    # Must have PRs enabled.
+    # THIS DOESN'T WORK FOR GITHUB PROJECTS.
+    # print(entry[prs_enabled_index])
+    # if entry[prs_enabled_index] != 't':
+    #     return False
+    return True
 
 
 def retrieve_pull_requests():
@@ -50,9 +71,9 @@ def retrieve_pull_requests():
     csv_reader = reader(input_file, quotechar='"')
 
     for entry in csv_reader:
-        repo_name = entry[repo_name_index]
-        if repo_name == '':
+        if not matches_inclusion_criteria(entry):
             continue
+        repo_name = entry[repo_name_index]
         owner, repo = repo_name.split("/")
         print(f'Starting with: {owner=}, {repo=}.')
         try:
@@ -81,7 +102,7 @@ def fetch_prs(owner: str, repo_name: str):
         # Attempts to retrieve all PRs in the repo,
         # and filters.
         repo: GitHub = GitHub(owner=owner, repository=repo_name,
-                              api_token=[github_token, github_token_2], sleep_for_rate=True)
+                              api_token=[github_token, github_token_2, github_token_3], sleep_for_rate=True)
         data_iterator = repo.fetch(
             category=CATEGORY_PULL_REQUEST, to_date=end_date)
         pr_filter = PullFilter(ignore_empty=True)
@@ -97,6 +118,7 @@ def fetch_prs(owner: str, repo_name: str):
             filtered_pr = pr_filter.filter(data)
             output_file.write(json.dumps(filtered_pr, indent=1))
 
+        # TODO: remove files with zero PRs.
         count_writer.writerow([f'{owner}/{repo_name}', pr_count])
         count_output.flush()
 
@@ -109,5 +131,18 @@ def fetch_prs(owner: str, repo_name: str):
         raise e
 
 
+def count_projects_that_match_criteria():
+    input_file = open(input_path, 'r', encoding="utf-8")
+    csv_reader = reader(input_file, quotechar='"')
+    count_included = 0
+    count_all = 0
+    for entry in csv_reader:
+        count_all += 1
+        if matches_inclusion_criteria(entry):
+            count_included += 1
+    print(f'{count_included=}, {count_all=}')
+
+
 if __name__ == "__main__":
     retrieve_pull_requests()
+    # count_projects_that_match_criteria()
