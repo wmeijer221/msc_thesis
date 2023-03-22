@@ -103,6 +103,7 @@ def retrieve_pull_requests():
             host_count[repo_host] += 1
 
         try:
+            print(f'Starting with {repo_name} at {repo_host}.')
             fetch_prs(repo_name, repo_host)
         except HTTPError as e:
             # If it's an HTTP error it basically
@@ -157,8 +158,6 @@ def fetch_prs(repo_name: str, repo_host: str):
     else:
         # TODO implement this if theres a large number of non-GitHub/GitLab repositories.
         raise NotImplementedError(f"Unsupported repository type: {repo_host}.")
-
-    print(f'Starting with: {owner}/{repo_name} at {repo_host}.')
 
     r_output_path = output_path.format(
         project_name=f'{owner}--{repo_name}')
