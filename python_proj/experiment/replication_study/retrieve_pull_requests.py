@@ -59,7 +59,7 @@ count_writer.writerow(["project", "pr count"])
 count_output.flush()
 
 dotenv.load_dotenv()
-github_token = getenv("GITHUB_TOKEN")
+github_token_1 = getenv("GITHUB_TOKEN_1")
 github_token_2 = getenv("GITHUB_TOKEN_2")
 github_token_3 = getenv("GITHUB_TOKEN_3")
 gitlab_token_1 = getenv("GITLAB_TOKEN_1")
@@ -122,26 +122,37 @@ def retrieve_pull_requests():
         csv_writer.writerows(entries)
 
 
+def __build_github(repo_name: str):
+    owner, repo_name = repo_name.split("/")
+    repo: GitHub = GitHub(owner=owner, repository=repo_name,
+                          api_token=[github_token_1,
+                                     github_token_2, github_token_3],
+                          sleep_for_rate=True)
+    data_iterator = repo.fetch(
+        category=CATEGORY_PULL_REQUEST, to_date=end_date)
+    pr_filter = PullFilter(ignore_empty=True)
+    return owner, repo_name, data_iterator, pr_filter
+
+
+def __build_gitlab(repo_name: str):
+    repo_split = repo_name.split("/")
+    owner = repo_split[0]
+    repo_name = repo_split[-1]
+    repo: GitLab = GitLab(owner=owner, repository=repo_name,
+                          api_token=gitlab_token_1, sleep_for_rate=True)
+    data_iterator = repo.fetch(category=CATEGORY_MERGE_REQUEST)
+    pr_filter = MergeRequestFilter(ignore_empty=True)
+    return owner, repo_name, data_iterator, pr_filter
+
+
 def fetch_prs(repo_name: str, repo_host: str):
     # Selects the right Perceval backend
     # and corresponding data filter.
-    if repo_host == "GitHub":
-        owner, repo_name = repo_name.split("/")
-        repo: GitHub = GitHub(owner=owner, repository=repo_name,
-                              api_token=[github_token,
-                                         github_token_2, github_token_3],
-                              sleep_for_rate=True)
-        data_iterator = repo.fetch(
-            category=CATEGORY_PULL_REQUEST, to_date=end_date)
-        pr_filter = PullFilter(ignore_empty=True)
-    elif repo_host == "GitLab":
-        repo_split = repo_name.split("/")
-        owner = repo_split[0]
-        repo_name = repo_split[-1]
-        repo: GitLab = GitLab(owner=owner, repository=repo_name,
-                              api_token=gitlab_token_1, sleep_for_rate=True)
-        data_iterator = repo.fetch(category=CATEGORY_MERGE_REQUEST)
-        pr_filter = MergeRequestFilter(ignore_empty=True)
+    if repo_host.lower() == "github":
+        owner, repo_name, data_iterator, pr_filter = __build_github(repo_name)
+    elif repo_host.lower() == "gitlab":
+        owner, repo_name, data_iterator, pr_filter = __build_gitlab(repo_name)
+    # TODO: Add bitbucket support; this isn't natively supported by grimoirelab, though...
     else:
         # TODO implement this if theres a large number of non-GitHub/GitLab repositories.
         raise NotImplementedError(f"Unsupported repository type: {repo_host}.")
@@ -167,6 +178,7 @@ def fetch_prs(repo_name: str, repo_host: str):
                 pr_count = index
 
             data = pull_request["data"]
+            print(data)
             filtered_pr = pr_filter.filter(data)
             output_file.write(json.dumps(filtered_pr, indent=2))
 
