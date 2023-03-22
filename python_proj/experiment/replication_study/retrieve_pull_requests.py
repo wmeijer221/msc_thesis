@@ -89,6 +89,7 @@ def retrieve_pull_requests():
     host_count = {}
 
     for entry in csv_reader:
+        print(entry)
         if not matches_inclusion_criteria(entry):
             continue
 
