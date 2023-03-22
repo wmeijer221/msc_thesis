@@ -178,7 +178,6 @@ def fetch_prs(repo_name: str, repo_host: str):
                 pr_count = index
 
             data = pull_request["data"]
-            print(data)
             filtered_pr = pr_filter.filter(data)
             output_file.write(json.dumps(filtered_pr, indent=2))
 
