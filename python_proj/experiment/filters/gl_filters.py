@@ -69,7 +69,7 @@ class BaseFilter:
         self.__filter_subfilter_lists()
         return self._target
 
-    def __is_empty(self, field):
+    def _is_empty(self, field):
         if not self._ignore_empty:
             return False
         if not field in self._source:
@@ -81,14 +81,14 @@ class BaseFilter:
 
     def __filter_fields(self):
         non_empty_fields = [field for field in self._fields
-                            if not self.__is_empty(field)]
+                            if not self._is_empty(field)]
         for field in non_empty_fields:
             safe_set(self._source, self._target, field)
 
     def __filter_subfilter_fields(self):
         for filter, fields in self._subfilter_fields.items():
             non_empty_fields = [field for field in fields
-                                if not self.__is_empty(field)]
+                                if not self._is_empty(field)]
             for field in non_empty_fields:
                 safe_set_with_filter(
                     self._source, self._target, filter, field, **self.__kwargs)
@@ -96,7 +96,7 @@ class BaseFilter:
     def __filter_subfilter_lists(self):
         for filter, fields in self._listsubfilter_fields.items():
             non_empty_fields = [field for field in fields
-                                if not self.__is_empty(field)]
+                                if not self._is_empty(field)]
             for field in non_empty_fields:
                 safe_set_many_with_filter(
                     self._source, self._target, filter, field, **self.__kwargs)
