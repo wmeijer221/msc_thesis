@@ -89,7 +89,6 @@ def retrieve_pull_requests():
     host_count = {}
 
     for entry in csv_reader:
-        print(entry)
         if not matches_inclusion_criteria(entry):
             continue
 
@@ -105,15 +104,15 @@ def retrieve_pull_requests():
         try:
             print(f'Starting with {repo_name} at {repo_host}.')
             fetch_prs(repo_name, repo_host)
-        except HTTPError as e:
+        except (HTTPError | NotImplementedError) as e:
             # If it's an HTTP error it basically
             # means the repo is private / removed.
-            error_writer.writerow([repo_name, e.response.status_code, str(e)])
+            error_writer.writerow([repo_name, str(e)])
             error_output.flush()
-        except Exception as e:
-            # All other errors are stored for debuggin.
-            error_writer.writerow([repo_name, "", e])
-            error_output.flush()
+        # except Exception as e:
+        #     # All other errors are stored for debuggin.
+        #     error_writer.writerow([repo_name, "", e])
+        #     error_output.flush()
 
     input_file.close()
 
