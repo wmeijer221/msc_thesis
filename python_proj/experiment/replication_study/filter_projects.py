@@ -31,6 +31,7 @@ csv_reader = reader(input_file, quotechar='"')
 
 # boundary dates for the downloads per month requirement.
 # Dey et al. (2020) observed up to 16 months prior.
+# 16 months is an arbitrary number (confirmed by the author).
 download_end_date = datetime(2019, 12, 31)
 download_start_date = datetime(2018, 11, 1)
 
