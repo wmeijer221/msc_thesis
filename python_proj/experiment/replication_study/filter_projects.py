@@ -34,7 +34,7 @@ download_end_date = datetime(2019, 12, 31)
 download_start_date = datetime(2018, 11, 1)
 
 # The final date by which the PR can be submitted.
-max_pr_date = datetime(2020,1,12)
+max_pr_date = datetime(2020, 1, 12)
 
 source_file = "./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/{owner}--{repo_name}.json"
 
@@ -103,9 +103,9 @@ def has_sufficient_monthly_downloads(d_start_date: datetime, d_end_date: datetim
         else:
             downloads_per_month[my] += downloads
 
-    # TODO: Figure out how this is calculated.
-    # This tests if EACH month has passes the threshold.
-    enough_downloads = all([value >= threshold for value
+    # This tests if ANY month has passes the threshold.
+    # (I confirmed this with the author.)
+    enough_downloads = any([value >= threshold for value
                             in downloads_per_month.values()])
 
     return enough_downloads
