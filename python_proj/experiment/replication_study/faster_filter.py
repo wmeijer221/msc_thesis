@@ -29,7 +29,7 @@ with open(input_path, "r", encoding="utf-8") as input_file:
     total_lines = count
 
 
-def calculate(index: int, is_final_chunk: bool):
+def calculate(index: int, is_final_chunk: bool, output_file):
     output_key = index % job_count
 
     chunk_start = index * chunk_size
@@ -38,9 +38,7 @@ def calculate(index: int, is_final_chunk: bool):
     print(f"Thread {index} - {chunk_start}:{chunk_end}")
 
     input_reader = reader(in_memory_file, quotechar='"')
-    output_file = open(
-        f"{output_path}included_projects_dl_{output_key}.csv", "w+", encoding="utf-8")
-
+    
     for entry in itertools.islice(input_reader, chunk_start, chunk_end):
         repo_name = entry[fp.repo_name_index]
         if repo_name == '':
@@ -79,8 +77,13 @@ def run(job_count, cs: int = None):
 
     print(f'Running with {job_count=}, {chunk_size=}.')
 
+    o_file = [
+        open(f"{output_path}included_projects_dl_{index}.csv", "w+", encoding="utf-8")
+        for index in range(job_count)
+    ]
+
     start = datetime.datetime.now()
-    Parallel(n_jobs=job_count)(delayed(calculate)(i, i == job_count - 1)
+    Parallel(n_jobs=job_count)(delayed(calculate)(i, i == job_count - 1, o_file[i])
                                for i in range(job_count))
     delta_time = datetime.datetime.now() - start
     print(f'{delta_time=}')
