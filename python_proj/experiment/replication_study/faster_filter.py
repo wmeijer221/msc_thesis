@@ -30,8 +30,6 @@ with open(input_path, "r", encoding="utf-8") as input_file:
 
 
 def calculate(index: int, is_final_chunk: bool, output_file):
-    output_key = index % job_count
-
     chunk_start = index * chunk_size
     chunk_end = total_lines if is_final_chunk else (index + 1) * chunk_size
 
@@ -59,8 +57,11 @@ def calculate(index: int, is_final_chunk: bool, output_file):
 
         if not suff_dls:
             continue
-        output_file.write(f'{repo_name}\n')
+
+        print(f"Found one: {repo_name}.")
+        output_file.writeline(f'{repo_name}\n')
         output_file.flush()
+        sleep(1)
 
     output_file.close()
 
