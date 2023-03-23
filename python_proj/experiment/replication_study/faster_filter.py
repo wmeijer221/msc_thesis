@@ -36,13 +36,17 @@ def calculate(index: int, is_final_chunk: bool):
     print(f"Thread {index} - {chunk_start}:{chunk_end}")
 
     input_reader = reader(in_memory_file, quotechar='"')
-    
+
+    processed_repos = set()
+
     for entry in itertools.islice(input_reader, chunk_start, chunk_end):
         repo_name = entry[fp.repo_name_index]
         if repo_name == '':
             continue
 
-        # print(f'Starting with {repo_name}')
+        if repo_name in processed_repos:
+            continue
+        processed_repos.add(repo_name)
 
         proj_name = entry[fp.proj_name_index]
         failed = True
@@ -58,11 +62,9 @@ def calculate(index: int, is_final_chunk: bool):
         if not suff_dls:
             continue
 
-        print(f"Found one: {repo_name}.")
         of = open(f"{output_path}included_projects_dl_{index}.csv", "a+")
         print(f'{repo_name}', file=of, flush=True)
-        # output_file.write(f'{repo_name}\n')
-        # output_file.flush()
+
 
 def run(job_count, cs: int = None):
     global chunk_size, total_lines
