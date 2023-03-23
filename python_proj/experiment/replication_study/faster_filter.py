@@ -59,7 +59,7 @@ def calculate(index: int, is_final_chunk: bool, output_file):
             continue
 
         print(f"Found one: {repo_name}.")
-        output_file.writeline(f'{repo_name}\n')
+        output_file.write(f'{repo_name}\n')
         output_file.flush()
         sleep(1)
 
