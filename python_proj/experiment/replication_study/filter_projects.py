@@ -127,6 +127,7 @@ def generate(exlusion_criteria: callable, output_key: str = ""):
     # Iterate through all entries in npm-libraries.
     for entry in csv_reader:
         repo_name = entry[repo_name_index]
+        print(f'Starting with: {repo_name}')
         # projects without a repo are ignored by default.
         if repo_name == '':
             continue
@@ -159,6 +160,7 @@ def exclusion_prs(entry):
 
 def exclusion_downloads(entry):
     proj_name = entry[proj_name_index]
+    print(proj_name)
     return not has_sufficient_monthly_downloads(download_start_date, download_end_date, proj_name, 10000)
 
 
