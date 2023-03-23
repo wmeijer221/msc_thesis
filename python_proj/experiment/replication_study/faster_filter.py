@@ -103,7 +103,7 @@ if __name__ == "__main__":
             print(f'{results=}')
 
         elif mode == "r":
-            threads = argv[argv.index("-t") + 1]
+            threads = int(argv[argv.index("-t") + 1])
             run(threads)
         else:
             raise ValueError(f"Invalid mode {mode}.")
