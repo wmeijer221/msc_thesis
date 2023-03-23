@@ -7,6 +7,7 @@ from datetime import datetime
 from os import path, makedirs
 import json
 import requests
+from sys import argv
 
 # Dey et al.'s project criteria
 # - NPM packages with over 10000 monthly downloads, since January 2018.
@@ -143,28 +144,38 @@ def generate(exlusion_criteria: callable, output_key: str = ""):
         output_valid_entries.flush()
 
 
+def exclusion_prs(entry):
+    repo_name = entry[repo_name_index]
+    name_split = repo_name.split("/")
+    owner = name_split[0]
+    repo = name_split[-1]
+    host_type = entry[repo_host_type_index]
+    return not has_pr_file(owner, repo) or \
+        not has_sufficient_closed_prs(owner, repo, 5, host_type)
+
+
+def exclusion_downloads(entry):
+    proj_name = entry[proj_name_index]
+    return not has_sufficient_monthly_downloads(download_start_date, download_end_date, proj_name, 10000)
+
+
+def exclusion_both(entry):
+    return exclusion_prs(entry) or exclusion_downloads(entry)
+
+
 if __name__ == "__main__":
+
     # Skip if:
     #   - Has no PR file.
     #   - Number of CLOSED PRs before 12-02-2020 is less than 5.
     #   - Monthly downloads since November 2018
 
-    def exclusion_prs(entry):
-        repo_name = entry[repo_name_index]
-        name_split = repo_name.split("/")
-        owner = name_split[0]
-        repo = name_split[-1]
-        host_type = entry[repo_host_type_index]
-        return not has_pr_file(owner, repo) or \
-            not has_sufficient_closed_prs(owner, repo, 5, host_type)
+    mode = argv[argv.index("-m") + 1].lower()
+    print(f'Starting in mode "{mode}".')
 
-    def exclusion_downloads(entry):
-        proj_name = entry[proj_name_index]
-        return not has_sufficient_monthly_downloads(download_start_date, download_end_date, proj_name, 10000)
-
-    def exclusion_both(entry):
-        return exclusion_prs(entry) or exclusion_downloads(entry)
-
-    generate(exclusion_downloads, "_dl")
-    # generate(exclusion_prs, "_pr")
-    # generate(exclusion_both)
+    if mode == "d":
+        generate(exclusion_downloads, "_dl")
+    elif mode == "p":
+        generate(exclusion_prs, "_pr")
+    else:
+        generate(exclusion_both)
