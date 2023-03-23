@@ -5,6 +5,7 @@ import math
 from csv import reader
 import itertools
 from sys import argv
+from time import sleep
 
 import python_proj.experiment.replication_study.filter_projects as fp
 from python_proj.experiment.util import safe_index
@@ -48,10 +49,22 @@ def calculate(index: int, is_final_chunk: bool):
         # print(f'Starting with {repo_name}')
 
         proj_name = entry[fp.proj_name_index]
-        if not fp.has_sufficient_monthly_downloads(fp.download_start_date, fp.download_end_date, proj_name, 10000):
+        failed = True
+        while failed:
+            try:
+                suff_dls = fp.has_sufficient_monthly_downloads(
+                    fp.download_start_date, fp.download_end_date, proj_name, 10000)
+                failed = False
+            except:
+                print("Something went wrong...")
+                sleep(5)
+
+        if not suff_dls:
             continue
         output_file.write(f'{repo_name}\n')
         output_file.flush()
+
+    output_file.close()
 
 
 def run(job_count, cs: int = None):
@@ -89,7 +102,7 @@ if __name__ == "__main__":
                 delta_time = run(thread, cs=cs)
                 results[thread] = delta_time
             print(f'{results=}')
-            
+
         elif mode == "r":
             threads = argv[argv.index("-t") + 1]
             run(threads)
