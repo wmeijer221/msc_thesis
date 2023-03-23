@@ -70,7 +70,7 @@ def run(job_count, cs: int = None):
     global chunk_size, total_lines
 
     if cs == None:
-        chunk_size = math.floor(total_lines % job_count)
+        chunk_size = math.floor(total_lines / job_count)
     else:
         # Indicates a test run.
         chunk_size = cs
