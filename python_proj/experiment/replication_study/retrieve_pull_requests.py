@@ -17,7 +17,7 @@ import dotenv
 from os import getenv, path, makedirs, remove
 from perceval.backends.core.github import GitHub, CATEGORY_PULL_REQUEST
 from perceval.backends.core.gitlab import GitLab, CATEGORY_MERGE_REQUEST
-from requests.exceptions import HTTPError
+from sys import argv
 
 from python_proj.experiment.filters.gl_github_filters import PullFilter
 from python_proj.experiment.filters.gl_gitlab_filters import MergeRequestFilter
@@ -64,6 +64,9 @@ github_token_2 = getenv("GITHUB_TOKEN_2")
 github_token_3 = getenv("GITHUB_TOKEN_3")
 gitlab_token_1 = getenv("GITLAB_TOKEN_1")
 
+processed_projects = set()
+skip_processed = False
+
 
 def matches_inclusion_criteria(entry):
     # TODO filter on is_fork (ignore forks), pull_request_enabled (requirement), repository_pushed (last month?), repo_contrib_count (min 2), repo_status (active), proj_status (active). Maybe popularity metrics (stars, or dependent project count)
@@ -94,6 +97,13 @@ def retrieve_pull_requests():
 
         repo_name = entry[repo_name_index]
         repo_host = entry[repo_host_type_index]
+
+        # To prevent the same repo from being processed multiple times.
+        unique_entry = (repo_name, repo_host)
+        if unique_entry in processed_projects:
+            print(f'Found duplicate entry: {unique_entry}.')
+            continue
+        processed_projects.add(unique_entry)
 
         # Updates host count.
         if not repo_host in host_count:
@@ -156,6 +166,11 @@ def fetch_prs(repo_name: str, repo_host: str):
     r_output_path = output_path.format(
         project_name=f'{owner}--{repo_name}')
 
+    if skip_processed and path.exists(r_output_path):
+        print(
+            f"Skipping already processed repo: {owner}/{repo_name} at {repo_host}.")
+        return
+
     if not path.exists((output_dir := path.dirname(r_output_path))):
         makedirs(output_dir)
 
@@ -213,5 +228,13 @@ def count_projects_that_match_criteria():
 
 
 if __name__ == "__main__":
-    retrieve_pull_requests()
-    # count_projects_that_match_criteria()
+    mode = argv[argv.index("-m") + 1].lower()
+    print(f'Starting in mode "{mode}".')
+
+    if mode == "s":
+        skip_processed = True
+        retrieve_pull_requests()
+    if mode == "c":
+        count_projects_that_match_criteria()
+    else:
+        retrieve_pull_requests()
