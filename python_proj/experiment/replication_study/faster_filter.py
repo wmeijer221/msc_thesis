@@ -29,7 +29,7 @@ with open(input_path, "r", encoding="utf-8") as input_file:
     total_lines = count
 
 
-def calculate(index: int, is_final_chunk: bool, output_file):
+def calculate(index: int, is_final_chunk: bool):
     chunk_start = index * chunk_size
     chunk_end = total_lines if is_final_chunk else (index + 1) * chunk_size
 
@@ -59,12 +59,10 @@ def calculate(index: int, is_final_chunk: bool, output_file):
             continue
 
         print(f"Found one: {repo_name}.")
-        output_file.write(f'{repo_name}\n')
-        output_file.flush()
-        sleep(1)
-
-    output_file.close()
-
+        of = open(f"{output_path}included_projects_dl_{index}.csv", "a+")
+        print(f'{repo_name}', file=of, flush=True)
+        # output_file.write(f'{repo_name}\n')
+        # output_file.flush()
 
 def run(job_count, cs: int = None):
     global chunk_size, total_lines
@@ -78,13 +76,8 @@ def run(job_count, cs: int = None):
 
     print(f'Running with {job_count=}, {chunk_size=}.')
 
-    o_file = [
-        open(f"{output_path}included_projects_dl_{index}.csv", "w+", encoding="utf-8")
-        for index in range(job_count)
-    ]
-
     start = datetime.datetime.now()
-    Parallel(n_jobs=job_count)(delayed(calculate)(i, i == job_count - 1, o_file[i])
+    Parallel(n_jobs=job_count)(delayed(calculate)(i, i == job_count - 1)
                                for i in range(job_count))
     delta_time = datetime.datetime.now() - start
     print(f'{delta_time=}')
