@@ -111,32 +111,24 @@ def has_sufficient_monthly_downloads(d_start_date: datetime, d_end_date: datetim
     return enough_downloads
 
 
-def generate():
-    if not path.exists(out_dir := "./data/libraries/npm-libraries-1.6.0-2020-01-12/predictors/"):
-        makedirs(out_dir)
+output_path = "./data/libraries/npm-libraries-1.6.0-2020-01-12/predictors/"
+
+
+def generate(exlusion_criteria: callable, output_key: str = ""):
+    if not path.exists(output_path):
+        makedirs(output_path)
     output_valid_entries = open(
-        "./data/libraries/npm-libraries-1.6.0-2020-01-12/predictors/included_projects.csv", "w+", encoding="utf-8")
+        f"{output_path}included_projects{output_key}.csv", "w+", encoding="utf-8")
 
     # Iterate through all entries in npm-libraries.
     for entry in csv_reader:
         repo_name = entry[repo_name_index]
+        # projects without a repo are ignored by default.
         if repo_name == '':
             continue
 
         try:
-            name_split = repo_name.split("/")
-            owner = name_split[0]
-            repo = name_split[-1]
-            proj_name = entry[proj_name_index]
-            host_type = entry[repo_host_type_index]
-
-            # Skip if:
-            #   - Has no PR file.
-            #   - Number of CLOSED PRs before 12-02-2020 is less than 5.
-            #   - Monthly downloads since November 2018
-            if not has_pr_file(owner, repo) or \
-                    not has_sufficient_closed_prs(owner, repo, 5, host_type) or \
-                    not has_sufficient_monthly_downloads(download_start_date, download_end_date, proj_name, 10000):
+            if exlusion_criteria(entry):
                 continue
         except json.decoder.JSONDecodeError:
             # catches broken data files.
@@ -152,4 +144,27 @@ def generate():
 
 
 if __name__ == "__main__":
-    generate()
+    # Skip if:
+    #   - Has no PR file.
+    #   - Number of CLOSED PRs before 12-02-2020 is less than 5.
+    #   - Monthly downloads since November 2018
+
+    def exclusion_prs(entry):
+        repo_name = entry[repo_name_index]
+        name_split = repo_name.split("/")
+        owner = name_split[0]
+        repo = name_split[-1]
+        host_type = entry[repo_host_type_index]
+        return not has_pr_file(owner, repo) or \
+            not has_sufficient_closed_prs(owner, repo, 5, host_type)
+
+    def exclusion_downloads(entry):
+        proj_name = entry[proj_name_index]
+        return not has_sufficient_monthly_downloads(download_start_date, download_end_date, proj_name, 10000)
+
+    def exclusion_both(entry):
+        return exclusion_prs(entry) or exclusion_downloads(entry)
+
+    generate(exclusion_downloads, "_dl")
+    # generate(exclusion_prs, "_pr")
+    # generate(exclusion_both)
