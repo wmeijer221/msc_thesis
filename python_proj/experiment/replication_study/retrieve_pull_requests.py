@@ -23,7 +23,7 @@ from python_proj.experiment.util import safe_index
 from python_proj.experiment.filters.gl_github_filters import PullFilter
 from python_proj.experiment.filters.gl_gitlab_filters import MergeRequestFilter
 
-
+# TODO: None of this is set up for different ocosystems than NPM.
 input_path = "./data/libraries/npm-libraries-1.6.0-2020-01-12/projects_with_repository_fields-1.6.0-2020-01-12.csv"
 output_path = "./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/{project_name}.json"
 error_path = "./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/error.csv"
