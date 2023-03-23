@@ -9,6 +9,8 @@ import json
 import requests
 from sys import argv
 
+from python_proj.experiment.util import safe_index
+
 # Dey et al.'s project criteria
 # - NPM packages with over 10000 monthly downloads, since January 2018.
 #   - i.e., in the past 16 months.
@@ -180,20 +182,22 @@ def merge_exclusion_lists():
 
 
 if __name__ == "__main__":
-
     # Skip if:
     #   - Has no PR file.
     #   - Number of CLOSED PRs before 12-02-2020 is less than 5.
     #   - Monthly downloads since November 2018
 
-    mode = argv[argv.index("-m") + 1].lower()
-    print(f'Starting in mode "{mode}".')
+    if (m_index := safe_index(argv, "-m")) != -1:
+        mode = argv[argv.index("-m") + 1].lower()
+        print(f'Starting in mode "{mode}".')
 
-    if mode == "d":
-        generate(exclusion_downloads, "_dl")
-    elif mode == "p":
-        generate(exclusion_prs, "_pr")
-    elif mode == "m":
-        merge_exclusion_lists()
+        if mode == "d":
+            generate(exclusion_downloads, "_dl")
+        elif mode == "p":
+            generate(exclusion_prs, "_pr")
+        elif mode == "m":
+            merge_exclusion_lists()
+        else:
+            raise ValueError(f"Invalid mode \"{mode}\".")
     else:
         generate(exclusion_both)

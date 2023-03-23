@@ -19,6 +19,7 @@ from perceval.backends.core.github import GitHub, CATEGORY_PULL_REQUEST
 from perceval.backends.core.gitlab import GitLab, CATEGORY_MERGE_REQUEST
 from sys import argv
 
+from python_proj.experiment.util import safe_index
 from python_proj.experiment.filters.gl_github_filters import PullFilter
 from python_proj.experiment.filters.gl_gitlab_filters import MergeRequestFilter
 
@@ -28,6 +29,7 @@ output_path = "./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/{pr
 error_path = "./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/error.csv"
 count_path = "./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/pr-count.csv"
 repo_count_path = "./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/repo-count.csv"
+filter_path = "./data/libraries/npm-libraries-1.6.0-2020-01-12/predictors/included_projects{filter_type}.csv"
 
 # These headers correspond with the "libraries.io/data"
 # headers in the "projects_with_repository_fields" file.
@@ -66,6 +68,7 @@ gitlab_token_1 = getenv("GITLAB_TOKEN_1")
 
 processed_projects = set()
 skip_processed = False
+included_projects = None
 
 
 def matches_inclusion_criteria(entry):
@@ -98,10 +101,16 @@ def retrieve_pull_requests():
         repo_name = entry[repo_name_index]
         repo_host = entry[repo_host_type_index]
 
+        # Skips project if a filter list is used
+        # and the repository is not in it.
+        if not included_projects is None and not repo_name in included_projects:
+            print(f'Skipping filtered project: {repo_name}.')
+            continue
+
         # To prevent the same repo from being processed multiple times.
         unique_entry = (repo_name, repo_host)
         if unique_entry in processed_projects:
-            print(f'Found duplicate entry: {unique_entry}.')
+            print(f'Skipping duplicate entry: {unique_entry}.')
             continue
         processed_projects.add(unique_entry)
 
@@ -227,14 +236,31 @@ def count_projects_that_match_criteria():
     print(f'{count_included=}, {count_all=}')
 
 
-if __name__ == "__main__":
-    mode = argv[argv.index("-m") + 1].lower()
-    print(f'Starting in mode "{mode}".')
+def set_filter(f_type: str):
+    global included_projects
+    r_filter_path = filter_path.format(filter_type=f'_{f_type}')
+    with open(r_filter_path, "r", encoding="utf-8") as filter_file:
+        included_projects = set([entry.strip()
+                                for entry in filter_file.readlines()])
 
-    if mode == "s":
-        skip_processed = True
-        retrieve_pull_requests()
-    if mode == "c":
-        count_projects_that_match_criteria()
+
+if __name__ == "__main__":
+    if (filter_index := safe_index(argv, "-f")) != -1:
+        f_type = argv[filter_index + 1].lower()
+        set_filter(f_type)
+        print(
+            f"Using filter \"{f_type}\" with {len(included_projects)} entries.")
+
+    if (mode_index := safe_index(argv, "-m")) >= 0:
+        mode = argv[mode_index + 1].lower()
+        print(f'Starting in mode "{mode}".')
+
+        if mode == "s":
+            skip_processed = True
+            retrieve_pull_requests()
+        if mode == "c":
+            count_projects_that_match_criteria()
+        else:
+            raise ValueError(f"Invalid mode \"{mode}\".")
     else:
         retrieve_pull_requests()
