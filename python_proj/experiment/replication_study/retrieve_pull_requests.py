@@ -10,10 +10,11 @@ It outputs a number of files:
  - A file containing the number of PRs per platform (i.e., GitHub etc.).
 """
 
-import json
 from csv import reader, writer
 from datetime import datetime
 import dotenv
+from joblib import Parallel, delayed
+import json
 from os import getenv, path, makedirs, remove
 from perceval.backends.core.github import GitHub, CATEGORY_PULL_REQUEST
 from perceval.backends.core.gitlab import GitLab, CATEGORY_MERGE_REQUEST
@@ -53,12 +54,12 @@ error_writer.writerow(["project", "http status code", "message"])
 error_output.flush()
 
 # To log the number of PRs a repository has.
-if path.exists(count_path):
-    remove(count_path)
-count_output = open(count_path, "a+", encoding="utf-8", newline="\n")
-count_writer = writer(count_output, quotechar='"')
-count_writer.writerow(["project", "pr count"])
-count_output.flush()
+# if path.exists(count_path):
+#     remove(count_path)
+# count_output = open(count_path, "a+", encoding="utf-8", newline="\n")
+# count_writer = writer(count_output, quotechar='"')
+# count_writer.writerow(["project", "pr count"])
+# count_output.flush()
 
 dotenv.load_dotenv()
 github_token_1 = getenv("GITHUB_TOKEN_1")
@@ -66,9 +67,15 @@ github_token_2 = getenv("GITHUB_TOKEN_2")
 github_token_3 = getenv("GITHUB_TOKEN_3")
 gitlab_token_1 = getenv("GITLAB_TOKEN_1")
 
+all_gh_tokens = [github_token_1, github_token_2, github_token_3]
+all_gl_tokens = [gitlab_token_1]
+
 processed_projects = set()
 skip_processed = False
 included_projects = None
+
+
+job_count = 1
 
 
 def matches_inclusion_criteria(entry):
@@ -90,58 +97,72 @@ def matches_inclusion_criteria(entry):
 def retrieve_pull_requests():
     input_file = open(input_path, 'r', encoding="utf-8")
     csv_reader = reader(input_file, quotechar='"')
+    
+    entries = list([list(entry) for entry in csv_reader])
 
-    # The number of projects per hosts is kept for bookkeeping.
-    host_count = {}
+    Parallel(n_jobs=job_count)(
+        delayed(retrieve_prs_for_entry)
+        (index % job_count, entry)
+        for index, entry in enumerate(entries)
+    )
 
-    for entry in csv_reader:
-        if not matches_inclusion_criteria(entry):
-            continue
-
-        repo_name = entry[repo_name_index]
-        repo_host = entry[repo_host_type_index]
-
-        # Skips project if a filter list is used
-        # and the repository is not in it.
-        if not included_projects is None and not repo_name in included_projects:
-            print(f'Skipping filtered project: {repo_name}.')
-            continue
-
-        # To prevent the same repo from being processed multiple times.
-        unique_entry = (repo_name, repo_host)
-        if unique_entry in processed_projects:
-            print(f'Skipping duplicate entry: {unique_entry}.')
-            continue
-        processed_projects.add(unique_entry)
-
-        # Updates host count.
-        if not repo_host in host_count:
-            host_count[repo_host] = 1
-        else:
-            host_count[repo_host] += 1
-
-        try:
-            print(f'Starting with {repo_name} at {repo_host}.')
-            fetch_prs(repo_name, repo_host)
-        except Exception as e:
-            # All other errors are stored for debuggin.
-            error_writer.writerow([repo_name, "", e])
-            error_output.flush()
+    # # TODO: parallelize
+    # for index, entry in enumerate(csv_reader):
+    #     job_index = index % job_count
+    #     retrieve_prs_for_entry(job_index, entry)
 
     input_file.close()
 
-    # Writes the repository host counts to a file.
-    with open(repo_count_path, "w+", encoding="utf-8") as repo_count_file:
-        csv_writer = writer(repo_count_file)
-        entries = [[key, value] for key, value in host_count.items()]
-        csv_writer.writerows(entries)
+
+def retrieve_prs_for_entry(job_index, entry):
+    if not matches_inclusion_criteria(entry):
+        return
+
+    repo_name = entry[repo_name_index]
+    repo_host = entry[repo_host_type_index]
+
+    # Skips project if a filter list is used
+    # and the repository is not in it.
+    if not included_projects is None and not repo_name in included_projects:
+        # print(f'Skipping filtered project: {repo_name}.')
+        return
+
+    # To prevent the same repo from being processed multiple times.
+    unique_entry = (repo_name, repo_host)
+    if unique_entry in processed_projects:
+        print(f'Skipping duplicate entry: {unique_entry}.')
+        return
+    processed_projects.add(unique_entry)
+
+    # Identifies what API tokens to use.
+    # Gitlab only accepts one token.
+    def get_my_tokens(all_tokens: list) -> list:
+        def is_my_token(token_index) -> bool:
+            return token_index % job_count == job_index
+
+        token_count = len(all_tokens)
+        if token_count == 1 or job_count == 1:
+            return all_tokens
+        return list([token for token_index, token in enumerate(all_tokens)
+                     if is_my_token(token_index)])
+
+    gh_tokens = get_my_tokens(all_gh_tokens)
+
+    try:
+        print(f'Starting with {repo_name} at {repo_host}.')
+        fetch_prs(repo_name, repo_host, gh_tokens)
+    except Exception as e:
+        pass # TODO: fix this
+        # All other errors are stored for debuggin.
+        # error_writer.writerow([repo_name, "", e])
+        # error_output.flush()
 
 
-def __build_github(repo_name: str):
+def __build_github(repo_name: str, tokens: list):
     owner, repo_name = repo_name.split("/")
+    print(f'With tokens: {tokens}')
     repo: GitHub = GitHub(owner=owner, repository=repo_name,
-                          api_token=[github_token_1,
-                                     github_token_2, github_token_3],
+                          api_token=tokens,
                           sleep_for_rate=True)
     data_iterator = repo.fetch(
         category=CATEGORY_PULL_REQUEST, to_date=end_date)
@@ -160,11 +181,12 @@ def __build_gitlab(repo_name: str):
     return owner, repo_name, data_iterator, pr_filter
 
 
-def fetch_prs(repo_name: str, repo_host: str):
+def fetch_prs(repo_name: str, repo_host: str, gh_tokens: list):
     # Selects the right Perceval backend
     # and corresponding data filter.
     if repo_host.lower() == "github":
-        owner, repo_name, data_iterator, pr_filter = __build_github(repo_name)
+        owner, repo_name, data_iterator, pr_filter = __build_github(
+            repo_name, gh_tokens)
     elif repo_host.lower() == "gitlab":
         owner, repo_name, data_iterator, pr_filter = __build_gitlab(repo_name)
     # TODO: Add bitbucket support; this isn't natively supported by grimoirelab, though...
@@ -199,8 +221,8 @@ def fetch_prs(repo_name: str, repo_host: str):
             filtered_pr = pr_filter.filter(data)
             output_file.write(json.dumps(filtered_pr, indent=2))
 
-        count_writer.writerow([f'{owner}/{repo_name}', pr_count])
-        count_output.flush()
+        # count_writer.writerow([f'{owner}/{repo_name}', pr_count])
+        # count_output.flush()
 
         if pr_count == 0:
             # Removes empty files.
@@ -245,11 +267,17 @@ def set_filter(f_type: str):
 
 
 if __name__ == "__main__":
+    start = datetime.now()
+
     if (filter_index := safe_index(argv, "-f")) != -1:
         f_type = argv[filter_index + 1].lower()
         set_filter(f_type)
         print(
             f"Using filter \"{f_type}\" with {len(included_projects)} entries.")
+
+    if (t_index := safe_index(argv, "-t")) != -1:
+        job_count = int(argv[t_index + 1])
+        print(f'Running with {job_count} workers.')
 
     if (mode_index := safe_index(argv, "-m")) >= 0:
         mode = argv[mode_index + 1].lower()
@@ -264,3 +292,6 @@ if __name__ == "__main__":
             raise ValueError(f"Invalid mode \"{mode}\".")
     else:
         retrieve_pull_requests()
+
+    delta_time = datetime.now() - start
+    print(f'{delta_time=}')
