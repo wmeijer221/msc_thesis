@@ -13,7 +13,11 @@ In general, don't delete any of the generated files while running this experimen
 ## Replication Steps
 - Download data (v1.6.0 was used in this study) from [libraries.io](libraries.io/data) and store it (unzip it) into ``./data/libraries/`` (don't rename anything).
 - Run ``../libraries_filter.py`` which separates NPM projects.
-- Run ``filter_projects.py -m d`` which applies inclusion criteria on projects using downloads.
+- Run ``faster_filter.py -m r -t 16 -j`` which applies inclusion criteria on projects using downloads.
+  Here ``-t`` indicates the number of threads used as multithreading speeds up the process significantly. 
+  Using 16 threads might not be the right number for you, though.
+  To experiment what works well, use ``faster_filter -m -t -t 1,2,4,8 -c 512`` (where ``-t`` indicates the to-be-tested threads).
+  When it's done, this process outputs the rutimes per thread.
 - Run ``retrieve_pull_requests.py -f dl`` which retrieves PR data for projects matching the prior inclusion criteria.
   This process takes a long time to run (multiple days), therefore, if you want to interrupt the process and restart it later, run it as ``retrieve_pull_requests.py -m s -f dl`` the next time; this will make it skip already processed repositories.
   If you do this, though, do make sure to delete the lastly added ``.json`` file in the ``./data/libraries/xxx-libraries-xxx/pull-requests`` folder as it's quite likely the process was killed while extracting data from said file/repository.

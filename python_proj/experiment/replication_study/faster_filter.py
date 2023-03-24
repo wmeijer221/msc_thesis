@@ -86,6 +86,21 @@ def run(job_count, cs: int = None):
     return delta_time
 
 
+def join_results():
+    print("Joining results")
+    output_file = open(f'{output_path}included_projects_dl.csv', "w+")
+    unique_entries = set()
+    for i in range(job_count):
+        input_file = open(f'{output_path}included_projects_dl_{i}.csv')
+        for entry in input_file:
+            entry = entry.strip()
+            if entry in unique_entries:
+                continue
+            unique_entries.add(entry)
+            print(entry, file=output_file, flush=True)
+    output_file.close()
+
+
 if __name__ == "__main__":
     if (m_index := safe_index(argv, "-m")) >= 0:
         mode = argv[m_index + 1].lower()
@@ -107,3 +122,8 @@ if __name__ == "__main__":
             run(threads)
         else:
             raise ValueError(f"Invalid mode {mode}.")
+
+    if (j_index := safe_index(argv, "-j")) >= 0:
+        if job_count == -1:
+            job_count = int(argv[argv.index("-t") + 1])
+        join_results()
