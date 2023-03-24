@@ -18,9 +18,11 @@ In general, don't delete any of the generated files while running this experimen
   Using 16 threads might not be the right number for you, though.
   To experiment what works well, use ``faster_filter -m -t -t 1,2,4,8 -c 512`` (where ``-t`` indicates the to-be-tested threads).
   When it's done, this process outputs the rutimes per thread.
-- Run ``retrieve_pull_requests.py -f dl`` which retrieves PR data for projects matching the prior inclusion criteria.
-  This process takes a long time to run (multiple days), therefore, if you want to interrupt the process and restart it later, run it as ``retrieve_pull_requests.py -m s -f dl`` the next time; this will make it skip already processed repositories.
-  If you do this, though, do make sure to delete the lastly added ``.json`` file in the ``./data/libraries/xxx-libraries-xxx/pull-requests`` folder as it's quite likely the process was killed while extracting data from said file/repository.
+- Run ``retrieve_pull_requests.py -f dl -t 2 -m s`` which retrieves PR data for projects matching the prior inclusion criteria.
+  Note that the process expects various API keys to be set as environment variables, so check ``.env-example`` for an example of the expected ``.env`` file.
+  This process takes a long time to run (multiple days).
+  If you want to interrupt it, you can; just make sure the ``-m s`` argument is there when launching, else your progress will be deleted.
+  If you do this, though, do make sure to delete the lastly added ``.json`` file(s) in the ``./data/libraries/xxx-libraries-xxx/pull-requests`` folder as it's quite likely the process was killed while extracting data from said file/repository.
   _Note that the ``error.csv``, ``pr-count.csv`` and ``repo-count.csv`` files will no longer be complete when you do this as they're cleared every time you re-run the program (they're not used for anything beyond giving an intuition for the shape of the data, so it doesn't really matter)._
   _Also note that all projects that had 0 PRs in the past will not be skipped as their output files are deleted; rerunning will therefore cost you some extra time still._
 - Run ``filter_projects.py -m p`` which applies inclusion criteria on projects using pull request count.

@@ -13,7 +13,7 @@ It outputs a number of files:
 from csv import reader, writer
 from datetime import datetime
 import dotenv
-from joblib import Parallel, delayed
+import multiprocessing
 import json
 from os import getenv, path, makedirs, remove
 from perceval.backends.core.github import GitHub, CATEGORY_PULL_REQUEST
@@ -27,9 +27,6 @@ from python_proj.experiment.filters.gl_gitlab_filters import MergeRequestFilter
 # TODO: None of this is set up for different ocosystems than NPM.
 input_path = "./data/libraries/npm-libraries-1.6.0-2020-01-12/projects_with_repository_fields-1.6.0-2020-01-12.csv"
 output_path = "./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/{project_name}.json"
-error_path = "./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/error.csv"
-count_path = "./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/pr-count.csv"
-repo_count_path = "./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/repo-count.csv"
 filter_path = "./data/libraries/npm-libraries-1.6.0-2020-01-12/predictors/included_projects{filter_type}.csv"
 
 # These headers correspond with the "libraries.io/data"
@@ -45,34 +42,20 @@ prs_enabled_index = headers.index("Repository Pull requests enabled?") + 1
 
 end_date = datetime(year=2020, month=1, day=12)
 
-# To log retrieval errors without stopping the program.
-if path.exists(error_path):
-    remove(error_path)
-error_output = open(error_path, "a+", encoding="utf-8", newline="\n")
-error_writer = writer(error_output, quotechar='"')
-error_writer.writerow(["project", "http status code", "message"])
-error_output.flush()
-
-# To log the number of PRs a repository has.
-# if path.exists(count_path):
-#     remove(count_path)
-# count_output = open(count_path, "a+", encoding="utf-8", newline="\n")
-# count_writer = writer(count_output, quotechar='"')
-# count_writer.writerow(["project", "pr count"])
-# count_output.flush()
-
 dotenv.load_dotenv()
 github_token_1 = getenv("GITHUB_TOKEN_1")
 github_token_2 = getenv("GITHUB_TOKEN_2")
 github_token_3 = getenv("GITHUB_TOKEN_3")
+github_token_4 = getenv("GITHUB_TOKEN_4")
 gitlab_token_1 = getenv("GITLAB_TOKEN_1")
 
-all_gh_tokens = [github_token_1, github_token_2, github_token_3]
+all_gh_tokens = [github_token_1, github_token_2,
+                 github_token_3, github_token_4]
 all_gl_tokens = [gitlab_token_1]
 
-processed_projects = set()
 skip_processed = False
 included_projects = None
+processed_projects = set()
 
 
 job_count = 1
@@ -97,24 +80,53 @@ def matches_inclusion_criteria(entry):
 def retrieve_pull_requests():
     input_file = open(input_path, 'r', encoding="utf-8")
     csv_reader = reader(input_file, quotechar='"')
-    
-    entries = list([list(entry) for entry in csv_reader])
 
-    Parallel(n_jobs=job_count)(
-        delayed(retrieve_prs_for_entry)
-        (index % job_count, entry)
-        for index, entry in enumerate(entries)
-    )
+    task_list = multiprocessing.JoinableQueue()
 
-    # # TODO: parallelize
-    # for index, entry in enumerate(csv_reader):
-    #     job_index = index % job_count
-    #     retrieve_prs_for_entry(job_index, entry)
+    workers = [JobConsumer(task_list, get_my_tokens(all_gh_tokens, index), index)
+               for index in range(job_count)]
+    for worker in workers:
+        worker.start()
+
+    # Distributes work.
+    for entry in csv_reader:
+        task_list.put(list(entry))
+
+    # Kills workers.
+    for worker in workers:
+        task_list.put(None)
+
+    task_list.join()
 
     input_file.close()
 
 
-def retrieve_prs_for_entry(job_index, entry):
+class JobConsumer(multiprocessing.Process):
+    def __init__(self,
+                 _task_list: multiprocessing.JoinableQueue,
+                 gh_tokens: list[str],
+                 process_index: int):
+        super().__init__()
+        self._task_list = _task_list
+        self._gh_tokens = gh_tokens
+        self._process_index = process_index
+        print(
+            f'Worker-{process_index} starting with {len(gh_tokens)} GitHub tokens.')
+
+    def run(self) -> None:
+        is_running = True
+        while is_running:
+            task = self._task_list.get()
+            if task is None:
+                is_running = False
+            else:
+                retrieve_prs_for_entry(
+                    task, self._gh_tokens, self._process_index)
+            self._task_list.task_done()
+        print(f'Worker-{self._process_index} is stopping...')
+
+
+def retrieve_prs_for_entry(entry, gh_tokens, process_index):
     if not matches_inclusion_criteria(entry):
         return
 
@@ -134,33 +146,19 @@ def retrieve_prs_for_entry(job_index, entry):
         return
     processed_projects.add(unique_entry)
 
-    # Identifies what API tokens to use.
-    # Gitlab only accepts one token.
-    def get_my_tokens(all_tokens: list) -> list:
-        def is_my_token(token_index) -> bool:
-            return token_index % job_count == job_index
-
-        token_count = len(all_tokens)
-        if token_count == 1 or job_count == 1:
-            return all_tokens
-        return list([token for token_index, token in enumerate(all_tokens)
-                     if is_my_token(token_index)])
-
-    gh_tokens = get_my_tokens(all_gh_tokens)
+    print(f'Worker-{process_index}: Starting with {repo_name} at {repo_host}.')
 
     try:
-        print(f'Starting with {repo_name} at {repo_host}.')
         fetch_prs(repo_name, repo_host, gh_tokens)
     except Exception as e:
-        pass # TODO: fix this
-        # All other errors are stored for debuggin.
-        # error_writer.writerow([repo_name, "", e])
-        # error_output.flush()
+        print(
+            f'Worker-{process_index}: Failed to process {repo_name} at {repo_host} with error: {e}')
+
+    print(f'Worker-{process_index}: Done with {repo_name} at {repo_host}.')
 
 
 def __build_github(repo_name: str, tokens: list):
     owner, repo_name = repo_name.split("/")
-    print(f'With tokens: {tokens}')
     repo: GitHub = GitHub(owner=owner, repository=repo_name,
                           api_token=tokens,
                           sleep_for_rate=True)
@@ -206,6 +204,7 @@ def fetch_prs(repo_name: str, repo_host: str, gh_tokens: list):
         makedirs(output_dir)
 
     try:
+        # HACK: Somehow writing to a file from multiple processes works without a lock.
         output_file = open(r_output_path, "w+", encoding="utf-8")
         output_file.write("[\n")
 
@@ -221,9 +220,6 @@ def fetch_prs(repo_name: str, repo_host: str, gh_tokens: list):
             filtered_pr = pr_filter.filter(data)
             output_file.write(json.dumps(filtered_pr, indent=2))
 
-        # count_writer.writerow([f'{owner}/{repo_name}', pr_count])
-        # count_output.flush()
-
         if pr_count == 0:
             # Removes empty files.
             output_file.close()
@@ -238,6 +234,17 @@ def fetch_prs(repo_name: str, repo_host: str, gh_tokens: list):
         output_file.close()
         remove(r_output_path)
         raise e
+
+
+def get_my_tokens(all_tokens: list, job_index: int) -> list:
+    def is_my_token(token_index) -> bool:
+        return token_index % job_count == job_index
+
+    token_count = len(all_tokens)
+    if token_count == 1 or job_count == 1:
+        return all_tokens
+    return list([token for token_index, token in enumerate(all_tokens)
+                 if is_my_token(token_index)])
 
 
 def count_projects_that_match_criteria():
@@ -286,7 +293,7 @@ if __name__ == "__main__":
         if mode == "s":
             skip_processed = True
             retrieve_pull_requests()
-        if mode == "c":
+        elif mode == "c":
             count_projects_that_match_criteria()
         else:
             raise ValueError(f"Invalid mode \"{mode}\".")
