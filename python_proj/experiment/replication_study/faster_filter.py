@@ -98,6 +98,7 @@ def join_results():
                 continue
             unique_entries.add(entry)
             print(entry, file=output_file, flush=True)
+    print(f'Total: {len(unique_entries)}.')
     output_file.close()
 
 
