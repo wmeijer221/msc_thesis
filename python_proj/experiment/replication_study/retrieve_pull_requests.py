@@ -132,7 +132,7 @@ def retrieve_prs_for_entry(entry, gh_tokens, process_index):
     # Skips project if a filter list is used
     # and the repository is not in it.
     if not included_projects is None and not repo_name in included_projects:
-        # print(f'Skipping filtered project: {repo_name}.')
+        print(f'Skipping filtered project: {repo_name}.')
         return
 
     # To prevent the same repo from being processed multiple times.
