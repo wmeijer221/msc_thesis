@@ -10,7 +10,7 @@ It outputs a number of files:
  - A file containing the number of PRs per platform (i.e., GitHub etc.).
 """
 
-from csv import reader, writer
+from csv import reader
 from datetime import datetime
 import dotenv
 import multiprocessing
@@ -43,14 +43,10 @@ prs_enabled_index = headers.index("Repository Pull requests enabled?") + 1
 end_date = datetime(year=2020, month=1, day=12)
 
 dotenv.load_dotenv()
-github_token_1 = getenv("GITHUB_TOKEN_1")
-github_token_2 = getenv("GITHUB_TOKEN_2")
-github_token_3 = getenv("GITHUB_TOKEN_3")
-github_token_4 = getenv("GITHUB_TOKEN_4")
+
+all_gh_tokens = [getenv(f"GITHUB_TOKEN_{i}") for i in range(1, 11)]
 gitlab_token_1 = getenv("GITLAB_TOKEN_1")
 
-all_gh_tokens = [github_token_1, github_token_2,
-                 github_token_3, github_token_4]
 all_gl_tokens = [gitlab_token_1]
 
 skip_processed = False
