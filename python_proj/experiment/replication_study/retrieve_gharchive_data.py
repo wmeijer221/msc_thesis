@@ -10,6 +10,7 @@ import zlib
 from datetime import datetime, timedelta
 from typing import Generator, Callable, Dict, Tuple
 import base64
+import os
 
 
 COMMIT_COMMENT_EVENT = "CommitCommentEvent"
@@ -91,6 +92,9 @@ def on_event_found(file, included_projects: set, entry: dict):
     Stores entries that are indcluded,
     prunes their URLs and compresses the data.
     """
+
+    if os.path.getsize(file.name) > 1e+10:
+        raise Exception("TOO BIG;")
 
     if not entry["repo"]["name"] in included_projects:
         return
