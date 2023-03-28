@@ -1,3 +1,8 @@
+"""
+Tests the current status of the GitHub API tokens;
+i.e., how many requests they can make in total and 
+how many they have left.
+"""
 
 import dotenv
 from os import getenv
