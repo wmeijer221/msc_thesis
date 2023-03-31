@@ -62,6 +62,7 @@ def get_data_iterator(start_date: datetime, end_date: datetime) -> Generator[Tup
     delta_time = end_date - start_date
     total_hours = int(delta_time.total_seconds() / 3600)
 
+    # TODO: Python doesn't optimize the double function call. Improve this.
     generator = (
         (start_date + timedelta(hours=hours),
          get_archive_entry(start_date + timedelta(hours=hours)))

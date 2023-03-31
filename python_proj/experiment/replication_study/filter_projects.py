@@ -2,7 +2,7 @@
 Implements inclusion criteria for the different projects.
 """
 
-from csv import reader
+from csv import reader, writer
 from datetime import datetime
 from os import path, makedirs
 import json
@@ -28,6 +28,7 @@ repo_name_index = headers.index("Repository Name with Owner")
 proj_name_index = headers.index("Name")
 
 input_path = "./data/libraries/npm-libraries-1.6.0-2020-01-12/projects_with_repository_fields-1.6.0-2020-01-12.csv"
+lib_output_path = "./data/libraries/npm-libraries-1.6.0-2020-01-12/projects_with_repository_fields-1.6.0-2020-01-12_filtered{filter_ext}.csv"
 input_file = open(input_path, 'r', encoding="utf-8")
 csv_reader = reader(input_file, quotechar='"')
 
@@ -116,13 +117,16 @@ def has_sufficient_monthly_downloads(d_start_date: datetime, d_end_date: datetim
 
 
 output_path = "./data/libraries/npm-libraries-1.6.0-2020-01-12/predictors/"
+output_valid_entries_path = output_path + "included_projects{key}.csv"
 
 
 def generate(exlusion_criteria: callable, output_key: str = ""):
     if not path.exists(output_path):
         makedirs(output_path)
+    r_output_valid_entries_path = output_valid_entries_path.format(
+        key=output_key)
     output_valid_entries = open(
-        f"{output_path}included_projects{output_key}.csv", "w+", encoding="utf-8")
+        r_output_valid_entries_path, "w+", encoding="utf-8")
 
     # Iterate through all entries in npm-libraries.
     for entry in csv_reader:
@@ -183,6 +187,24 @@ def merge_exclusion_lists():
     print("Merged results.")
 
 
+def filter_libraries_data(filter_file_key: str):
+    if filter_file_key is None:
+        filter_file_key = ""
+    project_file = open(input_path, "r")
+    project_reader = reader(project_file)
+    filter_path = output_valid_entries_path.format(key=filter_file_key)
+    filter_file = open(filter_path, "r")
+    proj_filter = set([fl.strip()
+                      for fl in filter_file.readlines() if fl.strip() != ""])
+    output_file = open(lib_output_path.format(
+        filter_ext=filter_file_key), "w+")
+    project_writer = writer(output_file)
+
+    for entry in project_reader:
+        if entry[repo_name_index] in proj_filter:
+            project_writer.writerow(entry)
+
+
 if __name__ == "__main__":
     # Skip if:
     #   - Has no PR file.
@@ -199,6 +221,11 @@ if __name__ == "__main__":
             generate(exclusion_prs, "_pr")
         elif mode == "m":
             merge_exclusion_lists()
+        elif mode == "a":
+            ext = None
+            if (ext_idx := safe_index(argv, "-t")) > 0:
+                ext = f'_{argv[ext_idx + 1]}'
+            filter_libraries_data(ext)
         else:
             raise ValueError(f"Invalid mode \"{mode}\".")
     else:

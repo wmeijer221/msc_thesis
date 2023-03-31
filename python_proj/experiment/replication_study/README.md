@@ -27,4 +27,9 @@ In general, don't delete any of the generated files while running this experimen
   _Also note that all projects that had 0 PRs in the past will not be skipped as their output files are deleted; rerunning will therefore cost you some extra time still._
 - Run ``filter_projects.py -m p`` which applies inclusion criteria on projects using pull request count.
 - Run ``filter_projects.py -m m`` which merges the results of the previous two ``filter_projects.py`` runs.
+- Run ``filter_projects.py -m a`` which filters the libraries.io data file to only include the included projects.
+- Run ``filter_dependencies.py`` which filters the project dependency file.
+
+
+- Run ``get_user_ids.py`` to extract all user ids from the dataset.
 - Run ``generate_predictors.py``
