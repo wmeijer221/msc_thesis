@@ -38,8 +38,13 @@ def iterate_through_pulls(on_pull: Callable[[str, dict], None]):
                     on_pull(repo_name, project_id, pull)
 
 
-sorted_pulls = SortedList(key=lambda entry: datetime.strptime(
-    entry["closed_at"], "%Y-%m-%dT%H:%M:%SZ"))
+def key(entry):
+    if "closed_at" in entry:
+        return datetime.strptime(entry["closed_at"], "%Y-%m-%dT%H:%M:%SZ")
+    else:
+        return datetime(2035, 12, 1)
+
+sorted_pulls = SortedList(key=key) 
 
 
 def sort_pulls_by_date(proj_name, project_id, pull: dict):
