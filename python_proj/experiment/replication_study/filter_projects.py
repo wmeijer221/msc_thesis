@@ -169,7 +169,6 @@ def exclusion_prs(entry):
     owner = name_split[0]
     repo = name_split[-1]
     host_type = entry[repo_host_type_index]
-    print("applying exclusion prs.")
     return not has_pr_file(owner, repo) or \
         not has_sufficient_closed_prs(owner, repo, 5, host_type)
 
