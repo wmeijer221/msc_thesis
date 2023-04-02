@@ -145,7 +145,7 @@ def generate(exlusion_criteria: callable, output_key: str = ""):
             continue
         
         try:
-            if not repo_name in passed_invalid and (repo_name in passed_invalid or exlusion_criteria(entry)):
+            if not repo_name in passed_valid and (repo_name in passed_invalid or exlusion_criteria(entry)):
                 passed_invalid.add(repo_name)
                 continue
         except json.decoder.JSONDecodeError:
