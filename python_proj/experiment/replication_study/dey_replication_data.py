@@ -40,7 +40,10 @@ def iterate_through_pulls(on_pull: Callable[[str, dict], None]):
 
 def key(entry):
     if "closed_at" in entry:
-        return datetime.strptime(entry["closed_at"], "%Y-%m-%dT%H:%M:%SZ")
+        try:
+            return datetime.strptime(entry["closed_at"], "%Y-%m-%dT%H:%M:%SZ")
+        except:
+            return datetime.strptime(entry["closed_at"], "%Y-%m-%dT%H:%M:%S.%fZ")
     else:
         return datetime(2035, 12, 1)
 
