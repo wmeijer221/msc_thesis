@@ -143,6 +143,7 @@ def generate(exlusion_criteria: callable, output_key: str = ""):
             # catches broken data files.
             # mostly here for debugging.
             print(f"Failed decoding JSON for {repo_name}.")
+            continue
         except Exception as e:
             print(f'Failed with: {repo_name}')
             print(entry)
