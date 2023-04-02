@@ -133,6 +133,9 @@ def generate(exlusion_criteria: callable, output_key: str = ""):
     output_valid_entries = open(
         r_output_valid_entries_path, "w+", encoding="utf-8")
 
+    passed_valid = set()
+    passed_invalid = set()
+
     # Iterate through all entries in npm-libraries.
     for entry in csv_reader:
         repo_name = entry[repo_name_index]
@@ -140,9 +143,10 @@ def generate(exlusion_criteria: callable, output_key: str = ""):
         # projects without a repo are ignored by default.
         if repo_name == '':
             continue
-
+        
         try:
-            if exlusion_criteria(entry):
+            if not repo_name in passed_invalid and (repo_name in passed_invalid or exlusion_criteria(entry)):
+                passed_invalid.add(repo_name)
                 continue
         except json.decoder.JSONDecodeError:
             # catches broken data files.
@@ -154,6 +158,7 @@ def generate(exlusion_criteria: callable, output_key: str = ""):
             print(entry)
             raise e
 
+        passed_valid.add(repo_name)
         output_valid_entries.write(repo_name + "\n")
         output_valid_entries.flush()
 
