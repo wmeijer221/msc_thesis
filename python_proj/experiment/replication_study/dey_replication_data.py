@@ -26,10 +26,14 @@ def iterate_through_pulls(on_pull: Callable[[str, dict], None]):
             repo_split = repo_name.split("/")
             repo_path = f'{pull_base_path}{repo_split[0]}--{repo_split[-1]}.json'
             if not path.exists(repo_path):
-                print(f"FILE DOESNT EXIST: {repo_path}")
+                print(f"FILE DOESNT EXIST: {repo_path}. Skipping...")
                 continue
             with open(repo_path, "r") as pull_file:
-                pulls = json.loads(pull_file.read())
+                try:
+                    pulls = json.loads(pull_file.read())
+                except json.JSONDecodeError:
+                    print(f"INVALID JSON: {repo_path}. Skipping...")
+                    continue
                 for pull in pulls:
                     on_pull(repo_name, project_id, pull)
 
@@ -94,10 +98,71 @@ output_path = "./data/libraries/npm-libraries-1.6.0-2020-01-12/extract/dey_facto
 entry_output = open(output_path, "w+")
 output_writer = writer(entry_output)
 output_writer.writerow(
-    ["Project ID", "Pull ID", "PR Count", "Acc Ratio", "Worked on dependent"])
+    ["Project ID", "Pull ID", "PR Count", "Acc Ratio", "Worked on dependent", "Same User", "PR Lifetime Minutes",
+        "Integrator Reviews", "Has Comments", "Is Core Member", "Number of comments", "Other Comments", "CI Exists", "Has Hashtag"]
+)
+
+int_pull_count = {}
 
 
-def handle_pull(_: str, __: int, pull: dict):
+def generate_controls(_: str, __: int, pull: dict):
+    if not pull["state"] == "closed":
+        return
+
+    # Same User
+    subm_id = pull["user_data"]["id"]
+    intg_id = pull["merged_by_data"]["id"]
+    same_user = subm_id == intg_id
+
+    # Lifetime Minutes
+    t_format = '%Y-%m-%dT%H:%M:%SZ'
+    created = datetime.strptime(pull["created_at"], t_format)
+    closed = datetime.strptime(pull["closed_at"], t_format)
+    t_delta = (closed - created).total_seconds() / 60
+
+    # Prior Review Num (integrator experience)
+    if intg_id in int_pull_count:
+        int_pulls = int_pull_count[intg_id]
+    else:
+        int_pull_count[intg_id] = 0
+        int_pulls = 0
+
+    # Has Comments
+    # Should this include review comments?
+    has_comments = pull["comments"] > 0
+
+    # Core Member
+    # Double check the author types: None, Contributor, Collaborator, Member, Owner
+    # This could be data leakage.
+    # Might want to replace this with "social strength" as Zhang (2022) says it correlates.
+    assoc = pull["author_association"].lower()
+    is_core = assoc == "owner" or assoc == "collaborator"
+
+    # Num commits
+    num_com = pull["commits"]
+
+    # Other comment
+    # TODO: this, once we have the data.
+    other_comment = ''
+
+    # CI Exists
+    # TODO: this, once we have the data.
+    ci_exists = ''
+
+    # Hash Tag
+    # TODO: this, once we have the data.
+    has_hashtag = ''
+
+    entry = (pull["id"], same_user, t_delta,
+             int_pulls, has_comments, is_core,
+             num_com, other_comment, ci_exists, has_hashtag)
+
+    int_pull_count[intg_id] += 1
+
+    return entry
+
+
+def generate_dey_variables(_: str, __: int, pull: dict):
     if not pull["state"] == "closed":
         return
 
@@ -121,7 +186,6 @@ def handle_pull(_: str, __: int, pull: dict):
     has_worked_on_dependent = len(inter) > 0
 
     entry = (pull["id"], pulls, acc_rat, has_worked_on_dependent)
-    output_writer.writerow(entry)
 
     # Adds new user.
     if not subm_id in pull_count:
@@ -142,6 +206,15 @@ def handle_pull(_: str, __: int, pull: dict):
     # Adds projects.
     projs_per_user[subm_id].union(pull["project_ids"])
 
+    return entry
+
 
 for entry in sorted_pulls:
-    handle_pull(None, entry["project_ids"], entry)
+    try:
+        entry_eco = generate_dey_variables(None, entry["project_ids"], entry)
+        entry_con = generate_controls(None, entry['project_ids'], entry)
+        output_writer.writerow([*entry_eco, *entry_con[1:]])
+    except Exception as e:
+        # Any failed calculation is ignored.
+        # TODO: iprove fault handling. Make sure no data leakage is happening.
+        print(e)
