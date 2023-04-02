@@ -71,9 +71,14 @@ def has_sufficient_closed_prs(owner, repo_name, threshold: int, host_type: str) 
                     continue
                 # Perceval's Gitlab backend can't filter on date.
                 # Therefore it has to be done here.
-                tformat = "%Y-%m-%dT%H:%M:%S.%fZ"
-                updated_at = datetime.strptime(pr["updated_at"], tformat)
-                created_at = datetime.strptime(pr["created_at"], tformat)
+                try:
+                    tformat = "%Y-%m-%dT%H:%M:%S.%fZ"
+                    updated_at = datetime.strptime(pr["updated_at"], tformat)
+                    created_at = datetime.strptime(pr["created_at"], tformat)
+                except:
+                    tformat = "%Y-%m-%dT%H:%M:%SZ"
+                    updated_at = datetime.strptime(pr["updated_at"], tformat)
+                    created_at
                 if created_at > max_pr_date or updated_at > max_pr_date:
                     continue
                 count += 1

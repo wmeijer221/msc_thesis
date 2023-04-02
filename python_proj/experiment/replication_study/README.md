@@ -29,7 +29,4 @@ In general, don't delete any of the generated files while running this experimen
 - Run ``filter_projects.py -m m`` which merges the results of the previous two ``filter_projects.py`` runs.
 - Run ``filter_projects.py -m a`` which filters the libraries.io data file to only include the included projects.
 - Run ``filter_dependencies.py`` which filters the project dependency file.
-
-
-- Run ``get_user_ids.py`` to extract all user ids from the dataset.
-- Run ``generate_predictors.py``
+- Run ``dey_replication_data.py`` which calculates data entries used to replicate Dey's results.
