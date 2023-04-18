@@ -6,9 +6,26 @@ acquired with GrimoireLab Perceval.
 from python_proj.experiment.filters.gl_filters import BaseFilter
 
 
-class MergeRequestFilter(BaseFilter):
+class IssueFilter(BaseFilter):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
+        self._fields = ["state", "description", "milestone" "project_id", "type", "updated_at", "closed_at", "id", "title", "created_at", "moved_to_id", "iid", "labels", "upvotes", "downvotes", "merge_requests_count",
+                        "user_notes_count", "due_date", "time_stats", "has_tasks", "task_status", "discussion_locked", "issue_type", "severity", "task_completion_count", "weight", "epic", "iteration", "health_status"]
+
+        # TODO: replace ``epic``, iteration, health_status (all three premium only), ``milestone``,  ``time_stats`` and ``task_completion_count`` with dedicated filter?
+
+        self._subfilter_fields = {
+            UserFilter: ["author", "assignee", "closed_by"],
+        }
+
+        self._listsubfilter_fields = {
+            UserFilter: ["assignees"]
+        }
+
+
+class MergeRequestFilter(BaseFilter):
+    def __init__(self, **kwargs) -> None:
+        suMileStoneFilterper().__init__(**kwargs)
 
         self._fields = ["id", "iid", "state", "created_at", "updated_at",
                         "milestone", "merge_status", "detailed_merge_status",
@@ -62,3 +79,9 @@ class CommitFilter(BaseFilter):
 
         self._fields = ["id", "created_at", "author_name",
                         "author_email", "committer_name", "committer_email"]
+
+
+class MileStoneFilter(BaseFilter):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
+        # TODO: this.

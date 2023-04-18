@@ -20,9 +20,13 @@ pull_base_path = "./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/
 def iterate_through_pulls(on_pull: Callable[[str, dict], None]):
     with open(project_path, "r") as project_file:
         project_reader = reader(project_file)
+        unique_projects = set()
         for entry in project_reader:
             project_id = entry[0]
             repo_name = entry[repo_name_index]
+            if repo_name in unique_projects:
+                continue
+            unique_projects.add(repo_name)
             repo_split = repo_name.split("/")
             repo_path = f'{pull_base_path}{repo_split[0]}--{repo_split[-1]}.json'
             if not path.exists(repo_path):
@@ -38,7 +42,7 @@ def iterate_through_pulls(on_pull: Callable[[str, dict], None]):
                     on_pull(repo_name, project_id, pull)
 
 
-def key(entry):
+def sort_by_date(entry):
     if "closed_at" in entry:
         try:
             return datetime.strptime(entry["closed_at"], "%Y-%m-%dT%H:%M:%SZ")
@@ -47,30 +51,49 @@ def key(entry):
     else:
         return datetime(2035, 12, 1)
 
-sorted_pulls = SortedList(key=key) 
+
+def sort_the_pulls():
+    unique_pull_ids = set()
+    pulls = []
+
+    def on_pull(repo_name, project_id, pull):
+        if pull["id"] in unique_pull_ids:
+            return
+        unique_pull_ids.add(pull["id"])
+        pulls.append(pull)
+    iterate_through_pulls(on_pull)
+    sorted_pulls = SortedList(pulls, key=sort_by_date)
+    return sorted_pulls
 
 
-def sort_pulls_by_date(proj_name, project_id, pull: dict):
-    if pull["state"] != "closed":
-        return
-    pull_id = pull["id"]
-    duplicate = False
-    duplicate_item = None
-    for element in sorted_pulls:
-        if element['id'] == pull_id:
-            duplicate = True
-            duplicate_item = element
-            break
-
-    if duplicate:
-        duplicate_item["project_ids"].append(project_id)
-    else:
-        pull['project_ids'] = [project_id]
-        pull['proj_name'] = proj_name
-        sorted_pulls.add(pull)
+sorted_pulls = sort_the_pulls()
 
 
-iterate_through_pulls(sort_pulls_by_date)
+# sorted_pulls = SortedList(key=sort_by_date)
+
+
+# def sort_pulls_by_date(proj_name, project_id, pull: dict):
+#     if pull["state"] != "closed":
+#         return
+#     pull_id = pull["id"]
+#     duplicate = False
+#     duplicate_item = None
+#     for element in sorted_pulls:
+#         if element['id'] == pull_id:
+#             duplicate = True
+#             duplicate_item = element
+#             break
+
+#     if duplicate:
+#         duplicate_item["project_ids"].append(project_id)
+#     else:
+#         pull['project_ids'] = [project_id]
+#         pull['proj_name'] = proj_name
+#         sorted_pulls.add(pull)
+
+
+# iterate_through_pulls(sort_pulls_by_date)
+
 
 dep_path = "./data/libraries/npm-libraries-1.6.0-2020-01-12/repository_dependencies-1.6.0-2020-01-12_filtered.csv"
 
