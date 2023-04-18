@@ -125,6 +125,7 @@ def retrieve_issues():
                 "entry": entry,
                 "job_id": job_count,
             }
+            job_count += 1
             task_list.put(job_kwargs)
 
     # Kills each worker when finished.
