@@ -30,3 +30,4 @@ In general, don't delete any of the generated files while running this experimen
 - Run ``filter_projects.py -m a`` which filters the libraries.io data file to only include the included projects.
 - Run ``filter_dependencies.py`` which filters the project dependency file.
 - Run ``dey_replication_data.py`` which calculates data entries used to replicate Dey's results.
+- Run ``data_sorter.py -k closed_at -d ./data/libraries/npm-libraries-1.6.0-2020-01-12/predictors/included_projects.csv -e npm -f pull-requests -t 4``
