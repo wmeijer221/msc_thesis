@@ -54,12 +54,20 @@ def iterate_and_split(filter_path: str, datetime_key: list[str]) -> set[str]:
                             print(
                                 f'Skipping entry without closed date {repo_split}.')
                             continue
-                        dt_closed_at = datetime.strptime(
-                            closed_at, "%Y-%m-%dT%H:%M:%SZ")
+                        try:
+                            # Used in GitHub
+                            dt_closed_at = datetime.strptime(
+                                closed_at, "%Y-%m-%dT%H:%M:%SZ")
+                        except:
+                            # Used in GitLab.
+                            dt_closed_at = datetime.strptime(
+                                closed_at, "%Y-%m-%dT%H:%M:%S%fZ"
+                            )
                         ymd = dt_closed_at.strftime("%Y-%m-%d")
                         if not ymd in ymds:
                             ymds.add(ymd)
-                        r_temp_storage_path = temp_storage_path.format(bucket=ymd)
+                        r_temp_storage_path = temp_storage_path.format(
+                            bucket=ymd)
                         with open(r_temp_storage_path, "a+") as temp_storage_file:
                             temp_storage_file.write(f'{json.dumps(entry)}\n')
                     except:
