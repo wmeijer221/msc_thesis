@@ -46,9 +46,9 @@ def iterate_and_split(filter_path: str, datetime_key: list[str]) -> set[str]:
                 continue
             # Iterates through entries.
             with open(entries_path, "r") as entries_file:
-                try:
-                    j_data = json.loads(entries_file.read())
-                    for entry in j_data:
+                j_data = json.loads(entries_file.read())
+                for entry in j_data:
+                    try:
                         closed_at = get_nested(entry, datetime_key)
                         if closed_at is None:
                             print(
@@ -62,9 +62,9 @@ def iterate_and_split(filter_path: str, datetime_key: list[str]) -> set[str]:
                         r_temp_storage_path = temp_storage_path.format(bucket=ymd)
                         with open(r_temp_storage_path, "a+") as temp_storage_file:
                             temp_storage_file.write(f'{json.dumps(entry)}\n')
-                except:
-                    print(json.dumps(j_data))
-                    raise
+                    except:
+                        print(json.dumps(entry))
+                        raise
     return ymds
 
 
