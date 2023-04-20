@@ -64,6 +64,7 @@ def iterate_and_split(filter_path: str, datetime_key: list[str]) -> set[str]:
                             temp_storage_file.write(f'{json.dumps(entry)}\n')
                 except:
                     print(json.dumps(j_data))
+                    raise
     return ymds
 
 
