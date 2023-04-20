@@ -50,3 +50,15 @@ class SimpleConsumer(multiprocessing.Process):
             except Exception as ex:
                 print(f"Failed with entry {task}: {ex}.")
         print(f'Consumer-{self._worker_index} stopped.')
+
+def parallelize_tasks(tasks: list, on_message_received: Callable, thread_count: int):
+    worklist = multiprocessing.JoinableQueue()
+    # Creates workers.
+    for index in range(thread_count):
+        SimpleConsumer(on_message_received, worklist, index)
+    # Creates tasks.
+    for task in tasks:
+        worklist.put(task)
+    # Kills workers.
+    for _ in range(thread_count):
+        worklist.put(None)
