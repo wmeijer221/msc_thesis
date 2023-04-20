@@ -61,7 +61,7 @@ def iterate_and_split(filter_path: str, datetime_key: list[str]) -> set[str]:
                         except:
                             # Used in GitLab.
                             dt_closed_at = datetime.strptime(
-                                closed_at, "%Y-%m-%dT%H:%M:%S%fZ"
+                                closed_at, "%Y-%m-%dT%H:%M:%S.%fZ"
                             )
                         ymd = dt_closed_at.strftime("%Y-%m-%d")
                         if not ymd in ymds:
