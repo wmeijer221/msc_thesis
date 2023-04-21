@@ -87,9 +87,9 @@ def write_data(data: list):
 
 if __name__ == "__main__":
     if (idx := argv.index('-i')) > -1:
-        input_path = argv[idx]
+        input_path = argv[idx + 1]
     if (idx := argv.index('-o')) > -1:
-        output_path = argv[idx]
+        output_path = argv[idx + 1]
 
     mode = argv[argv.index('-m') + 1]
 
