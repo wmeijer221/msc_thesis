@@ -55,14 +55,17 @@ def filter_for_bots(entry):
 
 def filter_data(data: list, filters: list) -> list:
     filtered_data = []
+    filtered_by = [0] * len(filters)
     for entry in data:
         is_included = True
-        for filter in filters:
+        for index, filter in enumerate(filters):
             if not filter(entry):
+                filtered_by[index] += 1
                 is_included = False
                 break
         if is_included:
             filtered_data.append(entry)
+    print(filtered_by)
     return filtered_data
 
 
