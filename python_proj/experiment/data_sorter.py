@@ -106,7 +106,7 @@ def write_sorted_buckets(ymds: set):
             bucket_path = temp_storage_path.format(bucket=ymd)
             with open(bucket_path, "r") as bucket_file:
                 output_file.writelines(bucket_file)
-            # remove(bucket_path)
+            remove(bucket_path)
 
 
 def sort_data(file_name: str, datetime_key: list[str], feature_name: str, eco_name: str):
