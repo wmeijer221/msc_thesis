@@ -25,7 +25,7 @@ class IssueFilter(BaseFilter):
 
 class MergeRequestFilter(BaseFilter):
     def __init__(self, **kwargs) -> None:
-        suMileStoneFilterper().__init__(**kwargs)
+        MileStoneFilter().__init__(**kwargs)
 
         self._fields = ["id", "iid", "state", "created_at", "updated_at",
                         "milestone", "merge_status", "detailed_merge_status",
