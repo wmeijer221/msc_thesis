@@ -22,7 +22,9 @@ def build_filters(filter_keys: str):
     filters = {
         'p': filter_for_github,
         'd': filter_by_close_date,
-        'b': filter_for_bots
+        'b': filter_for_bots_a,
+        'c': filter_for_bots_b,
+        # 'm': filter_for_bots_bodegha # TODO: Implement the BoDeGHa classifier.
     }
     filters = [filters[key] for key in filter_keys]
     return filters
@@ -49,19 +51,21 @@ def filter_for_github(entry):
         return not dt is None
 
 
-def filter_for_bots(entry):
+def filter_for_bots_a(entry):
     user_data = entry['user_data']
     user_type = user_data['type'].lower()
     if user_type == 'bot':
         return False
-    
+    return True
+
+def filter_for_bots_b(entry):
+    user_data = entry['user_data']
     user_login = user_data["login"].lower()
     contains_bot = r'.*bot.*'
     
     bot_match = re.match(contains_bot, re.escape(user_login))
     if not bot_match is None:
-        print(user_login)
-        # return False
+        return False
 
     if not 'name' in user_data:
         return True
@@ -69,8 +73,7 @@ def filter_for_bots(entry):
     user_name = user_data['name'].lower()
     bot_match = re.match(contains_bot, re.escape(user_name))
     if not bot_match is None:
-        print(user_name)
-        # return False
+        return False
 
     return True
 
