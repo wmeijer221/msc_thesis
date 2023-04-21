@@ -44,6 +44,8 @@ def filter_for_github(entry):
         datetime.strptime(created_date, "%Y-%m-%dT%H:%M:%SZ")
         return True
     except:
+        pass
+    finally:
         return False
 
 
