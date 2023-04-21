@@ -1,9 +1,11 @@
 import json
 from datetime import datetime
 import matplotlib.pyplot as plt
+from sys import argv
 
 from python_proj.experiment.replication_study.retrieve_pull_requests import end_date
 
+base_data_path = "./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/{list}.json"
 data_path = "./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/sorted_filtered.json"
 
 
@@ -110,6 +112,10 @@ def prs_per_user():
 
 
 if __name__ == "__main__":
+    if (idx := argv.index('-i')) > -1:
+        file = argv[idx + 1]
+        data_path = base_data_path.format(list=file)
+
     prs_over_time()
     prs_per_project()
     prs_per_user()

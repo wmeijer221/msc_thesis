@@ -68,6 +68,7 @@ def _iterate_and_split(filter_path: str, datetime_key: list[str]) -> set[str]:
                             ymds.add(ymd)
                         r_temp_storage_path = temp_storage_path.format(
                             bucket=ymd)
+                        entry['__source_path'] = entries_path
                         with open(r_temp_storage_path, "a+") as temp_storage_file:
                             temp_storage_file.write(f'{json.dumps(entry)}\n')
                     except:
