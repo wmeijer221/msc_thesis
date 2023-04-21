@@ -56,9 +56,9 @@ def filter_for_bots(entry):
         return False
     
     user_login = user_data["login"].lower()
-    contains_bot = r'*bot*'
+    contains_bot = r'.*bot.*'
     
-    bot_match = re.match(contains_bot, user_login)
+    bot_match = re.match(contains_bot, re.escape(user_login))
     if not bot_match is None:
         print(user_login)
         # return False
@@ -67,7 +67,7 @@ def filter_for_bots(entry):
         return True
     
     user_name = user_data['name'].lower()
-    bot_match = re.match(contains_bot, user_name)
+    bot_match = re.match(contains_bot, re.escape(user_name))
     if not bot_match is None:
         print(user_name)
         # return False
