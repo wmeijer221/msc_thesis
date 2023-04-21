@@ -56,7 +56,11 @@ def filter_for_bots(entry):
 def filter_data(data: list, filters: list) -> list:
     filtered_data = []
     for entry in data:
-        is_included = any([filter(entry) for filter in filters])
+        is_included = True
+        for filter in filters:
+            if not filter(entry):
+                is_included = False
+                break
         if is_included:
             filtered_data.append(entry)
     return filtered_data
