@@ -25,7 +25,7 @@ def safe_add_set_element(dictionary: dict[Any, set], key, value):
 
 import multiprocessing
 from typing import Callable
-
+from time import sleep
 
 class SimpleConsumer(multiprocessing.Process):
 
@@ -43,22 +43,40 @@ class SimpleConsumer(multiprocessing.Process):
         while is_running:
             task = self._task_list.get()
             if task is None:
+                is_running = False
                 break
             try:
                 task_kwargs = {**self._kwargs, **task}
                 self._on_message_received(*self._args, **task_kwargs)
             except Exception as ex:
                 print(f"Failed with entry {task}: {ex}.")
+                raise
         print(f'Consumer-{self._worker_index} stopped.')
 
 def parallelize_tasks(tasks: list, on_message_received: Callable, thread_count: int):
     worklist = multiprocessing.JoinableQueue()
+    workers: list[SimpleConsumer] = [None] * thread_count
+    
     # Creates workers.
     for index in range(thread_count):
-        SimpleConsumer(on_message_received, worklist, index)
+        worker = SimpleConsumer(on_message_received, worklist, index)
+        worker.start()
+        workers[index] = worker
+    
     # Creates tasks.
-    for task in tasks:
-        worklist.put(task)
+    total_tasks = len(tasks)
+    for task_id, task in enumerate(tasks, start=1):
+        work_task = {
+            'task': task,
+            'task_id': task_id,
+            'total_tasks': total_tasks
+        }
+        worklist.put(work_task)
+    
     # Kills workers.
     for _ in range(thread_count):
         worklist.put(None)
+    
+    # Waits until workers terminate.
+    for worker in workers:
+        worker.join()

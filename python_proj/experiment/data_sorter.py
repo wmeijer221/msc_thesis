@@ -52,7 +52,7 @@ def iterate_and_split(filter_path: str, datetime_key: list[str]) -> set[str]:
                         closed_at = get_nested(entry, datetime_key)
                         if closed_at is None:
                             print(
-                                f'Skipping entry without closed date {repo_split}.')
+                                f'Skipping entry without feature "{feature_name}" {repo_split}.')
                             continue
                         try:
                             # Used in GitHub
@@ -80,11 +80,17 @@ def parallel_sort(ymds: set[str]):
     def sort_key(entry: dict):
         return get_nested(entry, datetime_key)
 
-    def sort_entries(ymd: str):
+    def sort_entries(task: str, task_id: int, total_tasks: int):
+        ymd = task
+        print(f'Starting with task ({task_id}/{total_tasks}) "{ymd}"')
         bucket_path = temp_storage_path.format(bucket=ymd)
-        with open(bucket_path, "w") as bucket_file:
+        # Reads unsorted data
+        with open(bucket_path, "r") as bucket_file:
             entries = [json.loads(line.strip()) for line in bucket_file]
-            entries.sort(key=sort_key)
+        remove(bucket_path)
+        entries.sort(key=sort_key)
+        # Writes sorted data
+        with open(bucket_path, 'w+') as bucket_file:
             newlines = [f'{json.dumps(entry)}\n' for entry in entries]
             bucket_file.writelines(newlines)
 
@@ -100,15 +106,22 @@ def write_sorted_buckets(ymds: set):
             bucket_path = temp_storage_path.format(bucket=ymd)
             with open(bucket_path, "r") as bucket_file:
                 output_file.writelines(bucket_file)
-            remove(bucket_path)
+            # remove(bucket_path)
 
 
 def sort_data(file_name: str, datetime_key: list[str], feature_name: str, eco_name: str):
     global real_base_path, input_file_name
     real_base_path = base_path.format(eco=eco_name, feature=feature_name)
+    
+    print("Starting bucket creation.")
     ymds = iterate_and_split(file_name, datetime_key)
+    
+    print("Starting parallel bucket sort.")
     parallel_sort(ymds)
+    
+    print("Merging buckets.")
     write_sorted_buckets(ymds)
+    print("Done!")
 
 
 if __name__ == "__main__":
