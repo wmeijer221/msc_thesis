@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 from python_proj.experiment.replication_study.retrieve_pull_requests import end_date
 
-data_path = "./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/sorted.json"
+data_path = "./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/sorted_filtered.json"
 
 
 def prs_over_time():

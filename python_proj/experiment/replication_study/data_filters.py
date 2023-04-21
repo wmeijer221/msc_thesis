@@ -2,6 +2,7 @@ from python_proj.experiment.replication_study.retrieve_pull_requests import end_
 import json
 from sys import argv
 from datetime import datetime
+import re
 
 input_path = './data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/sorted.json'
 output_path = './data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/sorted_filtered.json'
@@ -49,6 +50,16 @@ def filter_for_github(entry):
 
 
 def filter_for_bots(entry):
+    user_data = entry['user_data']
+    user_type = user_data['type'].lower()
+    if user_type == 'bot':
+        return False
+    user_login = user_data["login"].lower()
+    contains_bot = r'bot'
+    bot_match = re.match(contains_bot, user_login)
+    if not bot_match is None:
+        print(bot_match)
+
     return True
 
 
@@ -75,6 +86,11 @@ def write_data(data: list):
 
 
 if __name__ == "__main__":
+    if (idx := argv.index('-i')) > -1:
+        input_path = argv[idx]
+    if (idx := argv.index('-o')) > -1:
+        output_path = argv[idx]
+
     mode = argv[argv.index('-m') + 1]
 
     filters = build_filters(mode)
