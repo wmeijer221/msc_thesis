@@ -41,12 +41,11 @@ def filter_for_github(entry):
     created_date = entry[created_at_key]
     # HACK: GitLab uses a different time format. I've got no better way to test for GH PRs, though.
     try:
-        datetime.strptime(created_date, "%Y-%m-%dT%H:%M:%SZ")
-        return True
+        dt = datetime.strptime(created_date, "%Y-%m-%dT%H:%M:%SZ")
     except:
-        pass
+        dt = None
     finally:
-        return False
+        return not dt is None
 
 
 def filter_for_bots(entry):
