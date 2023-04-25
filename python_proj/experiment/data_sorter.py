@@ -52,7 +52,7 @@ def _iterate_and_split(filter_path: str, datetime_key: list[str]) -> set[str]:
                         closed_at = _get_nested(entry, datetime_key)
                         if closed_at is None:
                             print(
-                                f'Skipping entry without feature "{feature_name}" {repo_split}.')
+                                f'Skipping entry without key "{datetime_key}" {repo_split}.')
                             continue
                         try:
                             # Used in GitHub

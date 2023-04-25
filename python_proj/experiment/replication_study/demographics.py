@@ -45,8 +45,52 @@ def prs_over_time():
 
 
 def prs_per_project():
-    pass
+    buckets: dict[str, int] = {}
 
+    total = 0
+    with open(data_path, "r") as data_file:
+        for entry in data_file:
+            j_entry = json.loads(entry)
+
+            source_file = j_entry['__source_path']
+
+            if not source_file in buckets: 
+                buckets[source_file] = 0
+            
+            buckets[source_file] += 1
+            total += 1
+    
+    plt.cla()
+
+    entries = list(buckets.items())
+    entries.sort(key=lambda x: x[1])
+    x_axis = range(len(entries))
+    y_axis = [entry[1] for entry in entries]
+    plt.plot(x_axis, y_axis)
+
+    perc_count = 0
+    percentiles = [0.4]
+    current_perc = 0
+    vlines = []
+    people = 0
+    for index, (id, count) in enumerate(entries):
+        perc_count += count
+        people += 1
+        target_perc = percentiles[current_perc] * total
+        if perc_count >= target_perc:
+            vlines.append(index)
+            current_perc += 1
+            if current_perc >= len(percentiles):
+                break
+    
+    plt.vlines(vlines, 0, entries[-1][1], linestyles='dashed', colors='red')
+    print(f'{len(entries) - people}/{len(entries):.03f} ({(len(entries) - people) / len(entries)}%) are responsible for {100 - percentiles[0] * 100}% of the PRs')
+
+    plt.title('Closed Pull Requests Per project')
+    plt.xlabel('Project')
+    plt.ylabel('Closed Pull Requests')
+    plt.show()
+    
 
 def prs_per_user():
     buckets: dict[datetime, int] = {}
@@ -76,6 +120,8 @@ def prs_per_user():
 
             buckets[user_id] += 1
             total += 1
+
+    plt.cla()
 
     entries = list(buckets.items())
     entries.sort(key=lambda x: x[1])

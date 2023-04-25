@@ -25,7 +25,6 @@ def safe_add_set_element(dictionary: dict[Any, set], key, value):
 
 import multiprocessing
 from typing import Callable
-from time import sleep
 
 class SimpleConsumer(multiprocessing.Process):
 
@@ -80,3 +79,21 @@ def parallelize_tasks(tasks: list, on_message_received: Callable, thread_count: 
     # Waits until workers terminate.
     for worker in workers:
         worker.join()
+
+
+def get_nested(obj: dict, key: list[str]) -> Any | None:
+    """
+    Returns value corresponding to the key by recursively
+    searching in the given dictionary.
+
+    :params obj: The used dictionary.
+    :params key: The query key.
+    """
+    
+    current = obj
+    for key in key:
+        if not key in current:
+            return None
+        current = current[key]
+    return current
+
