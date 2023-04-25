@@ -24,6 +24,8 @@ def build_filters(filter_keys: str):
         'd': filter_by_close_date,
         'b': filter_for_bots_a,
         'c': filter_for_bots_b,
+        'a': filter_for_deleted_accounts,
+        'l': filter_for_blacklist,
         # 'm': filter_for_bots_bodegha # TODO: Implement the BoDeGHa classifier.
     }
     filters = [filters[key] for key in filter_keys]
@@ -58,24 +60,38 @@ def filter_for_bots_a(entry):
         return False
     return True
 
+
 def filter_for_bots_b(entry):
     user_data = entry['user_data']
     user_login = user_data["login"].lower()
     contains_bot = r'.*bot.*'
-    
+
     bot_match = re.match(contains_bot, re.escape(user_login))
     if not bot_match is None:
         return False
 
     if not 'name' in user_data:
         return True
-    
+
     user_name = user_data['name'].lower()
     bot_match = re.match(contains_bot, re.escape(user_name))
     if not bot_match is None:
         return False
 
     return True
+
+
+def filter_for_deleted_accounts(entry):
+    user_data = entry['user_data']
+    user_login = user_data['login'].lower()
+    # Accounts that are deleted are represented by the 'ghost' account. See https://github.com/ghost
+    return user_login != 'ghost'
+
+
+def filter_for_blacklist(entry):
+    user_data = entry['user_data']
+    user_login = user_data['login'].lower()
+    return not user_login in ["fabric8cd", "MrsFlux"]
 
 
 def filter_data(data: list, filters: list) -> list:

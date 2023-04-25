@@ -105,13 +105,6 @@ def prs_per_user():
                 continue
 
             user_data = j_entry["user_data"]
-
-            login: str = user_data['login'].lower()
-
-            # # ignores bots
-            # if user_data['type'].lower() == 'bot' or login.find('bot') >= 0:
-            #     continue
-
             user_id = user_data["id"]
 
             if user_id not in buckets:
@@ -151,10 +144,12 @@ def prs_per_user():
     plt.xlabel('User')
     plt.ylabel('Closed Pull Requests')
     plt.show()
-
-    for entry in entries[-10:]:
-        print(entry)
-        print(id_to_data[entry[0]])
+    
+    for entry in entries[-(len(entries) - people):]:
+        # print(entry)
+        j_out =  id_to_data[entry[0]]
+        j_out['pull_request_count'] = entry[1]
+        print(json.dumps(j_out))
 
 
 if __name__ == "__main__":
@@ -162,6 +157,6 @@ if __name__ == "__main__":
         file = argv[idx + 1]
         data_path = base_data_path.format(list=file)
 
-    prs_over_time()
-    prs_per_project()
+    # prs_over_time()
+    # prs_per_project()
     prs_per_user()

@@ -13,20 +13,24 @@ def slide_through_timeframe(file_name: str, key_to_date: list[str], window_size:
     # Hardcoded as this is an analysis-custom field added in the data sorter.
     source_key = "__source_path"
     window = {}
+
+    ts_format = "%Y-%m-%dT%H:%M:%SZ"
     with open(file_name, "r") as input_file:
         # Iterates through input file.
         # Assumes that the input file is sorted.
         for line in input_file:
             j_entry = json.loads(line)
             new_date = get_nested(j_entry, key_to_date)
+            dt_new_date = datetime.strptime(new_date, ts_format)
 
             def prune_window():
                 # Prunes outdated entries in window.
                 pruned_entries = {}
                 for source, entry in window.items():
                     # Iterate through window to find outdated.
-                    entry_date = get_nested(source, entry, key_to_date)
-                    delta = new_date - entry_date
+                    entry_date = get_nested(entry, key_to_date)
+                    dt_entry_date = datetime.strptime(entry_date, ts_format)
+                    delta = dt_new_date - dt_entry_date
                     if delta > window_size:
                         pruned_entries[source] = entry
                 for source, entry in pruned_entries.items():
@@ -61,7 +65,7 @@ class DataFieldFactory:
         self._values = {}
 
     def get_name(self) -> str:
-        raise Exception("Not implemented.")
+        return self.__class__.__name__
 
     def get(self, entry: dict) -> Any:
         raise Exception("Not implemented.")
@@ -92,6 +96,11 @@ class IntraPRFieldFactory(DataFieldFactory):
         pass
 
 
+class DepPRIsMerged(IntraPRFieldFactory):
+    def get(self, entry: dict) -> Any:
+        return bool(entry['merged'])
+
+
 class ContSameUser(IntraPRFieldFactory):
     """
     Implements control variable suggested by Zhang (2022) whether
@@ -119,18 +128,12 @@ class ContSameUser(IntraPRFieldFactory):
         else:
             return self.NOT_MERGED
 
-    def get_name(self) -> str:
-        return "Integrated-By-Same-User"
-
 
 class ContLifetime(IntraPRFieldFactory):
     """
     Implements control variable suggested by Zhang (2022);
     the lifetime of the PR in minutes.
     """
-
-    def get_name(self) -> str:
-        return "PR-Lifetime-in-Minutes"
 
     def get(self, entry: str) -> Any:
         ts_format = "%Y-%m-%dT%H:%M:%SZ"
@@ -182,9 +185,6 @@ class ContPriorReviewNum(DataFieldFactory):
     def remove(self, entry: dict):
         self.handle(entry, -1)
 
-    def get_name(self) -> str:
-        return "Integrator-Prior-Reviews-in-Project"
-
     def get(self, _: str) -> Any:
         if len(self._last) == 0:
             return "no_integrator_data"
@@ -200,15 +200,13 @@ class ContHasComments(IntraPRFieldFactory):
         comment_count = entry['comments']
         return comment_count > 0
 
-    def get_name(self) -> str:
-        return "Has-Comments"
-
 
 class ContNumCommits(IntraPRFieldFactory):
-    def get_name(self) -> str:
-        return "Num-Commits-in-PR"
-
     def get(self, entry: dict) -> Any:
+        # commit_count = entry['commits']
+        # if commit_count > 200:
+        #     print(entry)
+
         return entry['commits']
 
 
@@ -239,7 +237,10 @@ class ContDevSuccessRate(DataFieldFactory):
         is_merged = bool(entry['merged'])
         success_rate = success_rate * count + (sign if is_merged else 0)
         count += sign
-        success_rate /= count
+        if count > 0:
+            success_rate /= count
+        else:
+            success_rate = 0.0
 
         self._values[uid][project_id].set(count, success_rate)
 
@@ -255,9 +256,6 @@ class ContDevSuccessRate(DataFieldFactory):
         project_id = get_nested(entry, ['__source_path'])
         project_data = user_data[project_id]
         return project_data.success_rate
-
-    def get_name(self) -> str:
-        return "Intra-project-Acceptance-Rate"
 
 
 class PRCountEco(ContDevSuccessRate):
@@ -278,9 +276,6 @@ class PRCountEco(ContDevSuccessRate):
             eco_sr.count += entry.count
         return int(eco_sr.count)
 
-    def get_name(self) -> str:
-        return "PR-Count"
-
 
 class PRAcceptanceRateEco(ContDevSuccessRate):
     def get(self, entry: dict) -> Any:
@@ -297,13 +292,10 @@ class PRAcceptanceRateEco(ContDevSuccessRate):
             eco_sr.success_rate /= eco_sr.count
         return eco_sr.success_rate
 
-    def get_name(self) -> str:
-        return "PR-Acceptance-Rate"
-
 
 def data_set_iterator(data_fields: list[type], window_size: timedelta = None) -> Generator[list[str], list[Any], None]:
     file_name = "./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/sorted_filtered.json"
-    closed_at_key = "closed_at"
+    closed_at_key = ["closed_at"]
 
     # Initializes fields.
     fields = [field() for field in data_fields]
@@ -339,14 +331,32 @@ def build_cumulative_dataset():
     output_path = "./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/cumulative_dataset.csv"
     with open(output_path, "w+") as output_file:
         csv_writer = writer(output_file)
-        # TODO: add ContPriorReviewNum when its finished.
-        fields = [ContSameUser, ContLifetime, ContHasComments,
-                  ContNumCommits, ContDevSuccessRate, PRCountEco, PRAcceptanceRateEco]
+        # TODO: add ``ContPriorReviewNum``, ``ContSameUser`` when its finished.
+        fields = [DepPRIsMerged, ContLifetime, ContHasComments, ContNumCommits,
+                  ContDevSuccessRate, PRCountEco, PRAcceptanceRateEco]
+        # fields = [ContNumCommits]
         for index, entry in enumerate(data_set_iterator(fields)):
             csv_writer.writerow(entry)
             # if index == 10:
             #     break
 
 
+def build_windowed_dataset(days: int):
+    output_path = f"./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/windowed_{days}d_dataset.csv"
+    with open(output_path, "w+") as output_file:
+        csv_writer = writer(output_file)
+        # TODO: add ``ContPriorReviewNum``, ``ContSameUser`` when its finished.
+        fields = [DepPRIsMerged, ContLifetime, ContHasComments, ContNumCommits,
+                  ContDevSuccessRate, PRCountEco, PRAcceptanceRateEco]
+        ninety_days = timedelta(days=90)
+        for index, entry in enumerate(data_set_iterator(fields, window_size=ninety_days)):
+            csv_writer.writerow(entry)
+            # if index == 10:
+            #     break
+
+
 if __name__ == "__main__":
-    build_cumulative_dataset()
+    # build_cumulative_dataset()
+    # build_windowed_dataset(30)
+    build_windowed_dataset(90)
+    # build_windowed_dataset(180)
