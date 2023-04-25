@@ -5,6 +5,7 @@ from csv import writer
 from os import path
 from uuid import uuid3, NAMESPACE_OID
 from dataclasses import dataclass
+from sys import argv
 
 from python_proj.experiment.util import get_nested
 
@@ -356,7 +357,10 @@ def build_windowed_dataset(days: int):
 
 
 if __name__ == "__main__":
-    # build_cumulative_dataset()
-    # build_windowed_dataset(30)
-    build_windowed_dataset(90)
-    # build_windowed_dataset(180)
+    mode = argv[argv.index("-m") + 1]
+    match mode:
+        case 'c':
+            build_cumulative_dataset()
+        case 'w':
+            days = int(argv[argv.index('-d') + 1])
+            build_windowed_dataset(days)
