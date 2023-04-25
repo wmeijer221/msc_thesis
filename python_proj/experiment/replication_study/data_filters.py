@@ -91,7 +91,7 @@ def filter_for_deleted_accounts(entry):
 def filter_for_blacklist(entry):
     user_data = entry['user_data']
     user_login = user_data['login'].lower()
-    return not user_login in ["fabric8cd", "MrsFlux"]
+    return not user_login in ["fabric8cd", "mrsflux"]
 
 
 def filter_data(data: list, filters: list) -> list:
