@@ -53,8 +53,6 @@ def slide_through_timeframe(file_name: str, key_to_date: list[str], window_size:
             # Outputs iterable.
             yield (pruned_entries, j_entry)
 
-# TODO: These variables consider intra-project events still as well. These need to be filtered out.
-
 
 class DataFieldFactory:
     # TODO: change to constructor argument.
@@ -306,7 +304,7 @@ def data_set_iterator(data_fields: list[type], window_size: timedelta = None) ->
 
     # Outputs header.
     data_headers = [field.get_name() for field in fields]
-    yield ['UUID', 'PR-Source', 'PR-ID', "User-ID", *data_headers]
+    yield ['UUID', 'PR-Source', 'PR-ID', "User-ID", "Closed-At", *data_headers]
 
     # Generates data.
     for pruned_entries, new_entry in slide_through_timeframe(file_name, closed_at_key, window_size):
@@ -325,7 +323,8 @@ def data_set_iterator(data_fields: list[type], window_size: timedelta = None) ->
 
             # Gets relevant data for this data entry.
             data_point[index] = field.get(new_entry)
-        yield [uuid, pr_source, prid, uid, *data_point]
+        closed_at = get_nested(entry, closed_at_key)
+        yield [uuid, pr_source, prid, uid, closed_at, *data_point]
 
 
 def build_cumulative_dataset():

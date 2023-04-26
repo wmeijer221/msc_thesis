@@ -1,3 +1,8 @@
+"""
+Outdated: This only works on the .json data, which isn't great to work with.
+TODO: implement this to work with the .csv dataset.
+"""
+
 import json
 from datetime import datetime
 import matplotlib.pyplot as plt

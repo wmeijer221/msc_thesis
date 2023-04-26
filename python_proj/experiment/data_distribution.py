@@ -3,9 +3,12 @@ from matplotlib import pyplot as plt
 from csv import reader
 import itertools
 import random
+from sys import argv
+
+file = argv[argv.index('-i') + 1]
 
 # Loads data
-data_path = './data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/cumulative_dataset.csv'
+data_path = f'./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/{file}.csv'
 data_file = open(data_path, "r")
 dataset = reader(data_file)
 
