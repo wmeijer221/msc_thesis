@@ -323,7 +323,7 @@ def data_set_iterator(data_fields: list[type], window_size: timedelta = None) ->
 
             # Gets relevant data for this data entry.
             data_point[index] = field.get(new_entry)
-        closed_at = get_nested(entry, closed_at_key)
+        closed_at = get_nested(new_entry, closed_at_key)
         yield [uuid, pr_source, prid, uid, closed_at, *data_point]
 
 
