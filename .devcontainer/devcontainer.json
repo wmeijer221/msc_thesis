@@ -6,7 +6,7 @@
 	"image": "mcr.microsoft.com/devcontainers/python:0-3.11",
 	"features": {
 		"ghcr.io/devcontainers/features/node:1": {}
-	}
+	},
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
@@ -15,7 +15,11 @@
 	// "forwardPorts": [],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	// "postCreateCommand": "pip3 install --user -r requirements.txt",
+	"postCreateCommand": "pip install --upgrade pip && pip3 install --user -r ./python_proj/requirements.txt",
+
+	"containerEnv": {
+		"PYTHONPATH": "/workspaces/msc_thesis/"
+	}
 
 	// Configure tool-specific properties.
 	// "customizations": {},

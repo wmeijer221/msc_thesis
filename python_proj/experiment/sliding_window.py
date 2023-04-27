@@ -140,7 +140,7 @@ class ContLifetime(IntraPRFieldFactory):
         closed_at = datetime.strptime(entry['closed_at'], ts_format)
 
         dt = closed_at - created_at
-        lifetime_in_minutes = dt.seconds / 60
+        lifetime_in_minutes = dt.total_seconds() / 60
 
         return lifetime_in_minutes
 
