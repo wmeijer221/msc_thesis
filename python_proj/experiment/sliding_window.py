@@ -268,12 +268,12 @@ class PRCountEco(ContDevSuccessRate):
         uid = self.get_user_id(entry)
         user_data = self._values[uid]
         project_id = get_nested(entry, ['__source_path'])
-        eco_sr = ContDevSuccessRate.SuccessRate()
+        pr_count = 0
         for project, entry in user_data.items():
             if project == project_id:
                 continue
-            eco_sr.count += entry.count
-        return int(eco_sr.count)
+            pr_count += int(entry.count)
+        return pr_count
 
 
 class PRAcceptanceRateEco(ContDevSuccessRate):
