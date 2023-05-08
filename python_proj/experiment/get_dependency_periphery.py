@@ -72,6 +72,7 @@ included_projects = {entry.strip().split(
 dependencies = {}
 projects_that_core_depends_on = set()
 projects_that_depend_on_core = set()
+dependency_count = 0
 for entry in dependencies_reader:
     # Only conosiders intra-ecosystem dependencies.
     if entry[focal_dependency_platform_index].lower() != eco \
@@ -101,7 +102,10 @@ for entry in dependencies_reader:
         # Skips duplicates.
         if not other_id in dependencies[focal_id]:
             dependencies[focal_id].append(other_id)
-        print(f"added dependency: {focal_id} on {other_id}.")
+
+        dependency_count += 1
+        if dependency_count % 1000 == 0:
+            print(f"added dependency: {focal_id} on {other_id}.")
 
 # Combines the collected data with repository details to generate filter files.
 dependencies = {}
