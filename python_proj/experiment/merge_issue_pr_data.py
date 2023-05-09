@@ -70,8 +70,9 @@ def do_the_merge():
             try:
                 pr_number = pr["number"]
             except KeyError:
-                print(
-                    f"PR has no number in {project_name}: {json.dumps(pr)[:25]}.")
+                # This happens when the PRs are retrieved from GitLab.
+                print(f"PR has no number in {project_name}.")
+                break
 
             if pr_number not in issues_mapping:
                 print(f'{project_name} missing issue for PR #{pr_number}.')
@@ -87,26 +88,27 @@ def do_the_merge():
 
             new_prs.append(new_pr)
 
-        # Writes enriched PRs.
-        real_output_path = pr_output_path.format(
-            project_name=project_name, eco=eco)
-        with open(real_output_path, "w+") as output_file:
-            if write_new:
-                output_file.write(json.dumps(new_prs, indent=2))
+        if len(new_prs) > 0:
+            # Writes enriched PRs.
+            real_output_path = pr_output_path.format(
+                project_name=project_name, eco=eco)
+            with open(real_output_path, "w+") as output_file:
+                if write_new:
+                    output_file.write(json.dumps(new_prs, indent=2))
 
-        # Filters out issues that are also PRs.
-        for pr in prs:
-            pr_number = pr["number"]
-            if pr_number not in issues_mapping:
-                continue
-            del issues_mapping[pr_number]
+            # Filters out issues that are also PRs.
+            for pr in prs:
+                pr_number = pr["number"]
+                if pr_number not in issues_mapping:
+                    continue
+                del issues_mapping[pr_number]
 
-        # Writes filtered issues.
-        real_issue_output_path = issue_output_path.format(
-            project_name=project_name, eco=eco)
-        with open(real_issue_output_path, "w+") as issue_output_file:
-            data = list(issues_mapping.values())
-            issue_output_file.write(json.dumps(data, indent=2))
+            # Writes filtered issues.
+            real_issue_output_path = issue_output_path.format(
+                project_name=project_name, eco=eco)
+            with open(real_issue_output_path, "w+") as issue_output_file:
+                data = list(issues_mapping.values())
+                issue_output_file.write(json.dumps(data, indent=2))
 
         issue_file.close()
         pr_file.close()
