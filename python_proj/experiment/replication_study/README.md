@@ -35,3 +35,9 @@ In general, don't delete any of the generated files while running this experimen
 - Run ``demographics.py -i sorted_filtered`` to plot some basic figures describing the data.
 - Run ``sliding_window.py`` to generate various datasets.
 - Run ``modelling.py`` to generate basic distribution data for the dataset.
+
+- Run ``get_dependency_periphery.py`` to generate two lists of periphery projects.
+- Run ``filter_projects.py -m s other_to_focal_without_core 12566`` to subsample the list of projects that depend on the core projects. 
+  The number 12566 (the subsample size) is semi-arbitrary, in this experiment it's the number of entries in the ``focal_to_other_without_core`` file.
+<!-- - Run ``filter_projects.py -m ms focal_to_other_without_core other_to_focal_without_core_sampled periphery_with_sampled_other_to_focal`` to merge the two lists into one. -->
+- Run ``retrieve_pull_requests.py -f periphery_with_sampled_other_to_focal -t 4 -m s`` which retrieves pull requests data for the periphery projects.

@@ -124,7 +124,7 @@ if __name__ == "__main__":
         else:
             raise ValueError(f"Invalid mode {mode}.")
 
-    if (j_index := safe_index(argv, "-j")) >= 0:
+    if safe_index(argv, "-j") >= 0:
         if job_count == -1:
             job_count = int(argv[argv.index("-t") + 1])
         join_results()

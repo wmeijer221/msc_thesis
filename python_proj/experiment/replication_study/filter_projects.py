@@ -8,6 +8,7 @@ from os import path, makedirs
 import json
 import requests
 from sys import argv
+import random
 
 from python_proj.experiment.util import safe_index
 
@@ -143,7 +144,7 @@ def generate(exlusion_criteria: callable, output_key: str = ""):
         # projects without a repo are ignored by default.
         if repo_name == '':
             continue
-        
+
         try:
             if not repo_name in passed_valid and (repo_name in passed_invalid or exlusion_criteria(entry)):
                 passed_invalid.add(repo_name)
@@ -183,16 +184,16 @@ def exclusion_both(entry):
     return exclusion_prs(entry) or exclusion_downloads(entry)
 
 
-def merge_inclusion_lists():
-    with open(f"{output_path}included_projects_pr.csv", "r", encoding="utf-8") as pr_filtered:
+def merge_inclusion_lists(list_a: str = "pr", list_b: str = "dl", list_out: str = ""):
+    with open(f"{output_path}included_projects_{list_a}.csv", "r", encoding="utf-8") as pr_filtered:
         pr_set = set([entry.strip() for entry in pr_filtered.readlines()])
 
-    with open(f"{output_path}included_projects_dl.csv", "r", encoding="utf-8") as dl_filtered:
+    with open(f"{output_path}included_projects_{list_b}.csv", "r", encoding="utf-8") as dl_filtered:
         dl_set = set([entry.strip() for entry in dl_filtered.readlines()])
 
     i_set = pr_set.intersection(dl_set)
 
-    with open(f"{output_path}included_projects.csv", "w+", encoding="utf-8") as merged_filtered:
+    with open(f"{output_path}included_projects{list_out}.csv", "w+", encoding="utf-8") as merged_filtered:
         merged_filtered.writelines([f"{entry}\n" for entry in i_set])
 
     print("Merged results.")
@@ -216,6 +217,19 @@ def filter_libraries_data(filter_file_key: str):
             project_writer.writerow(entry)
 
 
+def sample_list(name: str, sample_size: int):
+    with open(f'{output_path}included_projects_{name}.csv', "r") as input_file:
+        entries: list = list(input_file.readlines())
+        random_order = [random.random() for _ in entries]
+        zipped = list(zip(entries, random_order))
+        zipped.sort(key=lambda x: x[1])
+        sample = [entry[0] for entry in zipped[:sample_size]]
+
+        with open(f'{output_path}included_projects_{name}_sampled.csv', "w+") as output_file:
+            for entry in sample:
+                output_file.write(f'{entry}')
+
+
 if __name__ == "__main__":
     # Skip if:
     #   - Has no PR file.
@@ -232,6 +246,15 @@ if __name__ == "__main__":
             generate(exclusion_prs, "_pr")
         elif mode == "m":
             merge_inclusion_lists()
+        elif mode == "mc":
+            list_a = argv[-3]
+            list_b = argv[-2]
+            list_out = argv[-1]
+            merge_inclusion_lists(list_a, list_b, f'_{list_out}')
+        elif mode == 's':
+            list_a = argv[-2]
+            sample_size = int(argv[-1])
+            sample_list(list_a, sample_size)
         elif mode == "a":
             ext = None
             if (ext_idx := safe_index(argv, "-t")) > 0:
