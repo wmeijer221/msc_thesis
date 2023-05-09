@@ -183,7 +183,7 @@ def exclusion_both(entry):
     return exclusion_prs(entry) or exclusion_downloads(entry)
 
 
-def merge_exclusion_lists():
+def merge_inclusion_lists():
     with open(f"{output_path}included_projects_pr.csv", "r", encoding="utf-8") as pr_filtered:
         pr_set = set([entry.strip() for entry in pr_filtered.readlines()])
 
@@ -231,7 +231,7 @@ if __name__ == "__main__":
         elif mode == "p":
             generate(exclusion_prs, "_pr")
         elif mode == "m":
-            merge_exclusion_lists()
+            merge_inclusion_lists()
         elif mode == "a":
             ext = None
             if (ext_idx := safe_index(argv, "-t")) > 0:
