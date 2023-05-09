@@ -131,5 +131,5 @@ if __name__ == "__main__":
     eco_name = argv[argv.index('-e') + 1]
     feature_name = argv[argv.index('-f') + 1]
     thread_count = int(argv[argv.index('-t') + 1])
-    ext = argv[argv.index("x") + 1]
+    ext = argv[argv.index("-x") + 1]
     sort_data(filter_file, datetime_key, feature_name, eco_name, ext)
