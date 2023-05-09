@@ -46,8 +46,11 @@ end_date = datetime(year=2020, month=1, day=12)
 
 dotenv.load_dotenv()
 
-all_gh_tokens = [getenv(f"GITHUB_TOKEN_{i}") for i in range(1, 5)]
+all_gh_tokens = [getenv(f"GITHUB_TOKEN_{i}") for i in range(1, 4)]
 gitlab_token_1 = getenv("GITLAB_TOKEN_1")
+
+if any([token is None for token in all_gh_tokens]) or gitlab_token_1 is None:
+    raise Exception("SOME TOKEN IS NONE!")
 
 all_gl_tokens = [gitlab_token_1]
 
