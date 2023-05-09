@@ -16,7 +16,11 @@ import python_proj.experiment.retrieve_issues as ri
 
 eco = "npm"
 
+# If you don't use -d and do use -w, it's a dry run.
+# Deletes the original files that data was extracted from.
 delete_old = safe_index(argv, "-d") >= 0
+# Writes merged data to a file.
+write_new = safe_index(argv, "-w") >= 0
 
 pull_request_path = rpr.filter_path.format(filter_type="")
 pr_output_path = "./data/libraries/{eco}-libraries-1.6.0-2020-01-12/pull-requests/{project_name}--with-issue-data.json"
@@ -62,7 +66,8 @@ def do_the_merge():
         real_output_path = pr_output_path.format(
             project_name=project_name, eco=eco)
         with open(real_output_path, "w+") as output_file:
-            output_file.write(json.dumps(new_prs, indent=2))
+            if write_new:
+                output_file.write(json.dumps(new_prs, indent=2))
 
         # Filters out issues that are also PRs.
         for pr in prs:
