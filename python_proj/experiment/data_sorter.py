@@ -10,7 +10,7 @@ from sys import argv
 from python_proj.experiment.util import parallelize_tasks
 
 base_path = "./data/libraries/{eco}-libraries-1.6.0-2020-01-12/{feature}/"
-input_file_name = "{owner}--{repo_name}.json"
+input_file_name = "{owner}--{repo_name}{ext}.json"
 output_path = "./data/libraries/{eco}-libraries-1.6.0-2020-01-12/{feature}/sorted.json"
 real_base_path = None
 thread_count = 1
@@ -31,7 +31,7 @@ def _get_nested(dictionary: dict, recursive_key: list[str]):
     return current
 
 
-def _iterate_and_split(filter_path: str, datetime_key: list[str]) -> set[str]:
+def _iterate_and_split(filter_path: str, datetime_key: list[str], ext: str) -> set[str]:
     ymds = set()
     with open(filter_path, "r") as filter_file:
         for file in filter_file:
@@ -40,7 +40,7 @@ def _iterate_and_split(filter_path: str, datetime_key: list[str]) -> set[str]:
             owner = repo_split[0]
             repo_name = repo_split[-1]
             entries_path = real_base_path + \
-                input_file_name.format(owner=owner, repo_name=repo_name)
+                input_file_name.format(owner=owner, repo_name=repo_name, ext=ext)
             if not path.exists(entries_path):
                 print(f'Skipping {repo_split} as it does not exist.')
                 continue
@@ -110,12 +110,12 @@ def _write_sorted_buckets(ymds: set):
             remove(bucket_path)
 
 
-def sort_data(file_name: str, datetime_key: list[str], feature_name: str, eco_name: str):
+def sort_data(file_name: str, datetime_key: list[str], feature_name: str, eco_name: str, ext: str):
     global real_base_path, input_file_name
     real_base_path = base_path.format(eco=eco_name, feature=feature_name)
     
     print("Starting bucket creation.")
-    ymds = _iterate_and_split(file_name, datetime_key)
+    ymds = _iterate_and_split(file_name, datetime_key, ext)
     
     print("Starting parallel bucket sort.")
     _parallel_sort(ymds)
@@ -131,4 +131,5 @@ if __name__ == "__main__":
     eco_name = argv[argv.index('-e') + 1]
     feature_name = argv[argv.index('-f') + 1]
     thread_count = int(argv[argv.index('-t') + 1])
-    sort_data(filter_file, datetime_key, feature_name, eco_name)
+    ext = argv[argv.index("x") + 1]
+    sort_data(filter_file, datetime_key, feature_name, eco_name, ext)

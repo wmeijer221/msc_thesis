@@ -25,12 +25,13 @@ def test_progress():
 
         response = requests.get(url, headers=headers)
         j_response = json.loads(response.text)
+        try:
+            rate = j_response["rate"]
 
-        rate = j_response["rate"]
-
-        print(
-            f'Token {index}: used {rate["used"]} of {rate["limit"]} requests.')
-
+            print(
+                f'Token {index}: used {rate["used"]} of {rate["limit"]} requests.')
+        except KeyError:
+            print(f"Token {index} is invalid.")
 
 if __name__ == "__main__":
     test_progress()
