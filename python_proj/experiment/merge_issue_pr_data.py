@@ -75,7 +75,7 @@ def do_the_merge():
                 break
 
             if pr_number not in issues_mapping:
-                print(f'{project_name} missing issue for PR #{pr_number}.')
+                print(f'Missing issue in {project_name} for PR #{pr_number}.')
                 missing_issue_count += 1
                 continue
 
