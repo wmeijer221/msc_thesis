@@ -67,7 +67,12 @@ def do_the_merge():
 
         # Merges PR with corresponding issue data.
         for pr in prs:
-            pr_number = pr["number"]
+            try:
+                pr_number = pr["number"]
+            except KeyError:
+                print(
+                    f"PR has no number in {project_name}: {json.dumps(pr)[:25]}.")
+
             if pr_number not in issues_mapping:
                 print(f'{project_name} missing issue for PR #{pr_number}.')
                 missing_issue_count += 1
