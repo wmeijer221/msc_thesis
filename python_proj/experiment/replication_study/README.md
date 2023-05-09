@@ -27,17 +27,21 @@ In general, don't delete any of the generated files while running this experimen
   _Also note that all projects that had 0 PRs in the past will not be skipped as their output files are deleted; rerunning will therefore cost you some extra time still._
 - Run ``filter_projects.py -m p`` which applies inclusion criteria on projects using pull request count.
 - Run ``filter_projects.py -m m`` which merges the results of the previous two ``filter_projects.py`` runs.
-- Run ``filter_projects.py -m a`` which filters the libraries.io data file to only include the included projects.
-- Run ``filter_dependencies.py`` which filters the project dependency file.
-- Run ``dey_replication_data.py`` which calculates data entries used to replicate Dey's results.
+- Run ``retrieve_issues.py`` to retrieve the issues of the selected projects (this can be ran later as well).
+- Run ``merge_issue_pr_data.py -d``
+
+- Run ``get_dependency_periphery.py`` to generate two lists of periphery projects identified using dependencies to and from the core projects (those that have been retrieved up until now).
+  The output is a list of projects that the core projects depend on, a list of projects that depend on the core projects, and a json document storing the dependencies relevant to this study (as the libraries.io dependency file is too large to conveniently work with).
+- Run ``filter_projects.py -m s other_to_focal_without_core 12566`` to subsample the list of projects that depend on the core projects as this list is very, very large.
+  The number 12566 (the subsample size) is semi-arbitrary picked.
+  It's the number of entries in the ``focal_to_other_without_core`` file, making sure they're equally represented.
+  You can change it if you think that's necessary.
+- Run ``retrieve_pull_requests.py -f focal_to_other -t 4 -m s`` which retrieves pull request data for the periphery projects that the core depends on.
+- Run ``retrieve_pull_requests.py -f other_to_focal_sampled -t 4 -m s`` which retrieves pull requests data for the periphery projects.
+
 - Run ``data_sorter.py -k closed_at -d ./data/libraries/npm-libraries-1.6.0-2020-01-12/predictors/included_projects.csv -e npm -f pull-requests -t 4``
 - Run ``data_filters.py -m pdalbc`` to filter data based on platform and pull request close time and whether the user is a bot.
 - Run ``demographics.py -i sorted_filtered`` to plot some basic figures describing the data.
 - Run ``sliding_window.py`` to generate various datasets.
 - Run ``modelling.py`` to generate basic distribution data for the dataset.
 
-- Run ``get_dependency_periphery.py`` to generate two lists of periphery projects.
-- Run ``filter_projects.py -m s other_to_focal_without_core 12566`` to subsample the list of projects that depend on the core projects. 
-  The number 12566 (the subsample size) is semi-arbitrary, in this experiment it's the number of entries in the ``focal_to_other_without_core`` file.
-<!-- - Run ``filter_projects.py -m ms focal_to_other_without_core other_to_focal_without_core_sampled periphery_with_sampled_other_to_focal`` to merge the two lists into one. -->
-- Run ``retrieve_pull_requests.py -f periphery_with_sampled_other_to_focal -t 4 -m s`` which retrieves pull requests data for the periphery projects.
