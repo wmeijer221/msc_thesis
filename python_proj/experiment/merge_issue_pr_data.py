@@ -77,7 +77,10 @@ def do_the_merge():
 
         # Filters out issues that are also PRs.
         for pr in prs:
-            del issues_mapping[pr["number"]]
+            pr_number = pr["number"]
+            if pr_number not in issues_mapping:
+                continue
+            del issues_mapping[pr_number]
 
         # Writes filtered issues.
         real_issue_output_path = issue_output_path.format(
