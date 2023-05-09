@@ -31,6 +31,10 @@ base_file_name = '{owner}--{repo_name}'
 def do_the_merge():
     pr_filter_file = open(pull_request_path, "r")
 
+    missing_issue_count = 0
+    missing_issue_projects = []
+    failed_decode_projects = []
+
     for entry in pr_filter_file:
         name_split = entry.strip().split("/")
         (owner, repo) = (name_split[0], name_split[1])
@@ -40,16 +44,22 @@ def do_the_merge():
 
         if not path.exists(pr_path):
             continue
-        
+
         if not path.exists(issue_path):
             print(f"Can't find issues for {project_name}")
+            missing_issue_projects.append(project_name)
             continue
 
         pr_file = open(pr_path, "r")
         issue_file = open(issue_path, "r")
 
-        prs = json.loads(pr_file.read())
-        issues = json.loads(issue_file.read())
+        try:
+            prs = json.loads(pr_file.read())
+            issues = json.loads(issue_file.read())
+        except json.JSONDecodeError:
+            print(f"Decode error for {project_name}.")
+            failed_decode_projects.append(project_name)
+            continue
 
         issues_mapping = {issue["number"]: issue for issue in issues}
 
@@ -59,7 +69,8 @@ def do_the_merge():
         for pr in prs:
             pr_number = pr["number"]
             if pr_number not in issues_mapping:
-                print(f'{project_name} missing {pr_number}')
+                print(f'{project_name} missing issue for PR #{pr_number}.')
+                missing_issue_count += 1
                 continue
 
             issue = issues_mapping[pr_number]
@@ -100,6 +111,10 @@ def do_the_merge():
             remove(pr_path)
 
     pr_filter_file.close()
+
+    print(f'Skipped {missing_issue_count} issues.')
+    print(
+        f'Skipped {len(missing_issue_projects)} projects: {missing_issue_projects}.')
 
 
 if __name__ == "__main__":
