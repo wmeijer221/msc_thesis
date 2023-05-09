@@ -18,6 +18,7 @@ import json
 from os import getenv, path, makedirs, remove
 from perceval.backends.core.github import GitHub, CATEGORY_PULL_REQUEST
 from perceval.backends.core.gitlab import GitLab, CATEGORY_MERGE_REQUEST
+import traceback
 from sys import argv
 
 from python_proj.experiment.util import safe_index
@@ -150,6 +151,7 @@ def retrieve_prs_for_entry(entry, gh_tokens, process_index):
     except Exception as e:
         print(
             f'Worker-{process_index}: Failed to process {repo_name} at {repo_host} with error: {e}')
+        traceback.print_exception(e)
 
     print(f'Worker-{process_index}: Done with {repo_name} at {repo_host}.')
 
