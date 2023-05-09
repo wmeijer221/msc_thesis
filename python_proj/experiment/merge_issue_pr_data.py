@@ -32,6 +32,7 @@ def do_the_merge():
     pr_filter_file = open(pull_request_path, "r")
 
     for entry in pr_filter_file:
+        print(f'Starting with {entry}.')
         name_split = entry.strip().split("/")
         (owner, repo) = (name_split[0], name_split[1])
         project_name = base_file_name.format(owner=owner, repo_name=repo)
