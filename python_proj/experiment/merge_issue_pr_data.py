@@ -32,7 +32,6 @@ def do_the_merge():
     pr_filter_file = open(pull_request_path, "r")
 
     for entry in pr_filter_file:
-        print(f'Starting with {entry}.')
         name_split = entry.strip().split("/")
         (owner, repo) = (name_split[0], name_split[1])
         project_name = base_file_name.format(owner=owner, repo_name=repo)
@@ -40,6 +39,10 @@ def do_the_merge():
         issue_path = ri.output_path.format(project_name=project_name)
 
         if not path.exists(pr_path):
+            continue
+        
+        if not path.exists(issue_path):
+            print(f"Can't find issues for {project_name}")
             continue
 
         pr_file = open(pr_path, "r")
@@ -56,7 +59,7 @@ def do_the_merge():
         for pr in prs:
             pr_number = pr["number"]
             if pr_number not in issues_mapping:
-                print(f'Missing {pr_number}')
+                print(f'{project_name} missing {pr_number}')
                 continue
 
             issue = issues_mapping[pr_number]
