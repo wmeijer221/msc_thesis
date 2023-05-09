@@ -54,7 +54,12 @@ def do_the_merge():
 
         # Merges PR with corresponding issue data.
         for pr in prs:
-            issue = issues_mapping[pr["number"]]
+            pr_number = pr["number"]
+            if pr_number not in issues_mapping:
+                print(f'Missing {pr_number}')
+                continue
+
+            issue = issues_mapping[pr_number]
             new_pr = {}
             for key, value in issue.items():
                 new_pr[key] = value
