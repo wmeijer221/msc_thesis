@@ -20,7 +20,7 @@ for line in input_file:
 tested_thresholds = [5, 15, 30]
 entries_per_threshold = {t: (0, 0) for t in tested_thresholds}
 
-for key, entry in pr_counts:
+for key, entry in pr_counts.items():
     for threshold in tested_thresholds:
         if entry >= threshold:
             entries_per_threshold[threshold] += (1, entry)
