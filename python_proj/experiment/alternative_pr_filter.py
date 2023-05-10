@@ -23,7 +23,9 @@ entries_per_threshold = {t: (0, 0) for t in tested_thresholds}
 for key, entry in pr_counts.items():
     for threshold in tested_thresholds:
         if entry >= threshold:
-            entries_per_threshold[threshold] += (1, entry)
+            old_count = entries_per_threshold[threshold]
+            new_count = (old_count[0] + 1, old_count[1] + entry)
+            entries_per_threshold[threshold] = new_count
 
 
 print(entries_per_threshold)
