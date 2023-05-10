@@ -11,7 +11,7 @@ pr_counts = {}
 
 for line in input_file:
     entry = json.loads(line)
-    src = entry["__source_file"]
+    src = entry["__source_path"]
     if src not in pr_counts:
         pr_counts[src] = 0
     pr_counts[src] += 1
