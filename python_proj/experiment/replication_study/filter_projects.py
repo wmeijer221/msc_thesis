@@ -42,16 +42,18 @@ download_start_date = datetime(2018, 11, 1)
 # The final date by which the PR can be submitted.
 max_pr_date = datetime(2020, 1, 12)
 
-source_file = "./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/{owner}--{repo_name}.json"
+source_file = "./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/{owner}--{repo_name}{ext}.json"
 
 
-def has_pr_file(owner, repo_name) -> bool:
-    pr_file_name = source_file.format(owner=owner, repo_name=repo_name)
+def has_pr_file(owner, repo_name, ext) -> bool:
+    pr_file_name = source_file.format(
+        owner=owner, repo_name=repo_name, ext=ext)
     return path.exists(pr_file_name)
 
 
-def has_sufficient_closed_prs(owner, repo_name, threshold: int, host_type: str) -> bool:
-    pr_file_name = source_file.format(owner=owner, repo_name=repo_name)
+def has_sufficient_closed_prs(owner, repo_name, threshold: int, host_type: str, ext: str) -> bool:
+    pr_file_name = source_file.format(
+        owner=owner, repo_name=repo_name, ext=ext)
     count = 0
     with open(pr_file_name, "r", encoding="utf-8") as input_file:
         input = input_file.read()
@@ -164,14 +166,14 @@ def generate(exlusion_criteria: callable, output_key: str = ""):
         output_valid_entries.flush()
 
 
-def exclusion_prs(entry):
+def exclusion_prs(entry, ext):
     repo_name = entry[repo_name_index]
     name_split = repo_name.split("/")
     owner = name_split[0]
     repo = name_split[-1]
     host_type = entry[repo_host_type_index]
-    return not has_pr_file(owner, repo) or \
-        not has_sufficient_closed_prs(owner, repo, 5, host_type)
+    return not has_pr_file(owner, repo, ext) or \
+        not has_sufficient_closed_prs(owner, repo, 5, host_type, ext)
 
 
 def exclusion_downloads(entry):
@@ -240,10 +242,15 @@ if __name__ == "__main__":
         mode = argv[argv.index("-m") + 1].lower()
         print(f'Starting in mode "{mode}".')
 
+        if (ext_idx := safe_index(argv, "-x")) >= 0:
+            ext = argv[ext_idx + 1]
+        else:
+            ext = ""
+
         if mode == "d":
             generate(exclusion_downloads, "_dl")
         elif mode == "p":
-            generate(exclusion_prs, "_pr")
+            generate(exclusion_prs, "_pr", ext)
         elif mode == "m":
             merge_inclusion_lists()
         elif mode == "mc":

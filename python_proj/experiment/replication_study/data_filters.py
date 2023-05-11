@@ -3,6 +3,7 @@ import json
 from sys import argv
 from datetime import datetime
 import re
+from csv import reader
 
 input_path = './data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/sorted.json'
 output_path = './data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/sorted_filtered.json'
@@ -21,12 +22,13 @@ def load_data():
 def build_filters(filter_keys: str):
     filters = {
         'p': filter_for_github,
-        'd': filter_by_close_date,
-        'b': filter_for_bots_a,
-        'c': filter_for_bots_b,
+        'c': filter_by_close_date,
+        'u': filter_for_bots_by_user_type,
         'a': filter_for_deleted_accounts,
-        'l': filter_for_blacklist,
-        # 'm': filter_for_bots_bodegha # TODO: Implement the BoDeGHa classifier.
+        'd': filter_bots_dey_2020,
+        'g': filter_bots_golzadeh_2021,
+        'b': filter_for_blacklist,  # Add self-identified bots to this list.
+        'r': filter_for_bots_primitive_regex,  # We should not use this.
     }
     filters = [filters[key] for key in filter_keys]
     return filters
@@ -53,15 +55,63 @@ def filter_for_github(entry):
         return not dt is None
 
 
-def filter_for_bots_a(entry):
+def filter_for_bots_by_user_type(entry):
     user_data = entry['user_data']
-    user_type = user_data['type'].lower()
-    if user_type == 'bot':
+    user_type = user_data['type']
+    return user_type.lower() != 'bot'
+
+
+dey_bots_names = None
+dey_bots_emails = None
+
+
+def filter_bots_dey_2020(entry):
+    global dey_bots_emails, dey_bots_names
+
+    # HACK: make-shift init function for the filter.
+    if dey_bots_emails is None or dey_bots_emails is None:
+        filter_path = "./data/bot_data/dey_2020_bots.json"
+        with open(filter_path, "r") as input_file:
+            j_data = json.loads(input_file.read())
+            dey_bots_emails = set()
+            dey_bots_names = set()
+            for entry in j_data:
+                dey_bots_emails.add(entry['email'])
+                dey_bots_names.add(entry['name'].lower())
+
+    # Actual filter
+    user_data = entry["user_data"]
+    if user_data["email"] in dey_bots_emails \
+        or user_data["login"].lower() in dey_bots_names \
+            or user_data["name"].lower() in dey_bots_names:
         return False
+
     return True
 
 
-def filter_for_bots_b(entry):
+golzadeh_bots_names = None
+
+
+def filter_bots_golzadeh_2021(entry):
+    global golzadeh_bots_names
+
+    # HACK: make-shift init function.
+    if golzadeh_bots_names is None:
+        filter_path = "./data/bot_data/golzadeh_2021_bots.csv"
+        with open(filter_path, "r") as filter_file:
+            filter_reader = reader(filter_file, quotechar='"')
+            _ = next(filter_reader)  # Skips header
+            golzadeh_bots_names = {entry[0].lower() for entry in filter_reader}
+
+    # actual filter
+    user_data = entry["user_data"]
+    if user_data["login"].lower() in golzadeh_bots_names:
+        return False
+
+    return True
+
+
+def filter_for_bots_primitive_regex(entry):
     user_data = entry['user_data']
     user_login = user_data["login"].lower()
     contains_bot = r'.*bot.*'
