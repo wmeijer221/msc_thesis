@@ -149,10 +149,14 @@ def filter_data(data: list, filters: list) -> list:
     for entry in data:
         is_included = True
         for index, filter in enumerate(filters):
-            if not filter(entry):
-                filtered_by[index] += 1
-                is_included = False
-                break
+            try:
+                if not filter(entry):
+                    filtered_by[index] += 1
+                    is_included = False
+                    break
+            except:
+                print(f'Failed with {entry=} and {filter=}.')
+                raise
         if is_included:
             filtered_data.append(entry)
     print(filtered_by)
