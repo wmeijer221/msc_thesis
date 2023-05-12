@@ -5,9 +5,11 @@ Applies stricter pull request count requirements on the projects.
 import json
 from sys import argv
 
+from python_proj.experiment.util import safe_get_argv
 
-def test_pr_thresholds():
-    input_path = "./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/sorted_filtered.json"
+
+def test_pr_thresholds(input_file_name: str):
+    input_path = f"./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/{input_file_name}.json"
     input_file = open(input_path, "r")
 
     pr_counts = {}
@@ -22,7 +24,7 @@ def test_pr_thresholds():
     tested_thresholds = [5, 15, 30]
     entries_per_threshold = {t: (0, 0) for t in tested_thresholds}
 
-    for key, entry in pr_counts.items():
+    for _, entry in pr_counts.items():
         for threshold in tested_thresholds:
             if entry >= threshold:
                 old_count = entries_per_threshold[threshold]
@@ -32,8 +34,8 @@ def test_pr_thresholds():
     print(entries_per_threshold)
 
 
-def count_comments_per_user():
-    input_path = "./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/sorted_filtered.json"
+def count_comments_per_user(input_file_name: str):
+    input_path = f"./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/{input_file_name}.json"
     input_file = open(input_path, "r")
 
     count = {}
@@ -59,6 +61,7 @@ if __name__ == "__main__":
 
     match mode:
         case "t":
-            test_pr_thresholds()
+            file_name = safe_get_argv("-n", default="sorted_filtered")
+            test_pr_thresholds(file_name)
         case "c":
             count_comments_per_user()

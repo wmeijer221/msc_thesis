@@ -1,6 +1,7 @@
 from typing import Callable
 import multiprocessing
 from typing import Any
+from sys import argv
 
 
 def safe_index(list: list, entry: object) -> int:
@@ -10,10 +11,18 @@ def safe_index(list: list, entry: object) -> int:
         return -1
 
 
-def get_arg(args: list, key: str, default: object = None) -> object:
-    if (idx := safe_index(args, key)) >= 0:
-        return args[idx + 1]
+def safe_get_argv(key: str, default: object = None) -> object:
+    if (idx := safe_index(argv, key)) >= 0:
+        return argv[idx + 1]
     return default
+
+
+def get_argv(key: str) -> str:
+    return argv[argv.index(key) + 1]
+
+
+def get_argv_flag(key: str) -> bool:
+    return argv.index(key) >= 0
 
 
 def safe_add_list_element(dictionary: dict[Any, list], key, value):

@@ -7,7 +7,7 @@ import json
 from os import path, makedirs, remove
 from sys import argv
 
-from python_proj.experiment.util import parallelize_tasks, safe_index, get_arg
+from python_proj.experiment.util import parallelize_tasks, safe_get_argv, get_argv, get_argv_flag
 
 base_path = "./data/libraries/{eco}-libraries-1.6.0-2020-01-12/{feature}/"
 input_file_name = "{owner}--{repo_name}{ext}.json"
@@ -106,7 +106,8 @@ def _parallel_sort(ymds: set[str]):
 def _write_sorted_buckets(ymds: set, filter_name: str):
     sorted_ymds = list(ymds)
     sorted_ymds.sort()
-    r_output_path = output_path.format(eco=eco_name, feature=feature_name, filter_name=filter_name)
+    r_output_path = output_path.format(
+        eco=eco_name, feature=feature_name, filter_name=filter_name)
     with open(r_output_path, "a+") as output_file:
         for ymd in sorted_ymds:
             bucket_path = temp_storage_path.format(bucket=ymd)
@@ -132,12 +133,13 @@ def sort_data(file_name: str, datetime_key: list[str], feature_name: str, eco_na
 
 
 if __name__ == "__main__":
-    datetime_key = argv[argv.index("-k") + 1].strip().split(",")
-    filter_file = argv[argv.index("-d") + 1]
-    eco_name = argv[argv.index('-e') + 1]
-    feature_name = argv[argv.index('-f') + 1]
-    thread_count = int(argv[argv.index('-t') + 1])
-    ext = get_arg(argv, "-x", "")
-    filter_name = get_arg(argv, "-n", "")
+    datetime_key = get_argv("-k").strip().split(",")
+    filter_file = get_argv("-d")
+    eco_name = get_argv('-e')
+    feature_name = get_argv('-f')
+    thread_count = int(get_argv('-t'))
+    ext = safe_get_argv(argv, "-x", default="")
+    filter_name = safe_get_argv(argv, "-n", default="")
 
-    sort_data(filter_file, datetime_key, feature_name, eco_name, ext, filter_name)
+    sort_data(filter_file, datetime_key, feature_name,
+              eco_name, ext, filter_name)
