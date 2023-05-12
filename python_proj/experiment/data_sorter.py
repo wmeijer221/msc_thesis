@@ -47,7 +47,11 @@ def _iterate_and_split(filter_path: str, datetime_key: list[str], ext: str) -> s
                 continue
             # Iterates through entries.
             with open(entries_path, "r") as entries_file:
-                j_data = json.loads(entries_file.read())
+                try:
+                    j_data = json.loads(entries_file.read())
+                except json.JSONDecodeError:
+                    print(f'Json decode error with: {entries_path}')
+                    raise
                 for entry in j_data:
                     try:
                         closed_at = _get_nested(entry, datetime_key)
