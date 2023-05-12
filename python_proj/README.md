@@ -40,9 +40,9 @@ It identifies the dependencies of these projects and pulls the PR and issue data
 3. Run ``retrieve_pull_requests.py -f focal_to_other -t 4 -m s`` which retrieves pull request data for the periphery projects that the core depends on.
 4. Run ``retrieve_pull_requests.py -f other_to_focal_sampled -t 4 -m s`` which retrieves pull requests data for the periphery projects.
 5. Run ``retrieve_issues.py -f _other_to_focal_sampled -t 3``
-
+<!-- 
 5. Run ``data_sorter.py -k closed_at -d ./data/libraries/npm-libraries-1.6.0-2020-01-12/predictors/included_projects.csv -e npm -f pull-requests -t 4``
-- Run ``post_sort_filters.py -i ./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/sorted.json -o ./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/sorted_filtered.json -m pcuadgb`` to filter data based on platform and pull request close time and whether the user is a bot or a deleted account.
+- Run ``post_sort_filters.py -i ./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/sorted.json -o ./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/sorted_filtered.json -m pcuadgb`` to filter data based on platform and pull request close time and whether the user is a bot or a deleted account. -->
 
 ### Stage 3: Data processing and Modeling
 
