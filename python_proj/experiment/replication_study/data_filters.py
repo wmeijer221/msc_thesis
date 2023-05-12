@@ -74,9 +74,9 @@ def filter_bots_dey_2020(entry):
             j_data = json.loads(input_file.read())
             dey_bots_emails = set()
             dey_bots_names = set()
-            for entry in j_data:
-                dey_bots_emails.add(entry['email'])
-                dey_bots_names.add(entry['name'].lower())
+            for bot_entry in j_data:
+                dey_bots_emails.add(bot_entry['email'])
+                dey_bots_names.add(bot_entry['name'].lower())
 
     # Actual filter
     user_data = entry["user_data"]
