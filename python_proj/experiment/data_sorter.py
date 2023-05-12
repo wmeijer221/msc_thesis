@@ -138,7 +138,7 @@ if __name__ == "__main__":
     eco_name = get_argv('-e')
     feature_name = get_argv('-f')
     thread_count = int(get_argv('-t'))
-    ext = safe_get_argv(argv, "-x", default="")
+    ext = safe_get_argv("-x", default="")
     filter_name = safe_get_argv("-n", default="")
 
     sort_data(filter_file, datetime_key, feature_name,
