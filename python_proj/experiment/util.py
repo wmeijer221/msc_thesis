@@ -40,14 +40,15 @@ def safe_add_set_element(dictionary: dict[Any, set], key, value):
         dictionary[key].add(value)
 
 
-def build_data_path_from_argv(eco_key: str = "-x", data_source_key: str = '-d', file_name_key: str = '-f'):
-    base_path = './data/libraries/{eco}-libraries-1.6.0-2020-01-12/{data_source}/{file_name}.json'
+def build_data_path_from_argv(eco_key: str = "-x", data_source_key: str = '-d', file_name_key: str = '-f', file_ext: str = ".json"):
+    base_path = './data/libraries/{eco}-libraries-1.6.0-2020-01-12/{data_source}/{file_name}{file_ext}'
     eco = safe_get_argv(eco_key, default="npm")
     data_source = safe_get_argv(data_source_key, default="pull-requests")
     file_name = safe_get_argv(file_name_key, default='sorted')
     return base_path.format(eco=eco,
                             data_source=data_source,
-                            file_name=file_name)
+                            file_name=file_name,
+                            file_ext=file_ext)
 
 
 class SimpleConsumer(multiprocessing.Process):

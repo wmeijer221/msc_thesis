@@ -139,7 +139,7 @@ if __name__ == "__main__":
     feature_name = get_argv('-f')
     thread_count = int(get_argv('-t'))
     ext = safe_get_argv(argv, "-x", default="")
-    filter_name = safe_get_argv(argv, "-n", default="")
+    filter_name = safe_get_argv("-n", default="")
 
     sort_data(filter_file, datetime_key, feature_name,
               eco_name, ext, filter_name)
