@@ -5,11 +5,9 @@ from datetime import datetime
 import re
 from csv import reader
 
-input_path = './data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/sorted.json'
-output_path = './data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/sorted_filtered.json'
+from python_proj.experiment.util import get_argv, build_data_path_from_argv
 
-
-def load_data():
+def load_data(input_path: str):
     data = []
     with open(input_path, "r") as input_data:
         for line in input_data:
@@ -161,24 +159,21 @@ def filter_data(data: list, filters: list) -> list:
     return filtered_data
 
 
-def write_data(data: list):
+def write_data(data: list, output_path: str):
     with open(output_path, "w+") as output_file:
         for entry in data:
             output_file.write(f'{json.dumps(entry)}\n')
 
 
 if __name__ == "__main__":
-    if (idx := argv.index('-i')) > -1:
-        input_path = argv[idx + 1]
-    if (idx := argv.index('-o')) > -1:
-        output_path = argv[idx + 1]
-
-    mode = argv[argv.index('-m') + 1]
+    input_path  = build_data_path_from_argv(file_name_key='-i')
+    output_path  = build_data_path_from_argv(file_name_key='-o')
+    mode = get_argv("-m")
 
     filters = build_filters(mode)
-    data = load_data()
+    data = load_data(input_path)
     print(f'Start size: {len(data)}.')
 
     filtered_data = filter_data(data, filters)
     print(f'Filtered size: {len(filtered_data)}.')
-    write_data(filtered_data)
+    write_data(filtered_data, output_path)
