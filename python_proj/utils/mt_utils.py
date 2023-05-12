@@ -8,7 +8,8 @@ import multiprocessing
 
 class SimpleConsumer(multiprocessing.Process):
 
-    def __init__(self, on_message_received: Callable, task_list: multiprocessing.JoinableQueue, worker_index: int, *args, **kwargs) -> None:
+    def __init__(self, on_message_received: Callable, task_list: multiprocessing.JoinableQueue,
+                 worker_index: int, *args, **kwargs) -> None:
         super().__init__()
         self._on_message_received = on_message_received
         self._task_list = task_list
@@ -25,7 +26,8 @@ class SimpleConsumer(multiprocessing.Process):
                 is_running = False
                 break
             try:
-                task_kwargs = {**self._kwargs, **task}
+                task_kwargs = {**self._kwargs, **task,
+                               "worker_index": self._worker_index}
                 self._on_message_received(*self._args, **task_kwargs)
             except Exception as ex:
                 print(f"Failed with entry {task}: {ex}.")
@@ -33,13 +35,14 @@ class SimpleConsumer(multiprocessing.Process):
         print(f'Consumer-{self._worker_index} stopped.')
 
 
-def parallelize_tasks(tasks: list, on_message_received: Callable, thread_count: int):
+def parallelize_tasks(tasks: list, on_message_received: Callable, thread_count: int, *args, **kwargs):
     worklist = multiprocessing.JoinableQueue()
     workers: list[SimpleConsumer] = [None] * thread_count
 
     # Creates workers.
     for index in range(thread_count):
-        worker = SimpleConsumer(on_message_received, worklist, index)
+        worker = SimpleConsumer(on_message_received,
+                                worklist, index, *args, **kwargs)
         worker.start()
         workers[index] = worker
 

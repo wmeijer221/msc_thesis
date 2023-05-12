@@ -13,55 +13,46 @@ It outputs a number of files:
 from csv import reader
 from datetime import datetime
 import dotenv
-import multiprocessing
 import json
-from os import getenv, path, makedirs, remove
+from os import path, makedirs, remove
 from perceval.backends.core.github import GitHub, CATEGORY_PULL_REQUEST
-from perceval.backends.core.gitlab import GitLab, CATEGORY_MERGE_REQUEST
 import traceback
-from sys import argv
 
-from python_proj.utils.util import safe_index
-from python_proj.utils.arg_utils import safe_get_argv
 from python_proj.data_retrieval.gl_filters.gl_github_filters import PullFilter
-from python_proj.data_retrieval.gl_filters.gl_gitlab_filters import MergeRequestFilter
+from python_proj.utils.arg_utils import safe_get_argv
+import python_proj.utils.exp_utils as exp_utils
+from python_proj.utils.mt_utils import parallelize_tasks
 
-# TODO: None of this is set up for different ocosystems than NPM.
-input_path = "./data/libraries/npm-libraries-1.6.0-2020-01-12/projects_with_repository_fields-1.6.0-2020-01-12.csv"
-output_path = "./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/{project_name}.json"
-filter_path = "./data/libraries/npm-libraries-1.6.0-2020-01-12/predictors/included_projects{filter_type}.csv"
+# Loads relevant paths.
+exp_utils.load_paths_for_eco()
+exp_utils.load_paths_for_data_path()
+input_path = exp_utils.PROJECTS_WITH_REPO_PATH()
+output_path = exp_utils.RAW_DATA_PATH
+filter_path = exp_utils.FILTER_PATH
 
 # These headers correspond with the "libraries.io/data"
 # headers in the "projects_with_repository_fields" file.
-headers = [
-    'ID', 'Platform', 'Name', 'Created Timestamp', 'Updated Timestamp', 'Description', 'Keywords', 'Homepage URL', 'Licenses', 'Repository URL', 'Versions Count', 'SourceRank', 'Latest Release Publish Timestamp', 'Latest Release Number', 'Package Manager ID', 'Dependent Projects Count', 'Language', 'Status', 'Last synced Timestamp', 'Dependent Repositories Count', 'Repository ID', 'Repository Host Type', 'Repository Name with Owner', 'Repository Description', 'Repository Fork?', 'Repository Created Timestamp', 'Repository Updated Timestamp', 'Repository Last pushed Timestamp', 'Repository Homepage URL', 'Repository Size', 'Repository Stars Count', 'Repository Language', 'Repository Issues enabled?', 'Repository Wiki enabled?',
-    'Repository Pages enabled?', 'Repository Forks Count', 'Repository Mirror URL', 'Repository Open Issues Count', 'Repository Default branch', 'Repository Watchers Count', 'Repository UUID', 'Repository Fork Source Name with Owner', 'Repository License', 'Repository Contributors Count', 'Repository Readme filename', 'Repository Changelog filename', 'Repository Contributing guidelines filename', 'Repository License filename', 'Repository Code of Conduct filename', 'Repository Security Threat Model filename', 'Repository Security Audit filename', 'Repository Status', 'Repository Last Synced Timestamp', 'Repository SourceRank', 'Repository Display Name', 'Repository SCM type', 'Repository Pull requests enabled?', 'Repository Logo URL', 'Repository Keywords']
+headers = exp_utils.PROJECTS_WITH_REPOSITORY_FIELDS_HEADERS
 
+# Finds indices of relevant fields.
 repo_host_type_index = headers.index("Repository Host Type")
 repo_name_index = headers.index("Repository Name with Owner")
 is_fork_index = headers.index("Repository Fork?")
 # HACK: Somehow the index is misaligned by 1.
 prs_enabled_index = headers.index("Repository Pull requests enabled?") + 1
 
-end_date = datetime(year=2020, month=1, day=12)
+end_date = exp_utils.LIBRARIES_IO_DATASET_END_DATE
 
+# Loads API keys.
 dotenv.load_dotenv()
-
 gh_token_count = safe_get_argv('-a', 3)
-all_gh_tokens = [getenv(f"GITHUB_TOKEN_{i}") for i in range(1, gh_token_count + 1)]
-gitlab_token_1 = getenv("GITLAB_TOKEN_1")
+all_gh_tokens = exp_utils.get_gh_tokens(gh_token_count)
 
-if any([token is None for token in all_gh_tokens]) or gitlab_token_1 is None:
-    raise Exception("SOME TOKEN IS NONE!")
-
-all_gl_tokens = [gitlab_token_1]
-
+# General settings
+job_count = 1
 skip_processed = False
 included_projects = None
 processed_projects = set()
-
-
-job_count = 1
 
 
 def matches_inclusion_criteria(entry):
@@ -81,61 +72,22 @@ def matches_inclusion_criteria(entry):
 
 
 def retrieve_pull_requests():
-    input_file = open(input_path, 'r', encoding="utf-8")
-    csv_reader = reader(input_file, quotechar='"')
-
-    task_list = multiprocessing.JoinableQueue()
-
-    workers = [JobConsumer(task_list, get_my_tokens(all_gh_tokens, index), index)
-               for index in range(job_count)]
-    for worker in workers:
-        worker.start()
-
-    # Distributes work.
-    for entry in csv_reader:
-        task_list.put(list(entry))
-
-    # Kills workers.
-    for worker in workers:
-        task_list.put(None)
-
-    task_list.join()
-
-    input_file.close()
+    with open(input_path, 'r', encoding="utf-8") as input_file:
+        csv_reader = reader(input_file, quotechar='"')
+        tasks = [list(entry) for entry in csv_reader]
+        gh_tokens = [get_my_tokens(all_gh_tokens, index)
+                     for index in range(job_count)]
+        parallelize_tasks(tasks, retrieve_prs_for_entry,
+                          job_count, gh_tokens=gh_tokens)
 
 
-# TODO: replace all this multithreading stuff with mt_utils.
-class JobConsumer(multiprocessing.Process):
-    def __init__(self,
-                 _task_list: multiprocessing.JoinableQueue,
-                 gh_tokens: list[str],
-                 process_index: int):
-        super().__init__()
-        self._task_list = _task_list
-        self._gh_tokens = gh_tokens
-        self._process_index = process_index
-        print(
-            f'Worker-{process_index} starting with {len(gh_tokens)} GitHub tokens.')
-
-    def run(self) -> None:
-        is_running = True
-        while is_running:
-            task = self._task_list.get()
-            if task is None:
-                is_running = False
-            else:
-                retrieve_prs_for_entry(
-                    task, self._gh_tokens, self._process_index)
-            self._task_list.task_done()
-        print(f'Worker-{self._process_index} is stopping...')
-
-
-def retrieve_prs_for_entry(entry, gh_tokens, process_index):
-    if not matches_inclusion_criteria(entry):
+def retrieve_prs_for_entry(task: list, gh_tokens: list[str], worker_index: int, 
+                           task_id: int, total_tasks: int):
+    if not matches_inclusion_criteria(task):
         return
 
-    repo_name = entry[repo_name_index]
-    repo_host = entry[repo_host_type_index]
+    repo_name = task[repo_name_index]
+    repo_host = task[repo_host_type_index]
 
     # Skips project if a filter list is used
     # and the repository is not in it.
@@ -150,16 +102,16 @@ def retrieve_prs_for_entry(entry, gh_tokens, process_index):
         return
     processed_projects.add(unique_entry)
 
-    print(f'Worker-{process_index}: Starting with {repo_name} at {repo_host}.')
-
+    print(f'Worker-{worker_index}: ({task_id}/{total_tasks}) Starting with {repo_name} at {repo_host}.')
+    my_gh_tokens = gh_tokens[worker_index]
     try:
-        fetch_prs(repo_name, repo_host, gh_tokens)
+        fetch_prs(repo_name, repo_host, my_gh_tokens)
     except Exception as e:
         print(
-            f'Worker-{process_index}: Failed to process {repo_name} at {repo_host} with error: {e}')
+            f'Worker-{worker_index}: Failed to process {repo_name} at {repo_host} with error: {e}')
         traceback.print_exception(e)
 
-    print(f'Worker-{process_index}: Done with {repo_name} at {repo_host}.')
+    print(f'Worker-{worker_index}: Done with {repo_name} at {repo_host}.')
 
 
 def __build_github(repo_name: str, tokens: list):
@@ -173,32 +125,16 @@ def __build_github(repo_name: str, tokens: list):
     return owner, repo_name, data_iterator, pr_filter
 
 
-def __build_gitlab(repo_name: str):
-    repo_split = repo_name.split("/")
-    owner = repo_split[0]
-    repo_name = repo_split[-1]
-    repo: GitLab = GitLab(owner=owner, repository=repo_name,
-                          api_token=gitlab_token_1, sleep_for_rate=True)
-    data_iterator = repo.fetch(category=CATEGORY_MERGE_REQUEST)
-    pr_filter = MergeRequestFilter(ignore_empty=True)
-    return owner, repo_name, data_iterator, pr_filter
-
-
 def fetch_prs(repo_name: str, repo_host: str, gh_tokens: list):
-    # Selects the right Perceval backend
-    # and corresponding data filter.
+    # Selects the right Perceval backend and corresponding data filter.
     if repo_host.lower() == "github":
         owner, repo_name, data_iterator, pr_filter = __build_github(
             repo_name, gh_tokens)
-    elif repo_host.lower() == "gitlab":
-        owner, repo_name, data_iterator, pr_filter = __build_gitlab(repo_name)
-    # TODO: Add bitbucket support; this isn't natively supported by grimoirelab, though...
     else:
         # TODO implement this if theres a large number of non-GitHub/GitLab repositories.
         raise NotImplementedError(f"Unsupported repository type: {repo_host}.")
 
-    r_output_path = output_path.format(
-        project_name=f'{owner}--{repo_name}')
+    r_output_path = output_path(owner=owner, repo=repo_name, ext="")
 
     if skip_processed and path.exists(r_output_path):
         print(
@@ -272,7 +208,8 @@ def count_projects_that_match_criteria():
 
 def set_filter(f_type: str):
     global included_projects
-    r_filter_path = filter_path.format(filter_type=f'_{f_type}')
+
+    r_filter_path = filter_path(filter_type=f'_{f_type}')
     with open(r_filter_path, "r", encoding="utf-8") as filter_file:
         included_projects = set([entry.strip()
                                 for entry in filter_file.readlines()])
@@ -281,29 +218,26 @@ def set_filter(f_type: str):
 if __name__ == "__main__":
     start = datetime.now()
 
-    if (filter_index := safe_index(argv, "-f")) != -1:
-        f_type = argv[filter_index + 1].lower()
-        set_filter(f_type)
-        print(
-            f"Using filter \"{f_type}\" with {len(included_projects)} entries.")
+    if not (f_type := safe_get_argv("-f")) is None:
+        set_filter(f_type.lower())
+        print(f"Using filter {f_type}")
 
-    if (t_index := safe_index(argv, "-t")) != -1:
-        job_count = int(argv[t_index + 1])
-        print(f'Running with {job_count} workers.')
+    job_count = safe_get_argv("-t", default=1)
+    print(f'Running with {job_count} workers.')
 
-    if (mode_index := safe_index(argv, "-m")) >= 0:
-        mode = argv[mode_index + 1].lower()
-        print(f'Starting in mode "{mode}".')
+    mode = safe_get_argv("-m", "s").lower()
+    print(f'Starting in mode "{mode}".')
 
-        if mode == "s":
+    match mode:
+        case "r":
+            retrieve_pull_requests()
+        case "s":
             skip_processed = True
             retrieve_pull_requests()
-        elif mode == "c":
+        case "c":
             count_projects_that_match_criteria()
-        else:
+        case _:
             raise ValueError(f"Invalid mode \"{mode}\".")
-    else:
-        retrieve_pull_requests()
 
     delta_time = datetime.now() - start
     print(f'{delta_time=}')
