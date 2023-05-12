@@ -223,8 +223,6 @@ if __name__ == "__main__":
         print(f"Using filter {f_type}")
 
     job_count = safe_get_argv("-t", default=1)
-    print(f'Running with {job_count} workers.')
-
     mode = safe_get_argv("-m", "s").lower()
     print(f'Starting in mode "{mode}".')
 
