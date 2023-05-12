@@ -80,7 +80,7 @@ def filter_bots_dey_2020(entry):
 
     # Actual filter
     user_data = entry["user_data"]
-    if user_data["email"] in dey_bots_emails \
+    if ("email" in user_data and user_data["email"] in dey_bots_emails) \
         or user_data["login"].lower() in dey_bots_names \
             or user_data["name"].lower() in dey_bots_names:
         return False
