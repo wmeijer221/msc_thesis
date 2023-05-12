@@ -7,11 +7,11 @@ import json
 from os import path, makedirs, remove
 from sys import argv
 
-from python_proj.experiment.util import parallelize_tasks, safe_index
+from python_proj.experiment.util import parallelize_tasks, safe_index, get_arg
 
 base_path = "./data/libraries/{eco}-libraries-1.6.0-2020-01-12/{feature}/"
 input_file_name = "{owner}--{repo_name}{ext}.json"
-output_path = "./data/libraries/{eco}-libraries-1.6.0-2020-01-12/{feature}/sorted.json"
+output_path = "./data/libraries/{eco}-libraries-1.6.0-2020-01-12/{feature}/sorted{filter_name}.json"
 real_base_path = None
 thread_count = 1
 
@@ -103,19 +103,20 @@ def _parallel_sort(ymds: set[str]):
     parallelize_tasks(ymds, _sort_entries, thread_count)
 
 
-def _write_sorted_buckets(ymds: set):
+def _write_sorted_buckets(ymds: set, filter_name: str):
     sorted_ymds = list(ymds)
     sorted_ymds.sort()
-    r_output_path = output_path.format(eco=eco_name, feature=feature_name)
+    r_output_path = output_path.format(eco=eco_name, feature=feature_name, filter_name=filter_name)
     with open(r_output_path, "a+") as output_file:
         for ymd in sorted_ymds:
             bucket_path = temp_storage_path.format(bucket=ymd)
             with open(bucket_path, "r") as bucket_file:
                 output_file.writelines(bucket_file)
             remove(bucket_path)
+    print(f'Stored it at: {r_output_path}')
 
 
-def sort_data(file_name: str, datetime_key: list[str], feature_name: str, eco_name: str, ext: str):
+def sort_data(file_name: str, datetime_key: list[str], feature_name: str, eco_name: str, ext: str, filter_name: str):
     global real_base_path, input_file_name
     real_base_path = base_path.format(eco=eco_name, feature=feature_name)
 
@@ -126,7 +127,7 @@ def sort_data(file_name: str, datetime_key: list[str], feature_name: str, eco_na
     _parallel_sort(ymds)
 
     print("Merging buckets.")
-    _write_sorted_buckets(ymds)
+    _write_sorted_buckets(ymds, filter_name)
     print("Done!")
 
 
@@ -136,8 +137,7 @@ if __name__ == "__main__":
     eco_name = argv[argv.index('-e') + 1]
     feature_name = argv[argv.index('-f') + 1]
     thread_count = int(argv[argv.index('-t') + 1])
-    if (ext_idx := safe_index(argv, "-x")) >= 0:
-        ext = argv[ext_idx + 1]
-    else:
-        ext = ""
+    ext = get_arg(argv, "-x", "")
+    filter_name = get_arg(argv, "-n", "")
+
     sort_data(filter_file, datetime_key, feature_name, eco_name, ext)

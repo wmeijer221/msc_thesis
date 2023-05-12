@@ -1,3 +1,5 @@
+from typing import Callable
+import multiprocessing
 from typing import Any
 
 
@@ -8,11 +10,18 @@ def safe_index(list: list, entry: object) -> int:
         return -1
 
 
+def get_arg(args: list, key: str, default: object = None) -> object:
+    if (idx := safe_index(args, key)) >= 0:
+        return args[idx + 1]
+    return default
+
+
 def safe_add_list_element(dictionary: dict[Any, list], key, value):
     if key in dictionary:
         dictionary[key].append(value)
     else:
         dictionary[key] = [value]
+
 
 def safe_add_set_element(dictionary: dict[Any, set], key, value):
     if key in dictionary:
@@ -21,10 +30,6 @@ def safe_add_set_element(dictionary: dict[Any, set], key, value):
         dictionary[key] = set()
         dictionary[key].add(value)
 
-
-
-import multiprocessing
-from typing import Callable
 
 class SimpleConsumer(multiprocessing.Process):
 
@@ -52,16 +57,17 @@ class SimpleConsumer(multiprocessing.Process):
                 raise
         print(f'Consumer-{self._worker_index} stopped.')
 
+
 def parallelize_tasks(tasks: list, on_message_received: Callable, thread_count: int):
     worklist = multiprocessing.JoinableQueue()
     workers: list[SimpleConsumer] = [None] * thread_count
-    
+
     # Creates workers.
     for index in range(thread_count):
         worker = SimpleConsumer(on_message_received, worklist, index)
         worker.start()
         workers[index] = worker
-    
+
     # Creates tasks.
     total_tasks = len(tasks)
     for task_id, task in enumerate(tasks, start=1):
@@ -71,11 +77,11 @@ def parallelize_tasks(tasks: list, on_message_received: Callable, thread_count: 
             'total_tasks': total_tasks
         }
         worklist.put(work_task)
-    
+
     # Kills workers.
     for _ in range(thread_count):
         worklist.put(None)
-    
+
     # Waits until workers terminate.
     for worker in workers:
         worker.join()
@@ -89,11 +95,10 @@ def get_nested(obj: dict, key: list[str]) -> Any | None:
     :params obj: The used dictionary.
     :params key: The query key.
     """
-    
+
     current = obj
     for key in key:
         if not key in current:
             return None
         current = current[key]
     return current
-
