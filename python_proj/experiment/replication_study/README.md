@@ -40,8 +40,7 @@ In general, don't delete any of the generated files while running this experimen
 - Run ``retrieve_pull_requests.py -f other_to_focal_sampled -t 4 -m s`` which retrieves pull requests data for the periphery projects.
 
 - Run ``data_sorter.py -k closed_at -d ./data/libraries/npm-libraries-1.6.0-2020-01-12/predictors/included_projects.csv -e npm -f pull-requests -t 4``
-- Run ``data_filters.py -m pdalbc`` to filter data based on platform and pull request close time and whether the user is a bot.
+- Run ``data_filters.py -i ./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/sorted.json -o ./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/sorted_filtered.json -m pcuadgb`` to filter data based on platform and pull request close time and whether the user is a bot or a deleted account.
 - Run ``demographics.py -i sorted_filtered`` to plot some basic figures describing the data.
 - Run ``sliding_window.py`` to generate various datasets.
 - Run ``modelling.py`` to generate basic distribution data for the dataset.
-

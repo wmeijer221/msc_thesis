@@ -20,6 +20,7 @@ def load_data():
 
 
 def build_filters(filter_keys: str):
+    # Standard filter: pcuadgb
     filters = {
         'p': filter_for_github,
         'c': filter_by_close_date,
