@@ -140,4 +140,4 @@ if __name__ == "__main__":
     ext = get_arg(argv, "-x", "")
     filter_name = get_arg(argv, "-n", "")
 
-    sort_data(filter_file, datetime_key, feature_name, eco_name, ext)
+    sort_data(filter_file, datetime_key, feature_name, eco_name, ext, filter_name)
