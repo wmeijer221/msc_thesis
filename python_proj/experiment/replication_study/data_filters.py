@@ -7,6 +7,7 @@ from csv import reader
 
 from python_proj.experiment.util import get_argv, build_data_path_from_argv
 
+
 def load_data(input_path: str):
     data = []
     with open(input_path, "r") as input_data:
@@ -82,7 +83,7 @@ def filter_bots_dey_2020(entry):
     user_data = entry["user_data"]
     if ("email" in user_data and user_data["email"] in dey_bots_emails) \
         or user_data["login"].lower() in dey_bots_names \
-            or user_data["name"].lower() in dey_bots_names:
+            or ('name' in user_data and user_data["name"].lower() in dey_bots_names):
         return False
 
     return True
@@ -170,8 +171,8 @@ def write_data(data: list, output_path: str):
 
 
 if __name__ == "__main__":
-    input_path  = build_data_path_from_argv(file_name_key='-i')
-    output_path  = build_data_path_from_argv(file_name_key='-o')
+    input_path = build_data_path_from_argv(file_name_key='-i')
+    output_path = build_data_path_from_argv(file_name_key='-o')
     mode = get_argv("-m")
 
     filters = build_filters(mode)
