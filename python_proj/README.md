@@ -37,10 +37,11 @@ It identifies the dependencies of these projects and pulls the PR and issue data
 1. Run ``get_dependency_periphery.py`` to generate two lists of periphery projects identified using dependencies to and from the core projects (those that have been retrieved up until now).
   The output is a list of projects that the core projects depend on, a list of projects that depend on the core projects, and a json document storing the dependencies relevant to this study (as the libraries.io dependency file is too large to conveniently work with).
 2. Run ``pre_sort_filters.py -m s other_to_focal_without_core 12566`` to subsample the list of projects that depend on the core projects as this list is very, very large. The sample size 12566 is picked because that's the size of ``focal_to_other_without_core`` dependency list.
-3. Run ``retrieve_pull_requests.py -f focal_to_other -t 4 -m s`` which retrieves pull request data for the periphery projects that the core depends on.
-4. Run ``retrieve_pull_requests.py -f other_to_focal_sampled -t 4 -m s`` which retrieves pull requests data for the periphery projects.
-5. Run ``retrieve_issues.py -f _other_to_focal_sampled -t 3``
+3. Run ``retrieve_pull_requests.py -f focal_to_other -t 3 -m s`` which retrieves pull request data for the periphery projects that the core depends on.
+4. Run ``retrieve_issues.py -f _focal_to_other_without_core -t 3``
+
 <!-- 
+4. Run ``retrieve_pull_requests.py -f other_to_focal_sampled -t 4 -m s`` which retrieves pull requests data for the periphery projects.
 5. Run ``data_sorter.py -k closed_at -d ./data/libraries/npm-libraries-1.6.0-2020-01-12/predictors/included_projects.csv -e npm -f pull-requests -t 4``
 - Run ``post_sort_filters.py -i ./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/sorted.json -o ./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/sorted_filtered.json -m pcuadgb`` to filter data based on platform and pull request close time and whether the user is a bot or a deleted account. -->
 
