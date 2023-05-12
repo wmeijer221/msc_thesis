@@ -134,7 +134,7 @@ def retrieve_issues(worker_count: int, filter_type: str = ""):
 
 
 if __name__ == "__main__":
-    worker_count = safe_get_argv('-t', default=3)
+    worker_count = int(safe_get_argv('-t', default=3))
     filter_type = safe_get_argv("-f", default="")
-    
+
     retrieve_issues(worker_count, filter_type)
