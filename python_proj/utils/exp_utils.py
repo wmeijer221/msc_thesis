@@ -14,9 +14,10 @@ DATA_SOURCE_KEY = "-d"
 FILE_NAME_KEY = "-f"
 
 # Default file paths.
-PROJECTS_WITH_REPO_PATH = "./data/libraries/{eco}-libraries-1.6.0-2020-01-12/projects_with_repository_fields-1.6.0-2020-01-12.csv"
-RAW_DATA_PATH = "./data/libraries/{eco}-libraries-1.6.0-2020-01-12/{data_type}/{owner}--{repo}{ext}.json"
-FILTER_PATH = "./data/libraries/{eco}-libraries-1.6.0-2020-01-12/predictors/included_projects{filter_type}.csv"
+PROJECTS_WITH_REPO_PATH: str | partial[str] = \
+    "./data/libraries/{eco}-libraries-1.6.0-2020-01-12/projects_with_repository_fields-1.6.0-2020-01-12.csv"
+RAW_DATA_PATH: str | partial[str] = "./data/libraries/{eco}-libraries-1.6.0-2020-01-12/{data_type}/{owner}--{repo}{ext}.json"
+FILTER_PATH: str | partial[str] = "./data/libraries/{eco}-libraries-1.6.0-2020-01-12/predictors/included_projects{filter_type}.csv"
 
 
 def load_paths_for_eco(eco_key: str = ECO_KEY):
