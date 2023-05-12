@@ -21,9 +21,10 @@ from perceval.backends.core.gitlab import GitLab, CATEGORY_MERGE_REQUEST
 import traceback
 from sys import argv
 
-from python_proj.experiment.util import safe_index
-from python_proj.experiment.filters.gl_github_filters import PullFilter
-from python_proj.experiment.filters.gl_gitlab_filters import MergeRequestFilter
+from python_proj.utils.util import safe_index
+from python_proj.utils.arg_utils import safe_get_argv
+from python_proj.data_retrieval.gl_filters.gl_github_filters import PullFilter
+from python_proj.data_retrieval.gl_filters.gl_gitlab_filters import MergeRequestFilter
 
 # TODO: None of this is set up for different ocosystems than NPM.
 input_path = "./data/libraries/npm-libraries-1.6.0-2020-01-12/projects_with_repository_fields-1.6.0-2020-01-12.csv"
@@ -46,7 +47,8 @@ end_date = datetime(year=2020, month=1, day=12)
 
 dotenv.load_dotenv()
 
-all_gh_tokens = [getenv(f"GITHUB_TOKEN_{i}") for i in range(1, 4)]
+gh_token_count = safe_get_argv('-a', 3)
+all_gh_tokens = [getenv(f"GITHUB_TOKEN_{i}") for i in range(1, gh_token_count + 1)]
 gitlab_token_1 = getenv("GITLAB_TOKEN_1")
 
 if any([token is None for token in all_gh_tokens]) or gitlab_token_1 is None:
@@ -102,6 +104,7 @@ def retrieve_pull_requests():
     input_file.close()
 
 
+# TODO: replace all this multithreading stuff with mt_utils.
 class JobConsumer(multiprocessing.Process):
     def __init__(self,
                  _task_list: multiprocessing.JoinableQueue,

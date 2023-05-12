@@ -4,13 +4,13 @@ import json
 from os import path, makedirs, remove
 from perceval.backends.core.github import GitHub, CATEGORY_ISSUE as GH_CATEGORY_ISSUE
 from perceval.backends.core.gitlab import GitLab, CATEGORY_ISSUE as GL_CATEGORY_ISSUE
-from sys import argv
 
-import python_proj.experiment.replication_study.retrieve_pull_requests as rpr
+import python_proj.data_retrieval.retrieve_pull_requests as rpr
 
-from python_proj.experiment.filters.gl_github_filters import IssueFilter as GHIssueFilter
-from python_proj.experiment.filters.gl_gitlab_filters import IssueFilter as GLIssueFilter
-from python_proj.experiment.util import SimpleConsumer
+from python_proj.data_retrieval.gl_filters.gl_github_filters import IssueFilter as GHIssueFilter
+from python_proj.data_retrieval.gl_filters.gl_gitlab_filters import IssueFilter as GLIssueFilter
+from python_proj.utils.arg_utils import safe_get_argv
+from python_proj.utils.mt_utils import SimpleConsumer
 
 skip_processed = False
 
@@ -87,14 +87,13 @@ def retrieve_issues_for_entry(entry: dict, job_id: int, gh_tokens: list[str]):
     print(f'Finished with ({job_id}) {full_repo_name}.')
 
 
-def retrieve_issues():
+def retrieve_issues(worker_count: int, filter_type: str = ""):
     """
     Main method for retrieving issues of interesting projects.
     """
 
     # Sets up multiprocessing.
     task_list = multiprocessing.JoinableQueue()
-    worker_count = 4
     for index in range(worker_count):
         tokens = rpr.get_my_tokens(rpr.all_gh_tokens, index)
         worker = SimpleConsumer(retrieve_issues_for_entry,
@@ -106,8 +105,9 @@ def retrieve_issues():
     # Loads libraries.io project file and filtered projectname list.
     input_file = open(rpr.input_path, "r")
     input_reader = reader(input_file, quotechar='"')
-    filter_file = open(rpr.filter_path.format(filter_type=""))
-    included_projects = {entry.strip().lower() for entry in filter_file.readlines()}
+    filter_file = open(rpr.filter_path.format(filter_type=filter_type))
+    included_projects = {entry.strip().lower()
+                         for entry in filter_file.readlines()}
 
     # Submits each valid data entry.
     unique = set()
@@ -134,4 +134,7 @@ def retrieve_issues():
 
 
 if __name__ == "__main__":
-    retrieve_issues()
+    worker_count = safe_get_argv('-t', default=3)
+    filter_type = safe_get_argv("-f", default="")
+    
+    retrieve_issues(worker_count, filter_type)

@@ -5,9 +5,9 @@ Implements sorting alorithm to iterate through time series event gathered with G
 from datetime import datetime
 import json
 from os import path, makedirs, remove
-from sys import argv
 
-from python_proj.experiment.util import parallelize_tasks, safe_get_argv, get_argv, get_argv_flag
+from python_proj.utils.arg_utils import safe_get_argv, get_argv
+from python_proj.utils.mt_utils import parallelize_tasks
 
 base_path = "./data/libraries/{eco}-libraries-1.6.0-2020-01-12/{feature}/"
 input_file_name = "{owner}--{repo_name}{ext}.json"

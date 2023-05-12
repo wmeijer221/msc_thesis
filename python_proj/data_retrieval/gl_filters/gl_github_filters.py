@@ -3,7 +3,7 @@ Implements various data filters for GitHub data
 acquired with GrimoireLab Perceval.
 """
 
-from python_proj.experiment.filters.gl_filters import BaseFilter
+from python_proj.data_retrieval.gl_filters.gl_filters import BaseFilter
 
 
 class UserFilter(BaseFilter):

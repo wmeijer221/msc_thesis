@@ -1,14 +1,14 @@
 """
-Applies stricter pull request count requirements on the projects.
+Implements two testing scripts, one to test different pull 
+request threshold settings, and one to count comments per user.
 """
 
 import json
-from sys import argv
 
-from python_proj.experiment.util import safe_get_argv
+from python_proj.utils.arg_utils import safe_get_argv
 
 
-def test_pr_thresholds(input_file_name: str):
+def test_pr_thresholds(input_file_name: str, thresholds: list[int]):
     input_path = f"./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/{input_file_name}.json"
     input_file = open(input_path, "r")
 
@@ -21,11 +21,11 @@ def test_pr_thresholds(input_file_name: str):
             pr_counts[src] = 0
         pr_counts[src] += 1
 
-    tested_thresholds = [5, 15, 30]
-    entries_per_threshold = {t: (0, 0) for t in tested_thresholds}
+    # tested_thresholds = [5, 15, 30]
+    entries_per_threshold = {t: (0, 0) for t in thresholds}
 
     for _, entry in pr_counts.items():
-        for threshold in tested_thresholds:
+        for threshold in thresholds:
             if entry >= threshold:
                 old_count = entries_per_threshold[threshold]
                 new_count = (old_count[0] + 1, old_count[1] + entry)
@@ -57,11 +57,13 @@ def count_comments_per_user(input_file_name: str):
 
 
 if __name__ == "__main__":
-    mode = argv[argv.index("-m") + 1]
+    mode = safe_get_argv('-m', default="t")
 
     match mode:
         case "t":
             file_name = safe_get_argv("-n", default="sorted_filtered")
-            test_pr_thresholds(file_name)
+            thresholds = [int(entry) for entry in
+                          safe_get_argv('-t', default="5,15,30").split(",")]
+            test_pr_thresholds(file_name, thresholds)
         case "c":
             count_comments_per_user()

@@ -10,7 +10,8 @@ import requests
 from sys import argv
 import random
 
-from python_proj.experiment.util import safe_index
+from python_proj.utils.util import safe_index
+from python_proj.utils.arg_utils import safe_get_argv
 
 # Dey et al.'s project criteria
 # - NPM packages with over 10000 monthly downloads, since January 2018.
@@ -167,13 +168,14 @@ def generate(exlusion_criteria: callable, output_key: str = ""):
 
 
 def exclusion_prs(entry, ext):
+    global min_prs
     repo_name = entry[repo_name_index]
     name_split = repo_name.split("/")
     owner = name_split[0]
     repo = name_split[-1]
     host_type = entry[repo_host_type_index]
     return not has_pr_file(owner, repo, ext) or \
-        not has_sufficient_closed_prs(owner, repo, 5, host_type, ext)
+        not has_sufficient_closed_prs(owner, repo, min_prs, host_type, ext)
 
 
 def exclusion_downloads(entry):
@@ -250,6 +252,7 @@ if __name__ == "__main__":
         if mode == "d":
             generate(exclusion_downloads, "_dl")
         elif mode == "p":
+            min_prs = safe_get_argv('-pr', 5)
             generate(exclusion_prs, "_pr", ext)
         elif mode == "m":
             merge_inclusion_lists()

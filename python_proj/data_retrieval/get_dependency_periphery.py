@@ -5,11 +5,11 @@ on the already included project, or where said included projects depend on.
 It uses the libraries.io dependency data.
 """
 
-from csv import reader, writer
+from csv import reader
 from sys import argv
 import json
 
-import python_proj.experiment.replication_study.retrieve_pull_requests as rpr
+import python_proj.data_retrieval.retrieve_pull_requests as rpr
 
 eco = 'npm'
 

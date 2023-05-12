@@ -6,7 +6,6 @@ from sys import argv
 from datetime import datetime
 import math
 from typing import Callable, Any, Dict
-from pandas import DataFrame
 
 file = argv[argv.index('-i') + 1]
 

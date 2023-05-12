@@ -8,8 +8,6 @@ from sys import argv
 from csv import reader
 from copy import deepcopy
 
-from python_proj.experiment.util import safe_index
-
 data_path = "./data/libraries/npm-libraries-1.6.0-2020-01-12/projects_with_repository_fields-1.6.0-2020-01-12.csv"
 filter_path = "./data/libraries/npm-libraries-1.6.0-2020-01-12/predictors/included_projects_dl.csv"
 

@@ -9,9 +9,9 @@ import json
 from os import path, remove
 from sys import argv
 
-from python_proj.experiment.util import safe_index
-import python_proj.experiment.replication_study.retrieve_pull_requests as rpr
-import python_proj.experiment.retrieve_issues as ri
+from python_proj.utils.util import safe_index
+import python_proj.data_retrieval.retrieve_pull_requests as rpr
+import python_proj.data_retrieval.retrieve_issues as ri
 
 
 eco = "npm"
