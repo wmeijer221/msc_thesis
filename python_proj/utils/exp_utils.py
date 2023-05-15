@@ -42,6 +42,17 @@ PROJECTS_WITH_REPOSITORY_FIELDS_HEADERS = \
      'Repository Display Name', 'Repository SCM type', 'Repository Pull requests enabled?',
      'Repository Logo URL', 'Repository Keywords']
 
+# Finds indices of relevant fields.
+repo_host_type_index = PROJECTS_WITH_REPOSITORY_FIELDS_HEADERS.index(
+    "Repository Host Type")
+repo_name_index = PROJECTS_WITH_REPOSITORY_FIELDS_HEADERS.index(
+    "Repository Name with Owner")
+is_fork_index = PROJECTS_WITH_REPOSITORY_FIELDS_HEADERS.index(
+    "Repository Fork?")
+# HACK: Somehow the index is misaligned by 1.
+prs_enabled_index = PROJECTS_WITH_REPOSITORY_FIELDS_HEADERS.index(
+    "Repository Pull requests enabled?") + 1
+
 
 def load_paths_for_eco(eco_key: str = ECO_KEY):
     global PROJECTS_WITH_REPO_PATH, RAW_DATA_PATH, FILTER_PATH
@@ -89,3 +100,14 @@ def get_gl_token() -> str:
     if token is None:
         raise Exception("GL token is none!")
     return token
+
+
+def get_my_tokens(all_tokens: list, job_index: int, job_count: int) -> list:
+    def is_my_token(token_index) -> bool:
+        return token_index % job_count == job_index
+
+    token_count = len(all_tokens)
+    if token_count == 1 or job_count == 1:
+        return all_tokens
+    return list([token for token_index, token in enumerate(all_tokens)
+                 if is_my_token(token_index)])

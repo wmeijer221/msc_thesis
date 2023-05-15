@@ -75,13 +75,13 @@ def retrieve_pull_requests():
     with open(input_path, 'r', encoding="utf-8") as input_file:
         csv_reader = reader(input_file, quotechar='"')
         tasks = [list(entry) for entry in csv_reader]
-        gh_tokens = [get_my_tokens(all_gh_tokens, index)
+        gh_tokens = [exp_utils.get_my_tokens(all_gh_tokens, index, job_count)
                      for index in range(job_count)]
         parallelize_tasks(tasks, retrieve_prs_for_entry,
                           job_count, gh_tokens=gh_tokens)
 
 
-def retrieve_prs_for_entry(task: list, gh_tokens: list[str], worker_index: int, 
+def retrieve_prs_for_entry(task: list, gh_tokens: list[str], worker_index: int,
                            task_id: int, total_tasks: int):
     if not matches_inclusion_criteria(task):
         return
@@ -102,7 +102,8 @@ def retrieve_prs_for_entry(task: list, gh_tokens: list[str], worker_index: int,
         return
     processed_projects.add(unique_entry)
 
-    print(f'Worker-{worker_index}: ({task_id}/{total_tasks}) Starting with {repo_name} at {repo_host}.')
+    print(
+        f'Worker-{worker_index}: ({task_id}/{total_tasks}) Starting with {repo_name} at {repo_host}.')
     my_gh_tokens = gh_tokens[worker_index]
     try:
         fetch_prs(repo_name, repo_host, my_gh_tokens)
@@ -175,17 +176,6 @@ def fetch_prs(repo_name: str, repo_host: str, gh_tokens: list):
         output_file.close()
         remove(r_output_path)
         raise e
-
-
-def get_my_tokens(all_tokens: list, job_index: int) -> list:
-    def is_my_token(token_index) -> bool:
-        return token_index % job_count == job_index
-
-    token_count = len(all_tokens)
-    if token_count == 1 or job_count == 1:
-        return all_tokens
-    return list([token for token_index, token in enumerate(all_tokens)
-                 if is_my_token(token_index)])
 
 
 def count_projects_that_match_criteria():
