@@ -3,15 +3,22 @@ Outdated: This only works on the .json data, which isn't great to work with.
 TODO: implement this to work with the .csv dataset.
 """
 
-import json
 from datetime import datetime
+import json
 import matplotlib.pyplot as plt
-from sys import argv
+from os import path, makedirs
 
-from python_proj.data_retrieval.retrieve_pull_requests import end_date
+from python_proj.utils.arg_utils import safe_get_argv
+import python_proj.utils.exp_utils as exp_utils
 
-base_data_path = "./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/{list}.json"
-data_path = "./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/sorted_filtered.json"
+# Loads relevant paths.
+exp_utils.load_paths_for_all_argv()
+data_path = exp_utils.CHRONOLOGICAL_DATASET_PATH
+figure_path = exp_utils.FIGURE_PATH
+
+figure_folder = path.dirname(figure_path(figure_name="_"))
+if not path.exists(figure_folder):
+    makedirs(figure_folder)
 
 
 def prs_over_time():
@@ -30,7 +37,7 @@ def prs_over_time():
                     closed_at, "%Y-%m-%dT%H:%M:%S.%fZ"
                 )
 
-            if dt_closed_at > end_date:
+            if dt_closed_at > exp_utils.LIBRARIES_IO_DATASET_END_DATE:
                 continue
 
             # Adds key
@@ -42,11 +49,14 @@ def prs_over_time():
             # counts entry
             buckets[dt_year_month] += 1
 
+    plt.cla()
     plt.plot(buckets.keys(), buckets.values())
     plt.title('Closed Pull Requests Per Month')
     plt.xlabel('Month')
     plt.ylabel('Closed Pull Requests')
-    plt.show()
+    output_path = figure_path(figure_name='prs_over_time')
+    plt.savefig(fname=output_path)
+    print(f'Stored figure at {output_path}')
 
 
 def prs_per_project():
@@ -59,12 +69,12 @@ def prs_per_project():
 
             source_file = j_entry['__source_path']
 
-            if not source_file in buckets: 
+            if not source_file in buckets:
                 buckets[source_file] = 0
-            
+
             buckets[source_file] += 1
             total += 1
-    
+
     plt.cla()
 
     entries = list(buckets.items())
@@ -87,15 +97,18 @@ def prs_per_project():
             current_perc += 1
             if current_perc >= len(percentiles):
                 break
-    
+
     plt.vlines(vlines, 0, entries[-1][1], linestyles='dashed', colors='red')
-    print(f'{len(entries) - people}/{len(entries):.03f} ({(len(entries) - people) / len(entries)}%) are responsible for {100 - percentiles[0] * 100}% of the PRs')
+    print(
+        f'{len(entries) - people}/{len(entries):.03f} ({100 * ((len(entries) - people) / len(entries)):.03f}%) are responsible for {100 - percentiles[0] * 100}% of the PRs')
 
     plt.title('Closed Pull Requests Per project')
     plt.xlabel('Project')
     plt.ylabel('Closed Pull Requests')
-    plt.show()
-    
+    output_path = figure_path(figure_name='prs_per_project')
+    plt.savefig(fname=output_path)
+    print(f'Stored figure at {output_path}')
+
 
 def prs_per_user():
     buckets: dict[datetime, int] = {}
@@ -104,7 +117,7 @@ def prs_per_user():
     with open(data_path, "r") as data_file:
         for entry in data_file:
             j_entry = json.loads(entry)
-            
+
             # Ignored GL entries.
             if 'user_data' not in j_entry:
                 continue
@@ -141,27 +154,42 @@ def prs_per_user():
             current_perc += 1
             if current_perc >= len(percentiles):
                 break
-    
+
     plt.vlines(vlines, 0, entries[-1][1], linestyles='dashed', colors='red')
-    print(f'{len(entries) - people}/{len(entries):.03f} ({(len(entries) - people) / len(entries)}%) are responsible for {100 - percentiles[0] * 100}% of the PRs')
+    print(
+        f'{len(entries) - people}/{len(entries):.03f} ({100*((len(entries) - people) / len(entries)):.03f}%) are responsible for {100 - percentiles[0] * 100}% of the PRs')
 
     plt.title('Closed Pull Requests Per User')
     plt.xlabel('User')
     plt.ylabel('Closed Pull Requests')
-    plt.show()
-    
+    output_path = figure_path(figure_name='prs_per_user')
+    plt.savefig(fname=output_path)
+    print(f'Stored figure at {output_path}')
+
+    print_top_users = safe_get_argv("-p", "n").lower()
+    if print_top_users != "y":
+        return
+
     for entry in entries[-(len(entries) - people):]:
         # print(entry)
-        j_out =  id_to_data[entry[0]]
+        j_out = id_to_data[entry[0]]
         j_out['pull_request_count'] = entry[1]
         print(json.dumps(j_out))
 
 
 if __name__ == "__main__":
-    if (idx := argv.index('-i')) > -1:
-        file = argv[idx + 1]
-        data_path = base_data_path.format(list=file)
+    mode = safe_get_argv(key='-m', default="t")
 
-    # prs_over_time()
-    # prs_per_project()
-    prs_per_user()
+    match mode:
+        case "t":
+            prs_over_time()
+        case "u":
+            prs_per_user()
+        case "p":
+            prs_per_project()
+        case "a":
+            prs_over_time()
+            prs_per_user()
+            prs_per_project()
+        case _:
+            raise ValueError(f"Invalid mode {mode}.")

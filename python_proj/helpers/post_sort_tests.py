@@ -6,10 +6,13 @@ request threshold settings, and one to count comments per user.
 import json
 
 from python_proj.utils.arg_utils import safe_get_argv
+import python_proj.utils.exp_utils as exp_utils
+
+exp_utils.load_paths_for_all_argv()
+input_path = exp_utils.CHRONOLOGICAL_DATASET_PATH
 
 
-def test_pr_thresholds(input_file_name: str, thresholds: list[int]):
-    input_path = f"./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/{input_file_name}.json"
+def test_pr_thresholds(thresholds: list[int]):
     input_file = open(input_path, "r")
 
     pr_counts = {}
@@ -34,8 +37,7 @@ def test_pr_thresholds(input_file_name: str, thresholds: list[int]):
     print(entries_per_threshold)
 
 
-def count_comments_per_user(input_file_name: str):
-    input_path = f"./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/{input_file_name}.json"
+def count_comments_per_user():
     input_file = open(input_path, "r")
 
     count = {}
@@ -61,9 +63,8 @@ if __name__ == "__main__":
 
     match mode:
         case "t":
-            file_name = safe_get_argv("-n", default="sorted_filtered")
-            thresholds = [int(entry) for entry in
-                          safe_get_argv('-t', default="5,15,30").split(",")]
-            test_pr_thresholds(file_name, thresholds)
+            ts_arg = safe_get_argv('-t', default="5,15,30")
+            thresholds = [int(entry) for entry in ts_arg.split(",")]
+            test_pr_thresholds(thresholds)
         case "c":
             count_comments_per_user()

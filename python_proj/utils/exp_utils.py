@@ -18,6 +18,10 @@ PROJECTS_WITH_REPO_PATH: str | partial[str] = \
     "./data/libraries/{eco}-libraries-1.6.0-2020-01-12/projects_with_repository_fields-1.6.0-2020-01-12.csv"
 RAW_DATA_PATH: str | partial[str] = "./data/libraries/{eco}-libraries-1.6.0-2020-01-12/{data_type}/{owner}--{repo}{ext}.json"
 FILTER_PATH: str | partial[str] = "./data/libraries/{eco}-libraries-1.6.0-2020-01-12/predictors/included_projects{filter_type}.csv"
+CHRONOLOGICAL_DATASET_PATH: str | partial[
+    str] = "./data/libraries/{eco}-libraries-1.6.0-2020-01-12/{data_type}/{file_name}.json"
+FIGURE_PATH = "./data/figures/demographics/{eco}/{data_source}/{file_name}/{figure_name}.png"
+
 
 LIBRARIES_IO_DATASET_END_DATE = datetime(year=2020, month=1, day=12)
 
@@ -54,22 +58,46 @@ prs_enabled_index = PROJECTS_WITH_REPOSITORY_FIELDS_HEADERS.index(
     "Repository Pull requests enabled?") + 1
 
 
+def load_paths_for_all_argv():
+    load_paths_for_eco()
+    load_paths_for_data_path()
+    load_paths_for_file_name()
+
+
 def load_paths_for_eco(eco_key: str = ECO_KEY):
-    global PROJECTS_WITH_REPO_PATH, RAW_DATA_PATH, FILTER_PATH
+    global PROJECTS_WITH_REPO_PATH, RAW_DATA_PATH, FILTER_PATH, CHRONOLOGICAL_DATASET_PATH, \
+        FIGURE_PATH
 
     eco = safe_get_argv(eco_key, "npm")
 
     PROJECTS_WITH_REPO_PATH = partial(PROJECTS_WITH_REPO_PATH.format, eco=eco)
     RAW_DATA_PATH = partial(RAW_DATA_PATH.format, eco=eco)
     FILTER_PATH = partial(FILTER_PATH.format, eco=eco)
+    CHRONOLOGICAL_DATASET_PATH = partial(
+        CHRONOLOGICAL_DATASET_PATH.format, eco=eco)
+    FIGURE_PATH = partial(FIGURE_PATH.format, eco=eco)
 
 
 def load_paths_for_data_path(data_source_key: str = DATA_SOURCE_KEY):
-    global RAW_DATA_PATH
+    global RAW_DATA_PATH, CHRONOLOGICAL_DATASET_PATH, FIGURE_PATH
 
     data_source = safe_get_argv(data_source_key, "pull-requests")
     # Assumes ``load_paths_for_eco`` has been called.
     RAW_DATA_PATH = partial(RAW_DATA_PATH, data_type=data_source)
+    CHRONOLOGICAL_DATASET_PATH = partial(
+        CHRONOLOGICAL_DATASET_PATH, data_type=data_source)
+    FIGURE_PATH = partial(FIGURE_PATH, data_source=data_source)
+
+
+def load_paths_for_file_name(file_name_key: str = FILE_NAME_KEY):
+    global CHRONOLOGICAL_DATASET_PATH, FIGURE_PATH
+
+    file_name = safe_get_argv(file_name_key, default="sorted")
+
+    # TODO: This should be partial.
+    CHRONOLOGICAL_DATASET_PATH = CHRONOLOGICAL_DATASET_PATH(
+        file_name=file_name)
+    FIGURE_PATH = partial(FIGURE_PATH, file_name=file_name)
 
 
 def build_data_path_from_argv(eco_key: str = ECO_KEY, data_source_key: str = DATA_SOURCE_KEY,
@@ -111,3 +139,15 @@ def get_my_tokens(all_tokens: list, job_index: int, job_count: int) -> list:
         return all_tokens
     return list([token for token_index, token in enumerate(all_tokens)
                  if is_my_token(token_index)])
+
+
+def get_eco(eco_key: str = ECO_KEY):
+    return safe_get_argv(eco_key, default="npm")
+
+
+def get_data_source(data_source_key: str = DATA_SOURCE_KEY):
+    return safe_get_argv(data_source_key, default="pull-requests")
+
+
+def get_file_name(file_name_key: str = FILE_NAME_KEY):
+    return safe_get_argv(file_name_key, default="sorted")
