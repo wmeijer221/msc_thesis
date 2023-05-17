@@ -36,7 +36,7 @@ class IssueFilter (BaseFilter):
                         "created_at", "updated_at", "closed_at",
                         "author_association", "active_lock_reason", "body", "state_reason"]
         self._subfilter_fields = {
-            UserFilter: ["user_data"]
+            UserFilter: ["user_data", "closed_by"]
         }
         self._listsubfilter_fields = {
             CommentFilter: ["comments_data"]

@@ -7,9 +7,17 @@ from dataclasses import dataclass
 from sys import argv
 
 from python_proj.utils.util import get_nested
+import python_proj.utils.exp_utils as exp_utils
+from python_proj.utils.arg_utils import safe_get_argv
+
+input_file = None
+output_file = None
 
 
-def slide_through_timeframe(file_name: str, key_to_date: list[str], window_size: timedelta = None) -> Generator[Tuple[Dict[str, Dict], Dict], None, None]:
+def slide_through_timeframe(file_name: str,
+                            key_to_date: list[str],
+                            window_size: timedelta = None) \
+        -> Generator[Tuple[Dict[str, Dict], Dict], None, None]:
     # Hardcoded as this is an analysis-custom field added in the data sorter.
     source_key = "__source_path"
     window = {}
@@ -161,7 +169,7 @@ class ContPriorReviewNum(DataFieldFactory):
         self._last = []
 
     def handle(self, entry: dict, entry_change: int):
-        iid = get_nested(entry, ["merged_by_data", "id"])
+        iid = get_nested(entry, ["closed_by", "id"])
 
         if iid is None:
             self._last = []
@@ -292,7 +300,7 @@ class PRAcceptanceRateEco(ContDevSuccessRate):
 
 
 def data_set_iterator(data_fields: list[type], window_size: timedelta = None) -> Generator[list[str], list[Any], None]:
-    file_name = "./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/sorted_filtered.json"
+    file_name = exp_utils.CHRONOLOGICAL_DATASET_PATH
     closed_at_key = ["closed_at"]
 
     # Initializes fields.
@@ -327,7 +335,7 @@ def data_set_iterator(data_fields: list[type], window_size: timedelta = None) ->
 
 
 def build_cumulative_dataset():
-    output_path = "./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/cumulative_dataset.csv"
+    output_path = exp_utils.TRAIN_DATASET_PATH(file_name="cumulative_dataset")
     with open(output_path, "w+") as output_file:
         csv_writer = writer(output_file)
         # TODO: add ``ContPriorReviewNum``, ``ContSameUser`` when its finished.
@@ -341,24 +349,26 @@ def build_cumulative_dataset():
 
 
 def build_windowed_dataset(days: int):
-    output_path = f"./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/windowed_{days}d_dataset.csv"
+    output_path = exp_utils.TRAIN_DATASET_PATH(
+        file_name=f"windowed_{days}d_dataset")
     with open(output_path, "w+") as output_file:
         csv_writer = writer(output_file)
         # TODO: add ``ContPriorReviewNum``, ``ContSameUser`` when its finished.
         fields = [DepPRIsMerged, ContLifetime, ContHasComments, ContNumCommits,
                   ContDevSuccessRate, PRCountEco, PRAcceptanceRateEco]
         ninety_days = timedelta(days=90)
-        for index, entry in enumerate(data_set_iterator(fields, window_size=ninety_days)):
+        for _, entry in enumerate(data_set_iterator(fields, window_size=ninety_days)):
             csv_writer.writerow(entry)
-            # if index == 10:
-            #     break
 
 
 if __name__ == "__main__":
-    mode = argv[argv.index("-m") + 1]
+    exp_utils.load_paths_for_all_argv()
+    mode = safe_get_argv(key="-m", default="c")
     match mode:
         case 'c':
             build_cumulative_dataset()
         case 'w':
-            days = int(argv[argv.index('-d') + 1])
+            days = safe_get_argv(key="-d", default=20, data_type=int)
             build_windowed_dataset(days)
+        case _:
+            raise ValueError(f"Invalid mode {mode}.")

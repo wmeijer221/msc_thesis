@@ -7,9 +7,9 @@ from sys import argv
 from python_proj.utils.util import safe_index
 
 
-def safe_get_argv(key: str, default: object = None) -> object:
+def safe_get_argv(key: str, default: object = None, data_type: type = str) -> object:
     if (idx := safe_index(argv, key)) >= 0:
-        return argv[idx + 1]
+        return data_type(argv[idx + 1])
     return default
 
 

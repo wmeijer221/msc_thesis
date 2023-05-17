@@ -21,7 +21,7 @@ FILTER_PATH: str | partial[str] = "./data/libraries/{eco}-libraries-1.6.0-2020-0
 CHRONOLOGICAL_DATASET_PATH: str | partial[
     str] = "./data/libraries/{eco}-libraries-1.6.0-2020-01-12/{data_type}/{file_name}.json"
 FIGURE_PATH = "./data/figures/demographics/{eco}/{data_source}/{file_name}/{figure_name}.png"
-
+TRAIN_DATASET_PATH = "./data/libraries/{eco}-libraries-1.6.0-2020-01-12/{data_source}/{file_name}.csv"
 
 LIBRARIES_IO_DATASET_END_DATE = datetime(year=2020, month=1, day=12)
 
@@ -66,7 +66,7 @@ def load_paths_for_all_argv():
 
 def load_paths_for_eco(eco_key: str = ECO_KEY):
     global PROJECTS_WITH_REPO_PATH, RAW_DATA_PATH, FILTER_PATH, CHRONOLOGICAL_DATASET_PATH, \
-        FIGURE_PATH
+        FIGURE_PATH, TRAIN_DATASET_PATH
 
     eco = safe_get_argv(eco_key, "npm")
 
@@ -76,10 +76,11 @@ def load_paths_for_eco(eco_key: str = ECO_KEY):
     CHRONOLOGICAL_DATASET_PATH = partial(
         CHRONOLOGICAL_DATASET_PATH.format, eco=eco)
     FIGURE_PATH = partial(FIGURE_PATH.format, eco=eco)
+    TRAIN_DATASET_PATH = partial(TRAIN_DATASET_PATH.format, eco=eco)
 
 
 def load_paths_for_data_path(data_source_key: str = DATA_SOURCE_KEY):
-    global RAW_DATA_PATH, CHRONOLOGICAL_DATASET_PATH, FIGURE_PATH
+    global RAW_DATA_PATH, CHRONOLOGICAL_DATASET_PATH, FIGURE_PATH, TRAIN_DATASET_PATH
 
     data_source = safe_get_argv(data_source_key, "pull-requests")
     # Assumes ``load_paths_for_eco`` has been called.
@@ -87,6 +88,7 @@ def load_paths_for_data_path(data_source_key: str = DATA_SOURCE_KEY):
     CHRONOLOGICAL_DATASET_PATH = partial(
         CHRONOLOGICAL_DATASET_PATH, data_type=data_source)
     FIGURE_PATH = partial(FIGURE_PATH, data_source=data_source)
+    TRAIN_DATASET_PATH = partial(TRAIN_DATASET_PATH, data_source=data_source)
 
 
 def load_paths_for_file_name(file_name_key: str = FILE_NAME_KEY):
