@@ -1,5 +1,6 @@
 """
 Retrieves the "closed_by" fields for pull requests that have been closed.
+This script is only here because I forgot to include the closed_by field in the ``IssueFilter``...
 """
 
 from dataclasses import dataclass
