@@ -5,6 +5,7 @@ Implements utility functions for the general experiment.
 from functools import partial
 from datetime import datetime
 from os import getenv
+import json
 
 from python_proj.utils.arg_utils import safe_get_argv
 
@@ -111,7 +112,8 @@ def load_paths_for_file_name(file_name_key: str = FILE_NAME_KEY):
 
 def build_data_path_from_argv(eco_key: str = ECO_KEY, data_source_key: str = DATA_SOURCE_KEY,
                               file_name_key: str = FILE_NAME_KEY, file_ext: str = ".json"):
-    base_path = BASE_PATH + 'libraries/{eco}-libraries-1.6.0-2020-01-12/{data_source}/{file_name}{file_ext}'
+    base_path = BASE_PATH + \
+        'libraries/{eco}-libraries-1.6.0-2020-01-12/{data_source}/{file_name}{file_ext}'
     eco = safe_get_argv(eco_key, default="npm")
     data_source = safe_get_argv(data_source_key, default="pull-requests")
     file_name = safe_get_argv(file_name_key, default='sorted')
@@ -160,3 +162,13 @@ def get_data_source(data_source_key: str = DATA_SOURCE_KEY):
 
 def get_file_name(file_name_key: str = FILE_NAME_KEY):
     return safe_get_argv(file_name_key, default="sorted")
+
+
+def iterate_through_chronological_data():
+    with open(CHRONOLOGICAL_DATASET_PATH, "r") as input_file:
+        for line in input_file:
+            try:
+                yield json.loads(line.strip())
+            except Exception as ex:
+                ex.add_note(line)
+                raise
