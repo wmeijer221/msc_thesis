@@ -7,6 +7,7 @@ from sys import argv
 import numpy
 
 from python_proj.utils.util import safe_index
+from python_proj.utils.exp_utils import BASE_PATH
 
 
 headers = ['ID', 'Platform', 'Name', 'Created Timestamp', 'Updated Timestamp', 'Description', 'Keywords', 'Homepage URL', 'Licenses', 'Repository URL', 'Versions Count', 'SourceRank', 'Latest Release Publish Timestamp', 'Latest Release Number', 'Package Manager ID', 'Dependent Projects Count', 'Language', 'Status', 'Last synced Timestamp', 'Dependent Repositories Count', 'Repository ID', 'Repository Host Type', 'Repository Name with Owner', 'Repository Description', 'Repository Fork?', 'Repository Created Timestamp', 'Repository Updated Timestamp', 'Repository Last pushed Timestamp', 'Repository Homepage URL', 'Repository Size', 'Repository Stars Count', 'Repository Language', 'Repository Issues enabled?', 'Repository Wiki enabled?',
@@ -14,7 +15,7 @@ headers = ['ID', 'Platform', 'Name', 'Created Timestamp', 'Updated Timestamp', '
 
 repo_name_index = headers.index("Repository Name with Owner")
 
-file_path = "./data/libraries/npm-libraries-1.6.0-2020-01-12/projects_with_repository_fields-1.6.0-2020-01-12.csv"
+file_path = BASE_PATH + "libraries/npm-libraries-1.6.0-2020-01-12/projects_with_repository_fields-1.6.0-2020-01-12.csv"
 
 if (p_index := safe_index(argv, "-p")) >= 0:
     project_names = str(argv[p_index + 1])

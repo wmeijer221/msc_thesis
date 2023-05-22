@@ -8,8 +8,10 @@ from sys import argv
 from csv import reader
 from copy import deepcopy
 
-data_path = "./data/libraries/npm-libraries-1.6.0-2020-01-12/projects_with_repository_fields-1.6.0-2020-01-12.csv"
-filter_path = "./data/libraries/npm-libraries-1.6.0-2020-01-12/predictors/included_projects_dl.csv"
+from python_proj.utils.exp_utils import BASE_PATH
+
+data_path = BASE_PATH + "libraries/npm-libraries-1.6.0-2020-01-12/projects_with_repository_fields-1.6.0-2020-01-12.csv"
+filter_path = BASE_PATH + "libraries/npm-libraries-1.6.0-2020-01-12/predictors/included_projects_dl.csv"
 
 
 def find(name: str):

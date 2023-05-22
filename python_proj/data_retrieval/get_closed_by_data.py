@@ -121,7 +121,7 @@ def get_closed_by_for_closed_and_unmerged_prs():
             return
         entry = {"owner": task.owner, "repo": task.repo,
                  "issue": task.issue, "closed_by": closed_by}
-        output_path = f"./data/temp/closed_by_t_{worker_index}.json"
+        output_path = f"{exp_utils.BASE_PATH}temp/closed_by_t_{worker_index}.json"
         with open(output_path, "a+") as output_file:
             output_file.write(f"{json.dumps(entry)}\n")
 

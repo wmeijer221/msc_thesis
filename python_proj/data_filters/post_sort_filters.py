@@ -18,7 +18,7 @@ import re
 from csv import reader
 
 from python_proj.utils.arg_utils import get_argv
-from python_proj.utils.exp_utils import build_data_path_from_argv
+from python_proj.utils.exp_utils import build_data_path_from_argv, BASE_PATH
 
 
 def load_data(input_path: str):
@@ -83,7 +83,7 @@ def filter_bots_dey_2020(entry):
 
     # HACK: make-shift init function for the filter.
     if dey_bots_emails is None or dey_bots_emails is None:
-        filter_path = "./data/bot_data/dey_2020_bots.json"
+        filter_path = BASE_PATH + "bot_data/dey_2020_bots.json"
         with open(filter_path, "r") as input_file:
             j_data = json.loads(input_file.read())
             dey_bots_emails = set()
@@ -110,7 +110,7 @@ def filter_bots_golzadeh_2021(entry):
 
     # HACK: make-shift init function.
     if golzadeh_bots_names is None:
-        filter_path = "./data/bot_data/golzadeh_2021_bots.csv"
+        filter_path = BASE_PATH + "bot_data/golzadeh_2021_bots.csv"
         with open(filter_path, "r") as filter_file:
             filter_reader = reader(filter_file, quotechar='"')
             _ = next(filter_reader)  # Skips header

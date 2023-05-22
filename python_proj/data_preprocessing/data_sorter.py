@@ -8,15 +8,16 @@ from os import path, makedirs, remove
 
 from python_proj.utils.arg_utils import safe_get_argv, get_argv
 from python_proj.utils.mt_utils import parallelize_tasks
+from python_proj.utils.exp_utils import BASE_PATH
 
-base_path = "./data/libraries/{eco}-libraries-1.6.0-2020-01-12/{feature}/"
+base_path = BASE_PATH + "libraries/{eco}-libraries-1.6.0-2020-01-12/{feature}/"
 input_file_name = "{owner}--{repo_name}{ext}.json"
-output_path = "./data/libraries/{eco}-libraries-1.6.0-2020-01-12/{feature}/sorted{filter_name}.json"
+output_path = BASE_PATH + "libraries/{eco}-libraries-1.6.0-2020-01-12/{feature}/sorted{filter_name}.json"
 real_base_path = None
 thread_count = 1
 
 
-temp_storage_path = "./data/temp/sorting_buckets/{bucket}.dat"
+temp_storage_path = BASE_PATH + "temp/sorting_buckets/{bucket}.dat"
 temp_dir = path.dirname(temp_storage_path.format(bucket="0"))
 if not path.exists(temp_dir):
     makedirs(temp_dir)

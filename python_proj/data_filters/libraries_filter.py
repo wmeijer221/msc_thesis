@@ -14,12 +14,14 @@ from os import makedirs, path, remove
 from sys import maxsize
 from typing import Dict, Any
 
+from python_proj.utils.exp_utils import BASE_PATH
+
 csv.field_size_limit(maxsize)
 
 suffix = "-1.6.0-2020-01-12"
-input_path = f"./data/libraries/libraries{suffix}"
-data_input_path = "./data/libraries/libraries{suffix}/{data_file}{suffix}.csv"
-output_path = "./data/libraries/{platform}-libraries{suffix}"
+input_path = f"{BASE_PATH}libraries/libraries{suffix}"
+data_input_path = BASE_PATH + "libraries/libraries{suffix}/{data_file}{suffix}.csv"
+output_path = BASE_PATH + "libraries/{platform}-libraries{suffix}"
 file_path = "{folder_path}/{file_name}{suffix}.csv"
 
 platform_filter = ["npm"]

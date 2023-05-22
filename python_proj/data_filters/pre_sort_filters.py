@@ -10,8 +10,9 @@ import requests
 from sys import argv
 import random
 
-from python_proj.utils.util import safe_index
 from python_proj.utils.arg_utils import safe_get_argv
+from python_proj.utils.exp_utils import BASE_PATH
+from python_proj.utils.util import safe_index
 
 # Dey et al.'s project criteria
 # - NPM packages with over 10000 monthly downloads, since January 2018.
@@ -29,8 +30,8 @@ repo_host_type_index = headers.index("Repository Host Type")
 repo_name_index = headers.index("Repository Name with Owner")
 proj_name_index = headers.index("Name")
 
-input_path = "./data/libraries/npm-libraries-1.6.0-2020-01-12/projects_with_repository_fields-1.6.0-2020-01-12.csv"
-lib_output_path = "./data/libraries/npm-libraries-1.6.0-2020-01-12/projects_with_repository_fields-1.6.0-2020-01-12_filtered{filter_ext}.csv"
+input_path = BASE_PATH + "libraries/npm-libraries-1.6.0-2020-01-12/projects_with_repository_fields-1.6.0-2020-01-12.csv"
+lib_output_path = BASE_PATH + "libraries/npm-libraries-1.6.0-2020-01-12/projects_with_repository_fields-1.6.0-2020-01-12_filtered{filter_ext}.csv"
 input_file = open(input_path, 'r', encoding="utf-8")
 csv_reader = reader(input_file, quotechar='"')
 
@@ -43,7 +44,7 @@ download_start_date = datetime(2018, 11, 1)
 # The final date by which the PR can be submitted.
 max_pr_date = datetime(2020, 1, 12)
 
-source_file = "./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/{owner}--{repo_name}{ext}.json"
+source_file = BASE_PATH + "libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/{owner}--{repo_name}{ext}.json"
 
 
 def has_pr_file(owner, repo_name, ext) -> bool:
@@ -101,7 +102,7 @@ def has_sufficient_monthly_downloads(d_start_date: datetime, d_end_date: datetim
     response: requests.Response = requests.get(url)
 
     if response.status_code // 100 != 2:
-        print(f"Can't get downloads data for {project_name}")
+        print(f"Can't get downloads data for {project_name}.")
         return False
 
     reponse_string = response.content.decode("utf-8")
@@ -125,7 +126,7 @@ def has_sufficient_monthly_downloads(d_start_date: datetime, d_end_date: datetim
     return enough_downloads
 
 
-output_path = "./data/libraries/npm-libraries-1.6.0-2020-01-12/predictors/"
+output_path = BASE_PATH + "libraries/npm-libraries-1.6.0-2020-01-12/predictors/"
 output_valid_entries_path = output_path + "included_projects{key}.csv"
 
 

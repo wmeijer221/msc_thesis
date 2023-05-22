@@ -13,6 +13,7 @@ import json
 from csv import reader
 csv.field_size_limit(sys.maxsize)
 
+from python_proj.utils.exp_utils import BASE_PATH
 
 @dataclass_json
 @dataclass(frozen=True)
@@ -21,7 +22,7 @@ class Author:
     email: str
 
 
-input_path = "./data/bot_data/known_bot_dataset"
+input_path = BASE_PATH + "bot_data/known_bot_dataset"
 with open(input_path, "r") as input_file:
     bots = set()
     input_reader = reader(input_file, delimiter=';')
@@ -37,7 +38,7 @@ with open(input_path, "r") as input_file:
         if auth not in bots:
             bots.add(auth)
 
-output_path = "./data/bot_data/dey_2020_bots.json"
+output_path = BASE_PATH + "bot_data/dey_2020_bots.json"
 with open(output_path, "w+") as output_file:
     data_dict = Author.schema().dump(bots, many=True)
     output_file.write(json.dumps(data_dict, indent=2))

@@ -10,13 +10,14 @@ from sys import argv
 import json
 
 import python_proj.data_retrieval.retrieve_pull_requests as rpr
+from python_proj.utils.exp_utils import BASE_PATH
 
 eco = 'npm'
 
 
 def do():
     # TODO: include the repository dependencies somehow?
-    dependencies_path = f"./data/libraries/{eco}-libraries-1.6.0-2020-01-12/dependencies-1.6.0-2020-01-12.csv"
+    dependencies_path = f"{BASE_PATH}libraries/{eco}-libraries-1.6.0-2020-01-12/dependencies-1.6.0-2020-01-12.csv"
     dependencies_file = open(dependencies_path, "r")
     dependencies_reader = reader(dependencies_file)
 
@@ -46,7 +47,7 @@ def do():
     other_id_index = fields.index("Dependency Project ID")
 
     # Output for filter files.
-    output_path = "./data/libraries/{eco}-libraries-1.6.0-2020-01-12/predictors/included_projects_{o_type}.csv"
+    output_path = BASE_PATH + "libraries/{eco}-libraries-1.6.0-2020-01-12/predictors/included_projects_{o_type}.csv"
 
     focal_to_other_path = output_path.format(o_type="focal_to_other", eco=eco)
     focal_to_other_file = open(focal_to_other_path, "w+")
@@ -54,7 +55,7 @@ def do():
     other_to_focal_file = open(other_to_focal_path, "w+")
 
     # Output for all relevant dependencies.
-    dependencies_path = f"./data/libraries/{eco}-libraries-1.6.0-2020-01-12/predictors/dependencies.json"
+    dependencies_path = f"{BASE_PATH}libraries/{eco}-libraries-1.6.0-2020-01-12/predictors/dependencies.json"
     dependencies_file = open(dependencies_path, "w+")
 
     # The filter file listing the included projects.
@@ -164,7 +165,7 @@ def do():
 
 
 def remove_default_inclusion_list():
-    filter_path = "./data/libraries/{eco}-libraries-1.6.0-2020-01-12/predictors/included_projects{o_type}.csv"
+    filter_path = BASE_PATH + "libraries/{eco}-libraries-1.6.0-2020-01-12/predictors/included_projects{o_type}.csv"
 
     general_path = filter_path.format(o_type="", eco=eco)
     general_file = open(general_path, "r")

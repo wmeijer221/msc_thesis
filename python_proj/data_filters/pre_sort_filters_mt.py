@@ -9,9 +9,10 @@ from time import sleep
 
 import python_proj.data_filters.pre_sort_filters as fp
 from python_proj.utils.util import safe_index
+from python_proj.utils.exp_utils import BASE_PATH
 
-input_path = "./data/libraries/npm-libraries-1.6.0-2020-01-12/projects_with_repository_fields-1.6.0-2020-01-12.csv"
-output_path = "./data/libraries/npm-libraries-1.6.0-2020-01-12/predictors/"
+input_path = BASE_PATH + "libraries/npm-libraries-1.6.0-2020-01-12/projects_with_repository_fields-1.6.0-2020-01-12.csv"
+output_path = BASE_PATH + "libraries/npm-libraries-1.6.0-2020-01-12/predictors/"
 
 
 job_count = -1

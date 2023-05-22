@@ -7,9 +7,11 @@ from datetime import datetime
 import math
 from typing import Callable, Any, Dict
 
+from python_proj.utils.exp_utils import BASE_PATH
+
 file = argv[argv.index('-i') + 1]
 
-data_path = f'./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/{file}.csv'
+data_path = f'{BASE_PATH}libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/{file}.csv'
 
 
 def get_data_iterator():

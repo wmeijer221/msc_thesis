@@ -10,6 +10,7 @@ from os import path, remove
 from sys import argv
 
 from python_proj.utils.util import safe_index
+from python_proj.utils.exp_utils import BASE_PATH
 import python_proj.data_retrieval.retrieve_pull_requests as rpr
 import python_proj.data_retrieval.retrieve_issues as ri
 
@@ -23,8 +24,8 @@ delete_old = safe_index(argv, "-d") >= 0
 write_new = safe_index(argv, "-w") >= 0
 
 pull_request_path = rpr.filter_path.format(filter_type="")
-pr_output_path = "./data/libraries/{eco}-libraries-1.6.0-2020-01-12/pull-requests/{project_name}--with-issue-data.json"
-issue_output_path = "./data/libraries/{eco}-libraries-1.6.0-2020-01-12/issues/{project_name}--no-prs.json"
+pr_output_path = BASE_PATH + "libraries/{eco}-libraries-1.6.0-2020-01-12/pull-requests/{project_name}--with-issue-data.json"
+issue_output_path = BASE_PATH + "libraries/{eco}-libraries-1.6.0-2020-01-12/issues/{project_name}--no-prs.json"
 base_file_name = '{owner}--{repo_name}'
 
 
