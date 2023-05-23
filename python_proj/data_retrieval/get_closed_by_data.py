@@ -145,7 +145,7 @@ def add_closed_by_data_to_prs(worker_count: int, input_path: str):
                 identities[pr_entry] = j_data["closed_by"]
     # Loads data from sorted_file.
     for entry in exp_utils.iterate_through_chronological_data():
-        (owner, repo) = __get_owner_and_repo(entry["__source_path"])
+        (owner, repo) = __get_owner_and_repo(entry)
         repo_entry = PullRequestEntry(owner, repo, entry['issue'])
         closed_by = identities[repo_entry]
 
