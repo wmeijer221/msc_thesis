@@ -17,7 +17,7 @@ import python_proj.utils.exp_utils as exp_utils
 from python_proj.utils.mt_utils import parallelize_tasks
 
 
-@dataclass
+@dataclass(frozen=True)
 class PullRequestEntry:
     owner: str = None
     repo: str = None
@@ -81,19 +81,20 @@ def get_closed_by(owner: str,
     return filtered
 
 
-def get_closed_by_for_closed_and_unmerged_prs():
+def __get_owner_and_repo(entry: dict) -> tuple[str, str]:
+    """Helper method for string magic."""
+    source_path: str = entry["__source_path"]
+    file_name_with_ext = source_path.split("/")[-1]
+    file_name = ".".join(file_name_with_ext.split(".")[:-1])
+    owner_repo = file_name.split("--")
+    return (owner_repo[0], owner_repo[1])
+
+
+def get_closed_by_for_closed_and_unmerged_prs(worker_count: int, output_path: str):
     """
     Iterates through the chronological data file and retrieves ``closed_by``
     data for each pull request that has been closed and not merged.
     """
-
-    def __get_owner_and_repo(entry: dict) -> tuple[str, str]:
-        """Helper method for string magic."""
-        source_path = entry["__source_path"]
-        file_name_with_ext = source_path.split("/")[-1]
-        file_name = ".".join(file_name_with_ext.split(".")[:-1])
-        owner_repo = file_name.split("--")
-        return (owner_repo[0], owner_repo[1])
 
     # Creates tasks
     input_path = exp_utils.CHRONOLOGICAL_DATASET_PATH
@@ -121,32 +122,51 @@ def get_closed_by_for_closed_and_unmerged_prs():
             return
         entry = {"owner": task.owner, "repo": task.repo,
                  "issue": task.issue, "closed_by": closed_by}
-        output_path = f"{exp_utils.BASE_PATH}temp/closed_by_t_{worker_index}.json"
-        with open(output_path, "a+") as output_file:
+        r_output_path = output_path.format(worker_index=worker_index)
+        with open(r_output_path, "a+") as output_file:
             output_file.write(f"{json.dumps(entry)}\n")
 
     # Parallelizes the tasks.
-    worker_count = 3
     gh_tokens = exp_utils.get_gh_tokens(worker_count)
     parallelize_tasks(tasks, __pull_data, worker_count, gh_tokens=gh_tokens)
 
 
-def add_closed_by_data_to_prs():
-    pass
+def add_closed_by_data_to_prs(worker_count: int, input_path: str):
+    identities = {}
+    # Loads data from files.
+    for index in range(0, worker_count):
+        input_path = input_path.format(worker_index=index)
+        with open(input_path, "r") as input_file:
+            for line in input_file:
+                j_data = json.loads(line.strip())
+                pr_entry = PullRequestEntry(j_data["owner"],
+                                            j_data["repo"],
+                                            j_data["issue"])
+                identities[pr_entry] = j_data["closed_by"]
+    # Loads data from sorted_file.
+    for entry in exp_utils.iterate_through_chronological_data():
+        (owner, repo) = __get_owner_and_repo(entry["__source_path"])
+        repo_entry = PullRequestEntry(owner, repo, entry['issue'])
+        closed_by = identities[repo_entry]
 
 
 if __name__ == "__main__":
     dotenv.load_dotenv()
     exp_utils.load_paths_for_all_argv()
+    temp_data_path = exp_utils.BASE_PATH + \
+        "temp/closed_by_t_{worker_index}.json"
 
     mode = safe_get_argv(key='-m', default="r")
+    worker_count = safe_get_argv(key="-t", default=3, data_type=int)
     match(mode):
         case "r":
-            get_closed_by_for_closed_and_unmerged_prs()
+            get_closed_by_for_closed_and_unmerged_prs(
+                worker_count, temp_data_path)
         case "m":
-            add_closed_by_data_to_prs()
+            add_closed_by_data_to_prs(worker_count, temp_data_path)
         case "b":
-            get_closed_by_for_closed_and_unmerged_prs()
-            add_closed_by_data_to_prs()
+            get_closed_by_for_closed_and_unmerged_prs(
+                worker_count, temp_data_path)
+            add_closed_by_data_to_prs(worker_count, temp_data_path)
         case _:
             raise ValueError(f"Invalid mode {mode}.")
