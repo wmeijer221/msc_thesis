@@ -165,6 +165,7 @@ def get_file_name(file_name_key: str = FILE_NAME_KEY):
 
 
 def iterate_through_chronological_data():
+    print(f'Iterating through "{CHRONOLOGICAL_DATASET_PATH}".')
     with open(CHRONOLOGICAL_DATASET_PATH, "r") as input_file:
         for line in input_file:
             try:

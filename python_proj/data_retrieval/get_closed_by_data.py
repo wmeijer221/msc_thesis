@@ -144,11 +144,19 @@ def add_closed_by_data_to_prs(worker_count: int, input_path: str):
                                             j_data["issue"])
                 identities[pr_entry] = j_data["closed_by"]
     # Loads data from sorted_file.
+    missing = 0
+    total = 0
     for entry in exp_utils.iterate_through_chronological_data():
+        if entry["merged"] != True:
+                continue
         (owner, repo) = __get_owner_and_repo(entry)
         repo_entry = PullRequestEntry(owner, repo, entry['number'])
-        closed_by = identities[repo_entry]
-
+        total += 1
+        if repo_entry in identities:
+            closed_by = identities[repo_entry]
+        else:
+            missing += 1
+    print(f'Missing: {missing}/{total}.')
 
 if __name__ == "__main__":
     dotenv.load_dotenv()
