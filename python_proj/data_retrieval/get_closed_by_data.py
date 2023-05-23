@@ -152,7 +152,8 @@ def add_closed_by_data_to_prs(worker_count: int, input_path: str):
     with open(output_path, "w+") as output_path:
         for entry in exp_utils.iterate_through_chronological_data():
             if entry["merged"] != True:
-                    continue
+                output_path.write(f'{json.dumps(entry)}\n')
+                continue
             (owner, repo) = __get_owner_and_repo(entry)
             repo_entry = PullRequestEntry(owner, repo, entry['number'])
             total += 1
@@ -162,7 +163,8 @@ def add_closed_by_data_to_prs(worker_count: int, input_path: str):
                 output_path.write(f'{json.dumps(entry)}\n')
             else:
                 # i.e., entries for which there is no closed_by data is removed 
-                # from the dataset! (this accounted for 0.14% of the data.)
+                # from the dataset! When applying, this happened for
+                # 1769/1189740 (0.149%) of the UNMERGED PRs.
                 missing += 1
     print(f'Missing {missing}/{total} ({100 * missing / total:.03f}%) entries for UNMERGED PRs.')
 
