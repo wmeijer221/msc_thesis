@@ -135,9 +135,9 @@ def add_closed_by_data_to_prs(worker_count: int, input_path: str):
     identities = {}
     # Loads data from files.
     for index in range(0, worker_count):
-        input_path = input_path.format(worker_index=index)
-        print(f'Loading entries from: {input_path}.')
-        with open(input_path, "r") as input_file:
+        r_input_path = input_path.format(worker_index=index)
+        print(f'Loading entries from: {r_input_path}.')
+        with open(r_input_path, "r") as input_file:
             for line in input_file:
                 j_data = json.loads(line.strip())
                 pr_entry = PullRequestEntry(j_data["owner"],
