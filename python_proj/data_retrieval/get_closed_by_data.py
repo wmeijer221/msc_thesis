@@ -148,18 +148,23 @@ def add_closed_by_data_to_prs(worker_count: int, input_path: str):
     # Loads data from sorted_file.
     missing = 0
     total = 0
-    for entry in exp_utils.iterate_through_chronological_data():
-        if entry["merged"] != True:
-                continue
-        (owner, repo) = __get_owner_and_repo(entry)
-        repo_entry = PullRequestEntry(owner, repo, entry['number'])
-        total += 1
-        if repo_entry in identities:
-            closed_by = identities[repo_entry]
-        else:
-            # print(f"Missing entry: {entry}.")
-            missing += 1
-    print(f'Missing: {missing}/{total} ({100 * missing / total:.03f}%).')
+    output_path = f'{exp_utils.CHRONOLOGICAL_DATASET_PATH}.temp'
+    with open(output_path, "w+") as output_path:
+        for entry in exp_utils.iterate_through_chronological_data():
+            if entry["merged"] != True:
+                    continue
+            (owner, repo) = __get_owner_and_repo(entry)
+            repo_entry = PullRequestEntry(owner, repo, entry['number'])
+            total += 1
+            if repo_entry in identities:
+                closed_by = identities[repo_entry]
+                entry["closed_by"] = closed_by
+                output_path.write(f'{json.dumps(entry)}\n')
+            else:
+                # i.e., entries for which there is no closed_by data is removed 
+                # from the dataset! (this accounted for 0.14% of the data.)
+                missing += 1
+    print(f'Missing {missing}/{total} ({100 * missing / total:.03f}%) entries for UNMERGED PRs.')
 
 if __name__ == "__main__":
     dotenv.load_dotenv()
