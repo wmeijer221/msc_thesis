@@ -162,11 +162,14 @@ def add_closed_by_data_to_prs(worker_count: int, input_path: str):
                 entry["closed_by"] = closed_by
                 output_path.write(f'{json.dumps(entry)}\n')
             else:
-                # i.e., entries for which there is no closed_by data is removed 
+                # i.e., entries for which there is no closed_by data is removed
                 # from the dataset! When applying, this happened for
-                # 1769/1189740 (0.149%) of the UNMERGED PRs.
+                # 1769/1189740 (0.149%) of the UNMERGED PRs in hte core projects 
+                # (so ~0.12% of the total dataset).
                 missing += 1
-    print(f'Missing {missing}/{total} ({100 * missing / total:.03f}%) entries for UNMERGED PRs.')
+    print(
+        f'Missing {missing}/{total} ({100 * missing / total:.03f}%) entries for UNMERGED PRs.')
+
 
 if __name__ == "__main__":
     dotenv.load_dotenv()
