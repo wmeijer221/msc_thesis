@@ -143,6 +143,7 @@ def add_closed_by_data_to_prs(worker_count: int, input_path: str):
                                             j_data["repo"],
                                             j_data["issue"])
                 identities[pr_entry] = j_data["closed_by"]
+    print(f'Loaded {len(identities)} closed by entries.')
     # Loads data from sorted_file.
     missing = 0
     total = 0
@@ -155,8 +156,9 @@ def add_closed_by_data_to_prs(worker_count: int, input_path: str):
         if repo_entry in identities:
             closed_by = identities[repo_entry]
         else:
+            print(f"Missing entry: {entry}.")
             missing += 1
-    print(f'Missing: {missing}/{total}.')
+    print(f'Missing: {missing}/{total} ({100 * missing / total:.03f}%).')
 
 if __name__ == "__main__":
     dotenv.load_dotenv()
