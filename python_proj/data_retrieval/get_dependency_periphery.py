@@ -196,7 +196,7 @@ def remove_default_inclusion_list():
 
 
 def random_sample_list(sample_size: int, filter_type: str):
-    input_path = exp_utils.FILTER_PATH.format(filter_type=filter_type)
+    input_path = exp_utils.FILTER_PATH(filter_type=filter_type)
     with open(input_path, "r") as input_file:
         projects = [(entry.strip(), random.random()) for entry in input_file]
         projects.sort(key=lambda x: x[1])
