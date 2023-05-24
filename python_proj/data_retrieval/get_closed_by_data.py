@@ -2,6 +2,11 @@
 Retrieves the ``closed_by`` fields for pull requests that have been closed but not merged.
 This script is only here because I forgot to include the ``closed_by`` field in the ``IssueFilter``.
 If you re-run the experiment in its entirety, you don't need this script.
+
+To gather this data, run ``python3 ./python_proj/data_retrieval/get_closed_by_data.py -m b -t 3 -f sorted_filtered``
+where -t is the number of used threads/API keys, and -f the targeted chronological datafile.
+Alternatively, you could run it in two goes using ``-t r`` and the ``-t m`` arguments instead.
+The result of this will be a ``.temp`` file in the folder where the used chronological datafile is stored as well.
 """
 
 from dataclasses import dataclass
@@ -164,7 +169,7 @@ def add_closed_by_data_to_prs(worker_count: int, input_path: str):
             else:
                 # i.e., entries for which there is no closed_by data is removed
                 # from the dataset! When applying, this happened for
-                # 1769/1189740 (0.149%) of the UNMERGED PRs in hte core projects 
+                # 1769/1189740 (0.149%) of the UNMERGED PRs in hte core projects
                 # (so ~0.12% of the total dataset).
                 missing += 1
     print(
