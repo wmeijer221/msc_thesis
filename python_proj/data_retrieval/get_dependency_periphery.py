@@ -195,8 +195,8 @@ def remove_default_inclusion_list():
     __write("_other_to_focal", other_to_focal)
 
 
-def random_sample_list(sample_size: int):
-    input_path = exp_utils.FILTER_PATH
+def random_sample_list(sample_size: int, filter_type: str):
+    input_path = exp_utils.FILTER_PATH.format(filter_type=filter_type)
     with open(input_path, "r") as input_file:
         projects = [(entry.strip(), random.random()) for entry in input_file]
         projects.sort(key=lambda x: x[1])
@@ -208,10 +208,7 @@ def random_sample_list(sample_size: int):
 
 
 if __name__ == "__main__":
-    print(exp_utils.PROJECTS_WITH_REPO_PATH)
-    print(type(exp_utils.PROJECTS_WITH_REPO_PATH))
-
-    # This doesn't work because ``rpr`` is imported.
+        # This doesn't work because ``rpr`` is imported.
     # TODO: once this is refactored, uncomment the ``load_argv``.
     # exp_utils.load_paths_for_all_argv()
     
@@ -226,4 +223,5 @@ if __name__ == "__main__":
             remove_default_inclusion_list()
         case "s":
             sample_size = get_argv(key="-s")
-            random_sample_list(sample_size)
+            filter_type = get_argv(key='-q')
+            random_sample_list(sample_size, filter_type)
