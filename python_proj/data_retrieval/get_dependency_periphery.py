@@ -12,7 +12,6 @@ import random
 import python_proj.data_retrieval.retrieve_pull_requests as rpr
 import python_proj.utils.exp_utils as exp_utils
 from python_proj.utils.arg_utils import safe_get_argv, get_argv
-# from python_proj.utils.exp_utils import BASE_PATH
 
 # TODO: manage paths this using ``exp_utils`` instead.
 eco = 'npm'
@@ -209,6 +208,8 @@ def random_sample_list(sample_size: int):
 
 
 if __name__ == "__main__":
+    exp_utils.load_paths_for_all_argv()
+    
     eco = safe_get_argv(key="-e", default="npm")
     print(f'Starting with ecosystem: {eco}.')
 
@@ -219,6 +220,5 @@ if __name__ == "__main__":
             get_dependency_periphery()
             remove_default_inclusion_list()
         case "s":
-            exp_utils.load_paths_for_all_argv()
             sample_size = get_argv(key="-s")
             random_sample_list(sample_size)
