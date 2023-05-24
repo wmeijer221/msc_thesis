@@ -6,18 +6,21 @@ It uses the libraries.io dependency data.
 """
 
 from csv import reader
-from sys import argv
 import json
+import random
 
 import python_proj.data_retrieval.retrieve_pull_requests as rpr
-from python_proj.utils.exp_utils import BASE_PATH
+import python_proj.utils.exp_utils as exp_utils
+from python_proj.utils.arg_utils import safe_get_argv, get_argv
+# from python_proj.utils.exp_utils import BASE_PATH
 
+# TODO: manage paths this using ``exp_utils`` instead.
 eco = 'npm'
 
 
-def do():
+def get_dependency_periphery():
     # TODO: include the repository dependencies somehow?
-    dependencies_path = f"{BASE_PATH}libraries/{eco}-libraries-1.6.0-2020-01-12/dependencies-1.6.0-2020-01-12.csv"
+    dependencies_path = f"{exp_utils.BASE_PATH}libraries/{eco}-libraries-1.6.0-2020-01-12/dependencies-1.6.0-2020-01-12.csv"
     dependencies_file = open(dependencies_path, "r")
     dependencies_reader = reader(dependencies_file)
 
@@ -47,7 +50,8 @@ def do():
     other_id_index = fields.index("Dependency Project ID")
 
     # Output for filter files.
-    output_path = BASE_PATH + "libraries/{eco}-libraries-1.6.0-2020-01-12/predictors/included_projects_{o_type}.csv"
+    output_path = exp_utils.BASE_PATH + \
+        "libraries/{eco}-libraries-1.6.0-2020-01-12/predictors/included_projects_{o_type}.csv"
 
     focal_to_other_path = output_path.format(o_type="focal_to_other", eco=eco)
     focal_to_other_file = open(focal_to_other_path, "w+")
@@ -55,7 +59,7 @@ def do():
     other_to_focal_file = open(other_to_focal_path, "w+")
 
     # Output for all relevant dependencies.
-    dependencies_path = f"{BASE_PATH}libraries/{eco}-libraries-1.6.0-2020-01-12/predictors/dependencies.json"
+    dependencies_path = f"{exp_utils.BASE_PATH}libraries/{eco}-libraries-1.6.0-2020-01-12/predictors/dependencies.json"
     dependencies_file = open(dependencies_path, "w+")
 
     # The filter file listing the included projects.
@@ -73,7 +77,7 @@ def do():
         if entry[focal_dependency_platform_index].lower() != eco \
                 or entry[other_dependency_platform_index].lower() != eco:
             continue
-        
+
         focal_id = entry[focal_id_index]
         other_id = entry[other_id_index]
         added_dependency = False
@@ -165,7 +169,8 @@ def do():
 
 
 def remove_default_inclusion_list():
-    filter_path = BASE_PATH + "libraries/{eco}-libraries-1.6.0-2020-01-12/predictors/included_projects{o_type}.csv"
+    filter_path = exp_utils.BASE_PATH + \
+        "libraries/{eco}-libraries-1.6.0-2020-01-12/predictors/included_projects{o_type}.csv"
 
     general_path = filter_path.format(o_type="", eco=eco)
     general_file = open(general_path, "r")
@@ -181,7 +186,8 @@ def remove_default_inclusion_list():
     other_to_focal = __filter("_other_to_focal")
 
     def __write(name: str, entries: set):
-        output_path = filter_path.format(eco=eco, o_type=f"{name}_without_core")
+        output_path = filter_path.format(
+            eco=eco, o_type=f"{name}_without_core")
         with open(output_path, "w+") as output_file:
             for entry in entries:
                 output_file.write(f'{entry}\n')
@@ -190,13 +196,29 @@ def remove_default_inclusion_list():
     __write("_other_to_focal", other_to_focal)
 
 
-if __name__ == "__main__":
-    try:
-        eco = argv[argv.index("-e") + 1]
-    except:
-        eco = 'npm'
+def random_sample_list(sample_size: int):
+    input_path = exp_utils.FILTER_PATH
+    with open(input_path, "r") as input_file:
+        projects = [(entry.strip(), random.random()) for entry in input_file]
+        projects.sort(key=lambda x: x[1])
+        sample = projects[:sample_size]
+        output_path = f'{input_path}.temp'
+        with open(output_path, "w+") as output_file:
+            for entry in sample:
+                output_file.write(f'{entry}\n')
 
+
+if __name__ == "__main__":
+    eco = safe_get_argv(key="-e", default="npm")
     print(f'Starting with ecosystem: {eco}.')
 
-    do()
-    remove_default_inclusion_list()
+    mode = safe_get_argv(key="-m", default="r")
+
+    match mode:
+        case "r":
+            get_dependency_periphery()
+            remove_default_inclusion_list()
+        case "s":
+            exp_utils.load_paths_for_all_argv()
+            sample_size = get_argv(key="-s")
+            random_sample_list(sample_size)
