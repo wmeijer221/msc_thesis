@@ -249,5 +249,5 @@ if __name__ == "__main__":
             random_sample_list(sample_size, filter_type)
         case "i":
             filter_type = get_argv(key="-s")
-            exclusion_filter_type = get_argv(key="-e")
+            exclusion_filter_type = get_argv(key="-q")
             remove_inclusion_list(filter_type, exclusion_filter_type)
