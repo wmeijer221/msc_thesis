@@ -208,12 +208,13 @@ def set_filter(f_type: str):
 if __name__ == "__main__":
     start = datetime.now()
 
+    # TODO: this key is incompatible with exp_utils ``file_name``.
     if not (f_type := safe_get_argv("-f")) is None:
         set_filter(f_type.lower())
         print(f"Using filter {f_type}")
 
-    job_count = safe_get_argv("-t", default=1)
-    mode = safe_get_argv("-m", "s").lower()
+    job_count = safe_get_argv(key="-t", default=1, data_type=int)
+    mode = safe_get_argv(key="-m", default="s").lower()
     print(f'Starting in mode "{mode}".')
 
     match mode:
