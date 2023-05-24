@@ -201,10 +201,7 @@ def random_sample_list(sample_size: int, filter_type: str):
         projects = [[entry.strip(), random.random()] 
                     for entry in input_file]
         projects.sort(key=lambda x: x[1])
-        print(type(projects))
-        projects = list(projects)
-        print(projects)
-        sample = [entry[0] for entry in projects[:sample_size]]
+        sample = [projects[i][0] for i in range(sample_size)]
         output_path = f'{input_path}.temp'
         with open(output_path, "w+") as output_file:
             for entry in sample:
