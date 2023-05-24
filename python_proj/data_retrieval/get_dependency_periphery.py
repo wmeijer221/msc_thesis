@@ -200,12 +200,16 @@ def random_sample_list(sample_size: int, filter_type: str):
     with open(input_path, "r") as input_file:
         projects = [[entry.strip(), random.random()] 
                     for entry in input_file]
+        print(type(projects))
         projects.sort(key=lambda x: x[1])
+        print(type(projects))
+        print(type(projects[0]))
         sample = [projects[i][0] for i in range(sample_size)]
-        output_path = f'{input_path}.temp'
-        with open(output_path, "w+") as output_file:
-            for entry in sample:
-                output_file.write(f'{entry}\n')
+
+    output_path = f'{input_path}.temp'
+    with open(output_path, "w+") as output_file:
+        for entry in sample:
+            output_file.write(f'{entry}\n')
 
 
 if __name__ == "__main__":
