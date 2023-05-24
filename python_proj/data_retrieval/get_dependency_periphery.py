@@ -169,19 +169,19 @@ def get_dependency_periphery():
 
 def remove_inclusion_list(filter_type: str, excluded_filter_type: str):
     # load exclusion path.
-    r_excluded_filter_path = exp_utils.FILTER_PATH.format(
+    r_excluded_filter_path = exp_utils.FILTER_PATH(
         filter_type=excluded_filter_type)
     with open(r_excluded_filter_path) as filter_file:
         excluded_projects = {entry.strip() for entry in filter_file}
     # loads to-be-filtered path.
-    r_filter_path = exp_utils.FILTER_PATH.format(filter_type=filter_type)
+    r_filter_path = exp_utils.FILTER_PATH(filter_type=filter_type)
     with open(r_filter_path, "r") as filter_file:
         filtered = {entry.strip()
                     for entry in filter_file
                     if entry.strip() not in excluded_projects}
     # write filtered
-    output_path = exp_utils.FILTER_PATH.format(
-        filter_type=f'{filter_type}_without_fto')
+    output_path = exp_utils.FILTER_PATH(
+        filter_type=f'{filter_type}_without{excluded_filter_type}')
     with open(output_path, "w+") as output_file:
         for entry in filtered:
             output_file.write(f'{entry}\n')
@@ -249,5 +249,5 @@ if __name__ == "__main__":
             random_sample_list(sample_size, filter_type)
         case "i":
             filter_type = get_argv(key="-s")
-            exclusion_filter_type = get_argv(key="-q")
-            remove_inclusion_list(filter_type, exclusion_filter_type)
+            excluded_filter_type = get_argv(key="-q")
+            remove_inclusion_list(filter_type, excluded_filter_type)
