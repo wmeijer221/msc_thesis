@@ -208,6 +208,9 @@ def random_sample_list(sample_size: int):
 
 
 if __name__ == "__main__":
+    print(exp_utils.PROJECTS_WITH_REPO_PATH)
+    print(type(exp_utils.PROJECTS_WITH_REPO_PATH))
+
     exp_utils.load_paths_for_all_argv()
     
     eco = safe_get_argv(key="-e", default="npm")
