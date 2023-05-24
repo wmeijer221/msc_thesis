@@ -227,6 +227,6 @@ if __name__ == "__main__":
             get_dependency_periphery()
             remove_default_inclusion_list()
         case "s":
-            sample_size = get_argv(key="-s")
+            sample_size = int(get_argv(key="-s"))
             filter_type = get_argv(key='-q')
             random_sample_list(sample_size, filter_type)
