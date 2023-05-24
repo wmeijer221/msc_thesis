@@ -211,7 +211,9 @@ if __name__ == "__main__":
     print(exp_utils.PROJECTS_WITH_REPO_PATH)
     print(type(exp_utils.PROJECTS_WITH_REPO_PATH))
 
-    exp_utils.load_paths_for_all_argv()
+    # This doesn't work because ``rpr`` is imported.
+    # TODO: once this is refactored, uncomment the ``load_argv``.
+    # exp_utils.load_paths_for_all_argv()
     
     eco = safe_get_argv(key="-e", default="npm")
     print(f'Starting with ecosystem: {eco}.')
