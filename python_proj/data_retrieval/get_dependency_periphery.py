@@ -167,6 +167,26 @@ def get_dependency_periphery():
     dependencies_file.close()
 
 
+def remove_inclusion_list(filter_type: str, excluded_filter_type: str):
+    # load exclusion path.
+    r_excluded_filter_path = exp_utils.FILTER_PATH.format(
+        filter_type=excluded_filter_type)
+    with open(r_excluded_filter_path) as filter_file:
+        excluded_projects = {entry.strip() for entry in filter_file}
+    # loads to-be-filtered path.
+    r_filter_path = exp_utils.FILTER_PATH.format(filter_type=filter_type)
+    with open(r_filter_path, "r") as filter_file:
+        filtered = {entry.strip()
+                    for entry in filter_file
+                    if entry.strip() not in excluded_projects}
+    # write filtered
+    output_path = exp_utils.FILTER_PATH.format(
+        filter_type=f'{filter_type}_without_fto')
+    with open(output_path, "w+") as output_file:
+        for entry in filtered:
+            output_file.write(f'{entry}\n')
+
+
 def remove_default_inclusion_list():
     filter_path = exp_utils.BASE_PATH + \
         "libraries/{eco}-libraries-1.6.0-2020-01-12/predictors/included_projects{o_type}.csv"
@@ -198,12 +218,9 @@ def remove_default_inclusion_list():
 def random_sample_list(sample_size: int, filter_type: str):
     input_path = exp_utils.FILTER_PATH(filter_type=filter_type)
     with open(input_path, "r") as input_file:
-        projects = [[entry.strip(), random.random()] 
+        projects = [[entry.strip(), random.random()]
                     for entry in input_file]
-        print(type(projects))
         projects.sort(key=lambda x: x[1])
-        print(type(projects))
-        print(type(projects[0]))
         sample = [projects[i][0] for i in range(sample_size)]
 
     output_path = f'{input_path}.temp'
@@ -213,10 +230,10 @@ def random_sample_list(sample_size: int, filter_type: str):
 
 
 if __name__ == "__main__":
-        # This doesn't work because ``rpr`` is imported.
+    # This doesn't work because ``rpr`` is imported.
     # TODO: once this is refactored, uncomment the ``load_argv``.
     # exp_utils.load_paths_for_all_argv()
-    
+
     eco = safe_get_argv(key="-e", default="npm")
     print(f'Starting with ecosystem: {eco}.')
 
@@ -230,3 +247,7 @@ if __name__ == "__main__":
             sample_size = int(get_argv(key="-s"))
             filter_type = get_argv(key='-q')
             random_sample_list(sample_size, filter_type)
+        case "i":
+            filter_type = get_argv(key="-s")
+            exclusion_filter_type = get_argv(key="-e")
+            remove_inclusion_list(filter_type, exclusion_filter_type)
