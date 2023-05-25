@@ -18,4 +18,4 @@ def get_argv(key: str) -> str:
 
 
 def get_argv_flag(key: str) -> bool:
-    return argv.index(key) >= 0
+    return safe_index(argv, key) >= 0
