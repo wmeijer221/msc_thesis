@@ -83,14 +83,13 @@ def do_the_merge(filter_type: str, delete_old: bool = False, write_new: bool = F
 
             new_prs.append(new_pr)
 
-        print(len(new_prs))
-        
         if len(new_prs) > 0:
             # Writes enriched PRs.
             pr_output_path = exp_utils.RAW_DATA_PATH(data_type="pull-requests",
                                                      owner=owner,
                                                      repo=repo,
                                                      ext="--with-issue-data")
+            print(pr_output_path)
             with open(pr_output_path, "w+") as output_file:
                 if write_new:
                     output_file.write(json.dumps(new_prs, indent=2))
@@ -107,6 +106,7 @@ def do_the_merge(filter_type: str, delete_old: bool = False, write_new: bool = F
                                                         owner=owner,
                                                         repo=repo,
                                                         ext="--no-prs")
+            print(issue_output_path)
             with open(issue_output_path, "w+") as issue_output_file:
                 data = list(issues_mapping.values())
                 issue_output_file.write(json.dumps(data, indent=2))
