@@ -75,7 +75,7 @@ def _parallel_sort(ymds: set[str],
     def _sort_key(entry: dict):
         return utils.get_nested(entry, datetime_key)
 
-    def _sort_entries(task: str, task_id: int, total_tasks: int):
+    def _sort_entries(task: str, task_id: int, total_tasks: int, *args, **kwargs):
         ymd = task
         print(f'Starting with task ({task_id}/{total_tasks}) "{ymd}"')
         bucket_path = temp_storage_path.format(bucket=ymd)
