@@ -6,44 +6,37 @@ and ``retrieve_issues.py``, such that all pull request data is extended with its
 """
 
 import json
+from functools import partial
 from os import path, remove
-from sys import argv
 
-from python_proj.utils.util import safe_index
-from python_proj.utils.exp_utils import BASE_PATH
-import python_proj.data_retrieval.retrieve_pull_requests as rpr
-import python_proj.data_retrieval.retrieve_issues as ri
+import python_proj.utils.exp_utils as exp_utils
+from python_proj.utils.arg_utils import get_argv_flag
 
-
-eco = "npm"
-
-# If you don't use -d and do use -w, it's a dry run.
-# Deletes the original files that data was extracted from.
-delete_old = safe_index(argv, "-d") >= 0
-# Writes merged data to a file.
-write_new = safe_index(argv, "-w") >= 0
-
-pull_request_path = rpr.filter_path.format(filter_type="")
-pr_output_path = BASE_PATH + "libraries/{eco}-libraries-1.6.0-2020-01-12/pull-requests/{project_name}--with-issue-data.json"
-issue_output_path = BASE_PATH + "libraries/{eco}-libraries-1.6.0-2020-01-12/issues/{project_name}--no-prs.json"
 base_file_name = '{owner}--{repo_name}'
 
 
-def do_the_merge():
-    pr_filter_file = open(pull_request_path, "r")
+def do_the_merge(filter_type: str, delete_old: bool = False, write_new: bool = False):
+    filter_path: partial[str] = exp_utils.FILTER_PATH(filter_type=filter_type)
+    filter_file = open(filter_path, "r")
 
     missing_issue_count = 0
     missing_issue_projects = []
     failed_decode_projects = []
 
-    for entry in pr_filter_file:
+    for entry in filter_file:
         name_split = entry.strip().split("/")
         (owner, repo) = (name_split[0], name_split[1])
         project_name = base_file_name.format(owner=owner, repo_name=repo)
-        pr_path = rpr.output_path.format(project_name=project_name)
-        issue_path = ri.output_path.format(project_name=project_name)
+        pull_requests_path = exp_utils.RAW_DATA_PATH(data_type="pull-requests",
+                                                     owner=owner,
+                                                     repo=repo,
+                                                     ext="")
+        issue_path = exp_utils.RAW_DATA_PATH(data_type="issues",
+                                             owner=owner,
+                                             repo=repo,
+                                             ext="")
 
-        if not path.exists(pr_path):
+        if not path.exists(pull_requests_path):
             continue
 
         if not path.exists(issue_path):
@@ -51,11 +44,11 @@ def do_the_merge():
             missing_issue_projects.append(project_name)
             continue
 
-        pr_file = open(pr_path, "r")
+        pull_request_file = open(pull_requests_path, "r")
         issue_file = open(issue_path, "r")
 
         try:
-            prs = json.loads(pr_file.read())
+            prs = json.loads(pull_request_file.read())
             issues = json.loads(issue_file.read())
         except json.JSONDecodeError:
             print(f"Decode error for {project_name}.")
@@ -91,9 +84,11 @@ def do_the_merge():
 
         if len(new_prs) > 0:
             # Writes enriched PRs.
-            real_output_path = pr_output_path.format(
-                project_name=project_name, eco=eco)
-            with open(real_output_path, "w+") as output_file:
+            pr_output_path = exp_utils.RAW_DATA_PATH(data_type="pull-requests",
+                                                     owner=owner,
+                                                     repo=repo,
+                                                     ext="--with-issue-data")
+            with open(pr_output_path, "w+") as output_file:
                 if write_new:
                     output_file.write(json.dumps(new_prs, indent=2))
 
@@ -105,20 +100,22 @@ def do_the_merge():
                 del issues_mapping[pr_number]
 
             # Writes filtered issues.
-            real_issue_output_path = issue_output_path.format(
-                project_name=project_name, eco=eco)
-            with open(real_issue_output_path, "w+") as issue_output_file:
+            issue_output_path = exp_utils.RAW_DATA_PATH(data_type="issues",
+                                                        owner=owner,
+                                                        repo=repo,
+                                                        ext="--no-prs")
+            with open(issue_output_path, "w+") as issue_output_file:
                 data = list(issues_mapping.values())
                 issue_output_file.write(json.dumps(data, indent=2))
 
         issue_file.close()
-        pr_file.close()
+        pull_request_file.close()
 
         if delete_old:
+            remove(pull_requests_path)
             remove(issue_path)
-            remove(pr_path)
 
-    pr_filter_file.close()
+    filter_file.close()
 
     print(f'Skipped {missing_issue_count} issues.')
     print(
@@ -126,4 +123,8 @@ def do_the_merge():
 
 
 if __name__ == "__main__":
-    do_the_merge()
+    exp_utils.load_paths_for_eco()
+    filter_file_name = exp_utils.get_file_name()
+    delete_old = get_argv_flag("-d")
+    write_new = get_argv_flag("-w")
+    do_the_merge(filter_file_name, delete_old, write_new)
