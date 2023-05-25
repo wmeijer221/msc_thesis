@@ -87,6 +87,7 @@ def load_paths_for_eco(eco_key: str = ECO_KEY):
     TRAIN_DATASET_PATH = partial(TRAIN_DATASET_PATH.format, eco=eco)
 
 
+# TODO: rename this to "data_source" for consistency
 def load_paths_for_data_path(data_source_key: str = DATA_SOURCE_KEY):
     global RAW_DATA_PATH, CHRONOLOGICAL_DATASET_PATH, FIGURE_PATH, TRAIN_DATASET_PATH
 
