@@ -129,4 +129,7 @@ if __name__ == "__main__":
     write_new = get_argv_flag("-w")
     delete_old = get_argv_flag("-d")
     print(f'{write_new=}, {delete_old=}')
-    do_the_merge(filter_file_name, delete_old, write_new)
+    if delete_old and not write_new:
+        print("You're deleting the old stuff without writing the new stuff... Are you insane?!")
+    else:
+        do_the_merge(filter_file_name, delete_old, write_new)
