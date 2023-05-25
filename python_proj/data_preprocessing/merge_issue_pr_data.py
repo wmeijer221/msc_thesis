@@ -17,6 +17,7 @@ base_file_name = '{owner}--{repo_name}'
 
 def do_the_merge(filter_type: str, delete_old: bool = False, write_new: bool = False):
     filter_path: partial[str] = exp_utils.FILTER_PATH(filter_type=filter_type)
+    print(f'Using filter: "{filter_path}".')
     filter_file = open(filter_path, "r")
 
     missing_issue_count = 0
@@ -82,6 +83,8 @@ def do_the_merge(filter_type: str, delete_old: bool = False, write_new: bool = F
 
             new_prs.append(new_pr)
 
+        print(len(new_prs))
+        
         if len(new_prs) > 0:
             # Writes enriched PRs.
             pr_output_path = exp_utils.RAW_DATA_PATH(data_type="pull-requests",
