@@ -125,6 +125,7 @@ def do_the_merge(filter_type: str, delete_old: bool = False, write_new: bool = F
 if __name__ == "__main__":
     exp_utils.load_paths_for_eco()
     filter_file_name = exp_utils.get_file_name()
-    delete_old = get_argv_flag("-d")
     write_new = get_argv_flag("-w")
+    delete_old = get_argv_flag("-d")
+    print(f'{write_new=}, {delete_old=}')
     do_the_merge(filter_file_name, delete_old, write_new)
