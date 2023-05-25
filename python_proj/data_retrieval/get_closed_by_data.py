@@ -109,7 +109,11 @@ def get_closed_by_for_closed_and_unmerged_prs(worker_count: int, output_path: st
         for line in input_file:
             total_entries += 1
             entry = json.loads(line)
-            if entry["merged"] != True:
+            # merged entries don't have a ``closed_by`` field,
+            # and it doesn't make sense to load it for those the
+            # data has been collected for already.
+            if entry["merged"] != True \
+                    or "closed_by" in entry:
                 continue
             owner, repo = __get_owner_and_repo(entry)
             issue = entry['number']
