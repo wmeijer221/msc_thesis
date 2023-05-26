@@ -96,8 +96,9 @@ def data_set_generator(intra_pr_features: list[Feature],
             for index, field in enumerate(sliding_window_features, start=len(intra_pr_features)):
                 for entry in pruned_entries.values():
                     field.remove_entry(entry)
-                field.add_entry(new_entry)
                 data_point[index] = field.get_feature(new_entry)
+                # This has to be added AFTERWARDS; else you'll have data leakage.
+                field.add_entry(new_entry)
         except Exception as ex:
             print(new_entry)
             raise ex
