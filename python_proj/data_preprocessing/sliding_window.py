@@ -1,7 +1,7 @@
 from csv import writer
 from datetime import datetime, timedelta
 import json
-from typing import Generator, Tuple, Dict, Any
+from typing import Generator, Tuple, Dict, Any, List
 from uuid import uuid3, NAMESPACE_OID
 
 from python_proj.utils.util import get_nested
@@ -107,7 +107,7 @@ def data_set_generator(intra_pr_features: list[Feature],
         yield [uuid, pr_source, prid, uid, closed_at, *data_point]
 
 
-def get_all_features() -> tuple(list[Feature], list[SlidingWindowFeature]):
+def get_all_features() -> 'Tuple(List[Feature], List[SlidingWindowFeature])':
     intra_features = [IsMerged(), *cvars.INTRA_PR_FEATURES]
     swindow_features = [*cvars.SLIDING_WINDOW_FEATURES,
                         *ecovars.SLIDING_WINDOW_FEATURES]
