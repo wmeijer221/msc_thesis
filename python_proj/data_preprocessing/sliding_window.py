@@ -86,17 +86,21 @@ def data_set_generator(intra_pr_features: list[Feature],
         # Generates data point by iterating through all field factories.
         data_point = [None] * len(all_features)
 
-        # Handles intra-pr features.
-        for index, feature in enumerate(intra_pr_features):
-            value = feature.get_feature(new_entry)
-            data_point[index] = value
+        try:
+            # Handles intra-pr features.
+            for index, feature in enumerate(intra_pr_features):
+                value = feature.get_feature(new_entry)
+                data_point[index] = value
 
-        # Handles sliding window features.
-        for index, field in enumerate(sliding_window_features, start=len(intra_pr_features)):
-            for entry in pruned_entries.values():
-                field.remove_entry(entry)
-            field.add_entry(new_entry)
-            data_point[index] = field.get_feature(new_entry)
+            # Handles sliding window features.
+            for index, field in enumerate(sliding_window_features, start=len(intra_pr_features)):
+                for entry in pruned_entries.values():
+                    field.remove_entry(entry)
+                field.add_entry(new_entry)
+                data_point[index] = field.get_feature(new_entry)
+        except Exception as ex:
+            ex.add_note(new_entry)
+            raise ex
 
         # Gets bookkeeping variables.
         pr_source = new_entry['__source_path'].split(
