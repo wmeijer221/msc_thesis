@@ -41,11 +41,12 @@ class SubmitterExperienceEcosystemPullRequestSuccessRate(SlidingWindowFeature):
         experience. 
         """
 
+        cumulative_success_rate = PullRequestSuccess()
+        
         user_id = entry["user_data"]["id"]
         if user_id not in self._user_to_project_success_rate:
-            return 0.0
+            return cumulative_success_rate
         current_project = entry["__source_path"]
-        cumulative_success_rate = PullRequestSuccess()
         for project_key, success_rate in self._user_to_project_success_rate[user_id].items():
             if project_key == current_project:
                 # Ignores all intra-project experience to
