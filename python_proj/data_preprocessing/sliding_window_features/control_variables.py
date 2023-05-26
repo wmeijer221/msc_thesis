@@ -149,7 +149,7 @@ class HasHashTagInDescription(Feature):
 
 
 SLIDING_WINDOW_FEATURES: list[SlidingWindowFeature] = [
-    IntraProjectPullRequestExperienceOfIntegrator(),
+    # IntraProjectPullRequestExperienceOfIntegrator(),
     IntraProjectPullRequestSuccessRateSubmitter()
 ]
 
