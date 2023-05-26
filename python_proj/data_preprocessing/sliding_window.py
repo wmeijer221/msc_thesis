@@ -1,5 +1,6 @@
 from csv import writer
 from datetime import datetime, timedelta
+from itertools import chain
 import json
 from typing import Generator, Tuple, Dict, Any, List
 from uuid import uuid3, NAMESPACE_OID
@@ -76,7 +77,7 @@ def data_set_generator(intra_pr_features: list[Feature],
     closed_at_key = ["closed_at"]
 
     # Outputs header.
-    all_features = list(zip(intra_pr_features, sliding_window_features))
+    all_features = list(chain(intra_pr_features, sliding_window_features))
     data_headers = [field.get_name() for field in all_features]
     yield ['UUID', 'PR-Source', 'PR-ID', "User-ID", "Closed-At", *data_headers]
 
