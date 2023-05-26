@@ -99,7 +99,7 @@ def data_set_generator(intra_pr_features: list[Feature],
                 field.add_entry(new_entry)
                 data_point[index] = field.get_feature(new_entry)
         except Exception as ex:
-            ex.add_note(new_entry)
+            print(new_entry)
             raise ex
 
         # Gets bookkeeping variables.
