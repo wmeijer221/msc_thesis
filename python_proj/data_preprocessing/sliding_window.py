@@ -101,9 +101,9 @@ def data_set_generator(intra_pr_features: list[Feature],
         # Gets bookkeeping variables.
         pr_source = new_entry['__source_path'].split(
             "/")[-1].split('.')[0].replace("--", '/')
-        uuid = str(uuid3(NAMESPACE_OID, f'{uid}_{prid}_{pr_source}'))
         uid = new_entry["user_data"]["id"]
         prid = new_entry['id']
+        uuid = str(uuid3(NAMESPACE_OID, f'{uid}_{prid}_{pr_source}'))
         closed_at = new_entry["closed_at"]
         yield [uuid, pr_source, prid, uid, closed_at, *data_point]
 
