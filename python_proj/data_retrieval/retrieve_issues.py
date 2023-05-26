@@ -13,7 +13,7 @@ import python_proj.utils.exp_utils as exp_utils
 from python_proj.utils.arg_utils import safe_get_argv
 from python_proj.utils.mt_utils import parallelize_tasks
 
-
+# TODO: Move this argv and path stuff into ``__main__``.
 # Loads API keys.
 dotenv.load_dotenv()
 gh_token_count = safe_get_argv('-a', 3)
@@ -117,7 +117,6 @@ def task_generator(filter_type: str) -> Generator:
     unique = set()
     job_count = 0
     for entry in input_reader:
-        # TODO: refactor this to use ``exp_utils``.
         entry_tuple = (entry[exp_utils.repo_name_index],
                        entry[exp_utils.repo_host_type_index])
 

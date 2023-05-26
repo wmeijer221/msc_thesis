@@ -112,7 +112,7 @@ class IntraProjectPullRequestSuccessRateSubmitter(SlidingWindowFeature):
 
         try:
             dev_success_rate = self.__projects_to_integrator_experience[project][submitter]
-            return dev_success_rate.success_rate()
+            return dev_success_rate.get_success_rate()
         except KeyError:
             return 0
 
@@ -148,12 +148,22 @@ class HasHashTagInDescription(Feature):
             or entry["body"].index("#") > -1
 
 
-all_control_varialbes = [IntegratedBySameUser(),
-                     PullRequestLifeTimeInMinutes(),
-                     IntraProjectPullRequestExperienceOfIntegrator(),
-                     PullRequestHasComments(),
-                     NumberOfCommitsInPullRequest(),
-                     IntraProjectPullRequestSuccessRateSubmitter(),
-                     PullRequestHasCommentByExternalUser(),
-                     #  CIPipelineExists(), # TODO: THIS
-                     HasHashTagInDescription()]
+SLIDING_WINDOW_FEATURES: list[SlidingWindowFeature] = [
+    IntraProjectPullRequestExperienceOfIntegrator(),
+    IntraProjectPullRequestSuccessRateSubmitter()
+]
+
+INTRA_PR_FEATURES: list[Feature] = [
+    IntegratedBySameUser(),
+    PullRequestLifeTimeInMinutes(),
+    PullRequestHasComments(),
+    NumberOfCommitsInPullRequest(),
+    PullRequestHasCommentByExternalUser(),
+    #  CIPipelineExists(), # TODO: THIS
+    HasHashTagInDescription()
+]
+
+ALL_FEATURES: list[Feature] = [
+    *SLIDING_WINDOW_FEATURES,
+    *INTRA_PR_FEATURES
+]

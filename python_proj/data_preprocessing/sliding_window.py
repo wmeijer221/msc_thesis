@@ -1,16 +1,16 @@
-from datetime import datetime, timedelta
-from typing import Generator, Tuple, Dict, Any, Callable
-import json
 from csv import writer
+from datetime import datetime, timedelta
+import json
+from typing import Generator, Tuple, Dict, Any
 from uuid import uuid3, NAMESPACE_OID
-from dataclasses import dataclass
-from sys import argv
 
 from python_proj.utils.util import get_nested
 import python_proj.utils.exp_utils as exp_utils
 from python_proj.utils.arg_utils import safe_get_argv
 
-
+import python_proj.data_preprocessing.sliding_window_features.control_variables as cvars
+import python_proj.data_preprocessing.sliding_window_features.ecosystem_experience as ecovars
+from python_proj.data_preprocessing.sliding_window_features.base import IsMerged, SlidingWindowFeature, Feature
 
 input_file = None
 output_file = None
@@ -63,86 +63,63 @@ def slide_through_timeframe(file_name: str,
             yield (pruned_entries, j_entry)
 
 
-# TODO: FIX THIS
-class PRCountEco(ContDevSuccessRate):
+def data_set_generator(intra_pr_features: list[Feature],
+                       sliding_window_features: list[SlidingWindowFeature],
+                       window_size: timedelta = None) \
+        -> Generator[list[str], list[Any], None]:
     """
-    Counts the number of PRs per person inside the ecosystem.
-    Returns the number of PRs that are made outside of the project
-    (i.e., the get function excludes intra project PRs).
+    Generates the dataset, updating the intra-PR and sliding window 
+    features with respect to the provided window size.
     """
 
-    def get(self, entry: dict) -> Any:
-        uid = self.get_user_id(entry)
-        user_data = self._values[uid]
-        project_id = get_nested(entry, ['__source_path'])
-        pr_count = 0
-        for project, entry in user_data.items():
-            if project == project_id:
-                continue
-            pr_count += int(entry.count)
-        return pr_count
-
-
-class PRAcceptanceRateEco(ContDevSuccessRate):
-    def get(self, entry: dict) -> Any:
-        uid = self.get_user_id(entry)
-        user_data = self._values[uid]
-        project_id = get_nested(entry, ['__source_path'])
-        eco_sr = ContDevSuccessRate.SuccessRate()
-        for project, entry in user_data.items():
-            if project == project_id:
-                continue
-            eco_sr.success_rate += entry.success_rate * entry.count
-            eco_sr.count += entry.count
-        if eco_sr.count > 0:
-            eco_sr.success_rate /= eco_sr.count
-        return eco_sr.success_rate
-
-
-def data_set_iterator(data_fields: list[type], window_size: timedelta = None) -> Generator[list[str], list[Any], None]:
     file_name = exp_utils.CHRONOLOGICAL_DATASET_PATH
     closed_at_key = ["closed_at"]
 
-    # Initializes fields.
-    fields = [field() for field in data_fields]
-    key_to_user_id = ['user_data', 'id']
-    for field in fields:
-        field.key_to_user_id = ['user_data', 'id']
-
     # Outputs header.
-    data_headers = [field.get_name() for field in fields]
+    all_features = list(zip(intra_pr_features, sliding_window_features))
+    data_headers = [field.get_name() for field in all_features]
     yield ['UUID', 'PR-Source', 'PR-ID', "User-ID", "Closed-At", *data_headers]
 
     # Generates data.
     for pruned_entries, new_entry in slide_through_timeframe(file_name, closed_at_key, window_size):
         # Generates data point by iterating through all field factories.
-        data_point = [None] * len(fields)
-        uid = get_nested(new_entry, key_to_user_id)
-        prid = new_entry['id']
+        data_point = [None] * len(all_features)
+
+        # Handles intra-pr features.
+        for index, feature in enumerate(intra_pr_features):
+            value = feature.get_feature(new_entry)
+            data_point[index] = value
+
+        # Handles sliding window features.
+        for index, field in enumerate(sliding_window_features, start=len(intra_pr_features)):
+            for entry in pruned_entries.values():
+                field.remove_entry(entry)
+            field.add_entry(new_entry)
+            data_point[index] = field.get_feature()
+
+        # Gets bookkeeping variables.
         pr_source = new_entry['__source_path'].split(
             "/")[-1].split('.')[0].replace("--", '/')
         uuid = str(uuid3(NAMESPACE_OID, f'{uid}_{prid}_{pr_source}'))
-        for index, field in enumerate(fields):
-            # Updates fields
-            for entry in pruned_entries.values():
-                field.remove(entry)
-            field.add(new_entry)
-
-            # Gets relevant data for this data entry.
-            data_point[index] = field.get(new_entry)
-        closed_at = get_nested(new_entry, closed_at_key)
+        uid = new_entry["user_data"]["id"]
+        prid = new_entry['id']
+        closed_at = new_entry["closed_at"]
         yield [uuid, pr_source, prid, uid, closed_at, *data_point]
+
+
+def get_all_features() -> tuple(list[Feature], list[SlidingWindowFeature]):
+    intra_features = [IsMerged(), *cvars.INTRA_PR_FEATURES]
+    swindow_features = [*cvars.SLIDING_WINDOW_FEATURES,
+                        *ecovars.SLIDING_WINDOW_FEATURES]
+    return intra_features, swindow_features
 
 
 def build_cumulative_dataset():
     output_path = exp_utils.TRAIN_DATASET_PATH(file_name="cumulative_dataset")
     with open(output_path, "w+") as output_file:
         csv_writer = writer(output_file)
-        # TODO: add ``ContPriorReviewNum``, ``ContSameUser`` when its finished.
-        fields = [DepPRIsMerged, ContLifetime, ContHasComments, ContNumCommits,
-                  ContDevSuccessRate, PRCountEco, PRAcceptanceRateEco]
-        # fields = [ContNumCommits]
-        for index, entry in enumerate(data_set_iterator(fields)):
+        intra_features, swindow_features = get_all_features()
+        for index, entry in enumerate(data_set_generator(intra_features, swindow_features)):
             csv_writer.writerow(entry)
             # if index == 10:
             #     break
@@ -153,11 +130,9 @@ def build_windowed_dataset(days: int):
         file_name=f"windowed_{days}d_dataset")
     with open(output_path, "w+") as output_file:
         csv_writer = writer(output_file)
-        # TODO: add ``ContPriorReviewNum``, ``ContSameUser`` when its finished.
-        fields = [DepPRIsMerged, ContLifetime, ContHasComments, ContNumCommits,
-                  ContDevSuccessRate, PRCountEco, PRAcceptanceRateEco]
+        intra_features, swindow_features = get_all_features()
         ninety_days = timedelta(days=90)
-        for _, entry in enumerate(data_set_iterator(fields, window_size=ninety_days)):
+        for _, entry in enumerate(data_set_generator(swindow_features, intra_features, window_size=ninety_days)):
             csv_writer.writerow(entry)
 
 

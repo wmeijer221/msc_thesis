@@ -35,10 +35,10 @@ class PullRequestSuccess:
     merged: int = 0
     unmerged: int = 0
 
-    def total(self):
+    def get_total(self):
         return self.merged + self.unmerged
 
-    def success_rate(self):
+    def get_success_rate(self):
         self.merged / (self.merged + self.unmerged)
 
 
