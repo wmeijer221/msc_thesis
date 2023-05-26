@@ -2,26 +2,28 @@ from datetime import datetime
 from typing import Any
 
 from python_proj.data_preprocessing.sliding_window_features.base import *
+from python_proj.utils.util import safe_contains_key
 
 
 class IntegratedBySameUser(Feature):
     """Whether the PR is integrated by the same person."""
 
     def get_feature(self, entry: dict) -> bool:
-        submitter = entry["user_data"]["id"]
+        submitter_id = entry["user_data"]["id"]
         integrator_key = get_integrator_key(entry)
-        integrator = entry[integrator_key]["id"]
-        same_user = submitter == integrator
+        integrator_id = entry[integrator_key]["id"]
+        same_user = submitter_id == integrator_id
         return same_user
 
 
 class PullRequestLifeTimeInMinutes(Feature):
     """The lifetime of the pull request in minutes."""
 
+    TS_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
+
     def get_feature(self, entry: dict) -> float:
-        ts_format = "%Y-%m-%dT%H:%M:%SZ"
-        created_at = datetime.strptime(entry['created_at'], ts_format)
-        closed_at = datetime.strptime(entry['closed_at'], ts_format)
+        created_at = datetime.strptime(entry['created_at'], self.TS_FORMAT)
+        closed_at = datetime.strptime(entry['closed_at'], self.TS_FORMAT)
         deltatime = closed_at - created_at
         lifetime_in_minutes = deltatime.total_seconds() / 60
         return lifetime_in_minutes
@@ -39,8 +41,8 @@ class IntraProjectPullRequestExperienceOfIntegrator(SlidingWindowFeature):
         if project not in self.__projects_to_integrator_experience:
             self.__projects_to_integrator_experience[project] = {}
 
-        integrator_key = get_integrator_key(entry)
         # handle missing key.
+        integrator_key = get_integrator_key(entry)
         if integrator_key not in self.__projects_to_integrator_experience[project]:
             self.__projects_to_integrator_experience[project][integrator_key] = 0
 
@@ -98,7 +100,11 @@ class IntraProjectPullRequestSuccessRateSubmitter(SlidingWindowFeature):
         if entry["merged"]:
             self.__projects_to_integrator_experience[project][submitter].merged += sign
         else:
-            self.__projects_to_integrator_experience[project][submitter].merged -= sign
+            # Yes future me, this should be a ``+= sign`` as we count
+            # the number of unmerged PRs the sign will be +/- based on whether we remove the entry.
+            # The only way this could be ``-=`` is if we would aggregate merged and unmerged entries
+            # somehow, which we don't.
+            self.__projects_to_integrator_experience[project][submitter].unmerged += sign
 
     def add_entry(self, entry: dict):
         self.handle(entry, sign=1)
@@ -118,18 +124,21 @@ class IntraProjectPullRequestSuccessRateSubmitter(SlidingWindowFeature):
 
 
 class PullRequestHasCommentByExternalUser(Feature):
-    """Whether the pull request has a comment form someone who is 
-    not the reviewer/integrator or the submitter."""
+    """
+    Whether the pull request has a comment form someone who is 
+    not the reviewer/integrator or the submitter.
+    """
 
     def get_feature(self, entry: dict) -> bool:
         if entry["comments"] == 0:
             return False
-        submitter = entry["user_data"]["id"]
+        submitter_id = entry["user_data"]["id"]
         integrator_key = get_integrator_key(entry)
-        integrator = entry[integrator_key]["id"]
+        integrator_id = entry[integrator_key]["id"]
         for comment in entry["comments_data"]:
-            commenter = comment["user_data"]["id"]
-            if commenter != submitter and commenter != integrator:
+            commenter_id = comment["user_data"]["id"]
+            if commenter_id != submitter_id \
+                    and commenter_id != integrator_id:
                 return True
         return False
 
@@ -137,24 +146,15 @@ class PullRequestHasCommentByExternalUser(Feature):
 class CIPipelineExists(Feature):
     def get_feature(self, entry: dict) -> Any:
         raise NotImplementedError()
-        return super().get_feature(entry)
 
 
 class HasHashTagInDescription(Feature):
     """Whether the title or the body contain a #; i.e., a reference to an issue."""
 
-    @staticmethod
-    def __contains_key(text: str, key: str) -> bool:
-        try:
-            text.index(key)
-            return True
-        except:
-            return False
-
     def get_feature(self, entry: dict) -> bool:
-        return self.__contains_key(entry["title"], "#") \
+        return safe_contains_key(entry["title"], "#") \
             or ("body" in entry  # some PRs don't have a body.
-                and self.__contains_key(entry["body"], "#"))
+                and safe_contains_key(entry["body"], "#"))
 
 
 SLIDING_WINDOW_FEATURES: list[SlidingWindowFeature] = [

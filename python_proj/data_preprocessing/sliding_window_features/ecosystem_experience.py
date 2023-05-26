@@ -26,7 +26,7 @@ class SubmitterExperienceEcosystemPullRequestSuccessRate(SlidingWindowFeature):
         if entry["merged"]:
             self._user_to_project_success_rate[user_id][project].merged += sign
         else:
-            self._user_to_project_success_rate[user_id][project].merged -= sign
+            self._user_to_project_success_rate[user_id][project].unmerged += sign
 
     def add_entry(self, entry: dict):
         self.__handle(entry, sign=1)
@@ -34,17 +34,29 @@ class SubmitterExperienceEcosystemPullRequestSuccessRate(SlidingWindowFeature):
     def remove_entry(self, entry: dict):
         self.__handle(entry, sign=-1)
 
-    def get_feature(self, entry: dict) -> float:
+    def _get_cumulative_success_rate(self, entry: dict) -> PullRequestSuccess:
+        """
+        Builds a cumulative ``PullRequestSuccess`` object including all 
+        success entries of the person in the ecosystem, excluding intra-project
+        experience. 
+        """
+
         user_id = entry["user_data"]["id"]
         if user_id not in self._user_to_project_success_rate:
             return 0.0
-        project = entry["__source_path"]
+        current_project = entry["__source_path"]
         cumulative_success_rate = PullRequestSuccess()
-        for key, value in self._user_to_project_success_rate[user_id].items():
-            if key == project:
+        for project_key, success_rate in self._user_to_project_success_rate[user_id].items():
+            if project_key == current_project:
+                # Ignores all intra-project experience to
+                # emphasize ecosystem experience.
                 continue
-            cumulative_success_rate.merged += value.merged
-            cumulative_success_rate.unmerged += value.unmerged
+            cumulative_success_rate.merged += success_rate.merged
+            cumulative_success_rate.unmerged += success_rate.unmerged
+        return cumulative_success_rate
+
+    def get_feature(self, entry: dict) -> float:
+        cumulative_success_rate = self._get_cumulative_success_rate(entry)
         return cumulative_success_rate.get_success_rate()
 
 
@@ -55,16 +67,7 @@ class SubmitterExperienceEcosystemPullRequestCount(SubmitterExperienceEcosystemP
     """
 
     def get_feature(self, entry: dict) -> Any:
-        user_id = entry["user_data"]["id"]
-        if user_id not in self._user_to_project_success_rate:
-            return 0.0
-        project = entry["__source_path"]
-        cumulative_success_rate = PullRequestSuccess()
-        for key, value in self._user_to_project_success_rate[user_id].items():
-            if key == project:
-                continue
-            cumulative_success_rate.merged += value.merged
-            cumulative_success_rate.unmerged += value.unmerged
+        cumulative_success_rate = self._get_cumulative_success_rate(entry)
         return cumulative_success_rate.get_total()
 
 

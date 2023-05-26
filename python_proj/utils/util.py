@@ -42,3 +42,15 @@ def safe_index(list: list, entry: object) -> int:
         return list.index(entry)
     except ValueError:
         return -1
+
+
+def safe_contains_key(text: str, key: str) -> bool:
+    """
+    Returns true if the ``text`` contains the ``key``.
+    """
+
+    try:
+        text.index(key)
+        return True
+    except:
+        return False
