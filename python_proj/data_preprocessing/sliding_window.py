@@ -96,7 +96,7 @@ def data_set_generator(intra_pr_features: list[Feature],
             for entry in pruned_entries.values():
                 field.remove_entry(entry)
             field.add_entry(new_entry)
-            data_point[index] = field.get_feature()
+            data_point[index] = field.get_feature(new_entry)
 
         # Gets bookkeeping variables.
         pr_source = new_entry['__source_path'].split(
