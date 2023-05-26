@@ -158,7 +158,7 @@ INTRA_PR_FEATURES: list[Feature] = [
     PullRequestLifeTimeInMinutes(),
     PullRequestHasComments(),
     NumberOfCommitsInPullRequest(),
-    PullRequestHasCommentByExternalUser(),
+    # PullRequestHasCommentByExternalUser(),
     #  CIPipelineExists(), # TODO: THIS
     HasHashTagInDescription()
 ]
