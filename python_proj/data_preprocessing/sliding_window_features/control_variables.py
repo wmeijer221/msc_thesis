@@ -143,9 +143,17 @@ class CIPipelineExists(Feature):
 class HasHashTagInDescription(Feature):
     """Whether the title or the body contain a #; i.e., a reference to an issue."""
 
+    @staticmethod
+    def __contains_key(text: str, key: str) -> bool:
+        try:
+            text.index(key)
+            return True
+        except:
+            return False
+
     def get_feature(self, entry: dict) -> bool:
-        return entry["title"].index("#") > -1\
-            or entry["body"].index("#") > -1
+        return self.__contains_key(entry["title"], "#") \
+            or self.__contains_key(entry["body"], "#")
 
 
 SLIDING_WINDOW_FEATURES: list[SlidingWindowFeature] = [
