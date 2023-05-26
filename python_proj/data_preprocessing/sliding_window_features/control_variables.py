@@ -154,7 +154,7 @@ SLIDING_WINDOW_FEATURES: list[SlidingWindowFeature] = [
 ]
 
 INTRA_PR_FEATURES: list[Feature] = [
-    IntegratedBySameUser(),
+    # IntegratedBySameUser(),
     PullRequestLifeTimeInMinutes(),
     PullRequestHasComments(),
     NumberOfCommitsInPullRequest(),
