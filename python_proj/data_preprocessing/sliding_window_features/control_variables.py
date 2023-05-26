@@ -153,7 +153,8 @@ class HasHashTagInDescription(Feature):
 
     def get_feature(self, entry: dict) -> bool:
         return self.__contains_key(entry["title"], "#") \
-            or self.__contains_key(entry["body"], "#")
+            or ("body" in entry  # some PRs don't have a body.
+                and self.__contains_key(entry["body"], "#"))
 
 
 SLIDING_WINDOW_FEATURES: list[SlidingWindowFeature] = [
