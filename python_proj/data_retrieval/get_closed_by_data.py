@@ -183,8 +183,12 @@ def add_closed_by_data_to_prs(worker_count: int, input_path: str):
 if __name__ == "__main__":
     dotenv.load_dotenv()
     exp_utils.load_paths_for_all_argv()
-    temp_data_path = exp_utils.BASE_PATH + \
-        "temp/closed_by_t_{worker_index}.json"
+
+    subfolder = safe_get_argv(key="-s", default="")
+    # TODO: Move this path somewhere else;
+    # technically it's not temp data either.
+    temp_data_path = f'{exp_utils.BASE_PATH}/temp/{subfolder}/' + \
+        "closed_by_t_{worker_index}.json"
 
     mode = safe_get_argv(key='-m', default="r")
     worker_count = safe_get_argv(key="-t", default=3, data_type=int)
