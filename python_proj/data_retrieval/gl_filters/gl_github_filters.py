@@ -32,11 +32,11 @@ class IssueFilter (BaseFilter):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self._fields = ["id", "number", "title", "state",
-                        "locked", "assignee", "milestone", "comments",
+                        "locked", "milestone", "comments",
                         "created_at", "updated_at", "closed_at",
                         "author_association", "active_lock_reason", "body", "state_reason"]
         self._subfilter_fields = {
-            UserFilter: ["user_data", "closed_by"]
+            UserFilter: ["user_data", "closed_by", "assignee"]
         }
         self._listsubfilter_fields = {
             CommentFilter: ["comments_data"]

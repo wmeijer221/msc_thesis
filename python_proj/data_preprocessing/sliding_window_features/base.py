@@ -1,5 +1,4 @@
-from typing import Callable, Any
-from python_proj.utils.util import get_nested
+from typing import Any
 from dataclasses import dataclass
 
 
@@ -44,6 +43,3 @@ class PullRequestSuccess:
         else:
             return self.merged / total
 
-
-def get_integrator_key(entry):
-    return "merged_by" if entry["merged"] else "closed_by"

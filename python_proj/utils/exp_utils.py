@@ -174,3 +174,7 @@ def iterate_through_chronological_data():
             except Exception as ex:
                 ex.add_note(line)
                 raise
+
+
+def get_integrator_key(entry):
+    return "merged_by" if entry["merged"] else "closed_by"

@@ -42,7 +42,7 @@ class SubmitterExperienceEcosystemPullRequestSuccessRate(SlidingWindowFeature):
         """
 
         cumulative_success_rate = PullRequestSuccess()
-        
+
         user_id = entry["user_data"]["id"]
         if user_id not in self._user_to_project_success_rate:
             return cumulative_success_rate

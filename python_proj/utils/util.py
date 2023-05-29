@@ -54,3 +54,9 @@ def safe_contains_key(text: str, key: str) -> bool:
         return True
     except:
         return False
+
+
+def safe_get(source: dict, key: Any, default: Any | None = None) -> Any:
+    if key in source:
+        return source[key]
+    return default
