@@ -120,7 +120,7 @@ def get_closed_by_for_closed_and_unmerged_prs(worker_count: int, output_path: st
             new_pr = PullRequestEntry(owner, repo, issue)
             tasks.append(new_pr)
 
-    print(f'{len(tasks)}/{total_entries} ({100 * (len(tasks)/total_entries):.03f}%).')
+    print(f'Tasks: {len(tasks)}/{total_entries} ({100 * (len(tasks)/total_entries):.03f}%).')
 
     def __pull_data(task: PullRequestEntry, worker_index: int, gh_tokens: list[list[str]], *args, **kwargs):
         """Helper method for parallel retrieval and storage of data."""
@@ -158,10 +158,10 @@ def add_closed_by_data_to_prs(worker_count: int, input_path: str):
     missing = 0
     total = 0
     output_path = f'{exp_utils.CHRONOLOGICAL_DATASET_PATH}.temp'
-    with open(output_path, "w+") as output_path:
+    with open(output_path, "w+") as output_file:
         for entry in exp_utils.iterate_through_chronological_data():
             if entry["merged"] != True:
-                output_path.write(f'{json.dumps(entry)}\n')
+                output_file.write(f'{json.dumps(entry)}\n')
                 continue
             (owner, repo) = __get_owner_and_repo(entry)
             repo_entry = PullRequestEntry(owner, repo, entry['number'])
@@ -169,7 +169,7 @@ def add_closed_by_data_to_prs(worker_count: int, input_path: str):
             if repo_entry in identities:
                 closed_by = identities[repo_entry]
                 entry["closed_by"] = closed_by
-                output_path.write(f'{json.dumps(entry)}\n')
+                output_file.write(f'{json.dumps(entry)}\n')
             else:
                 # i.e., entries for which there is no closed_by data is removed
                 # from the dataset! When applying, this happened for
