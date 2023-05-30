@@ -18,6 +18,7 @@ def get_all(filter_type: str):
     try:
         Popen(pr_argv).wait()
     except:
+        print("FAILED")
         return 
     
     print(f'Starting with issues for: {filter_type}.')
@@ -25,14 +26,22 @@ def get_all(filter_type: str):
                 "-a", "3",
                 '-t', "3",
                 "-f", f'_{filter_type}']
-    Popen(iss_argv).wait()
-
+    try:
+        Popen(iss_argv).wait()
+    except:
+        print("FAILED")
+        return 
+    
     print(f'Starting to merge PRs and issues for: {filter_type}.')
     merge_argv = ["python3" "./python_proj/data_preprocessing/merge_issue_pr_data.py",
                   "-d", "-w",
                   "-f", f'_{filter_type}']
-    Popen(merge_argv).wait()
-
+    try:
+        Popen(merge_argv).wait()
+    except:
+        print("FAILED")
+        return 
+    
     print("Done!")
 
 
