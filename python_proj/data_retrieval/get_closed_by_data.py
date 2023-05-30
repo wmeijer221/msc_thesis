@@ -12,7 +12,7 @@ The result of this will be a ``.temp`` file in the folder where the used chronol
 from dataclasses import dataclass
 import dotenv
 import json
-from os import getenv
+from os import getenv, path, makedirs
 import requests
 import time
 
@@ -189,6 +189,10 @@ if __name__ == "__main__":
     # technically it's not temp data either.
     temp_data_path = f'{exp_utils.BASE_PATH}/temp/{subfolder}/' + \
         "closed_by_t_{worker_index}.json"
+
+    dir_name = path.dirname(temp_data_path)
+    if not path.exists():
+        makedirs(dir_name)
 
     mode = safe_get_argv(key='-m', default="r")
     worker_count = safe_get_argv(key="-t", default=3, data_type=int)
