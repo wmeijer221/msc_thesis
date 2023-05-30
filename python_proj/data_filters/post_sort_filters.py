@@ -184,6 +184,7 @@ def write_data(data: list, output_path: str):
 
 
 if __name__ == "__main__":
+    # TODO: replace this to use ``exp_utils.load_argv()``.
     input_path = build_data_path_from_argv(file_name_key='-i')
     output_path = build_data_path_from_argv(file_name_key='-o')
     mode = get_argv("-m")

@@ -1,8 +1,14 @@
 """
 This script merges the data from ``retrieve_pull_requests.py`` 
-and ``retrieve_issues.py``, such that all pull request data is extended with its respective issue data. Consequently, all issue entries that are in reality a pull request are removed from the issue dataset.
+and ``retrieve_issues.py``, such that all pull request data is 
+extended with its respective issue data. Consequently, all issue 
+entries that are in reality a pull request are removed from the 
+issue dataset.
 
-(In GitHub, functionally, pull requests inherit issues, adding code-related stuff to it. The pull request API does not return the issue data, though (commments etc.). To get the full picture, both datasources therefore need to be merged.)
+(In GitHub, functionally, pull requests inherit issues, adding 
+code-related stuff to it. The pull request API does not return 
+the issue data, though (commments etc.). To get the full picture,
+ both datasources therefore need to be merged.)
 """
 
 import json

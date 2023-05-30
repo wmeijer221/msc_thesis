@@ -178,3 +178,14 @@ def iterate_through_chronological_data():
 
 def get_integrator_key(entry):
     return "merged_by" if entry["merged"] else "closed_by"
+
+
+def get_owner_and_repo_from_source_path(source_path) -> tuple[str, str]:
+    """
+    Helper method for string magic. 
+    Returns ``(owner, repo)``.
+    """
+    file_name_with_ext = source_path.split("/")[-1]
+    file_name = ".".join(file_name_with_ext.split(".")[:-1])
+    owner_repo = file_name.split("--")
+    return (owner_repo[0], owner_repo[1])

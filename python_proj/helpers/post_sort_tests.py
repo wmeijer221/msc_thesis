@@ -12,7 +12,7 @@ exp_utils.load_paths_for_all_argv()
 input_path = exp_utils.CHRONOLOGICAL_DATASET_PATH
 
 
-def test_pr_thresholds(thresholds: list[int]):
+def test_pr_thresholds(thresholds: list[int]) -> dict[str, int]:
     input_file = open(input_path, "r")
 
     pr_counts = {}
@@ -35,6 +35,16 @@ def test_pr_thresholds(thresholds: list[int]):
                 entries_per_threshold[threshold] = new_count
 
     print(entries_per_threshold)
+    return pr_counts
+
+
+def build_filter_list_from_pr_counts(pr_counts: dict[str, int],
+                                     output_path: str):
+    with open(output_path, "w+") as output_file:
+        for project in pr_counts.keys():
+            (owner, repo) = exp_utils.get_owner_and_repo_from_source_path(project)
+            filter_entry = f'{owner}/{repo}\n'
+            output_file.write(filter_entry)
 
 
 def count_comments_per_user():
@@ -62,9 +72,15 @@ if __name__ == "__main__":
     mode = safe_get_argv('-m', default="t")
 
     match mode:
-        case "t":
+        case "t" | "f":
             ts_arg = safe_get_argv('-t', default="5,15,30")
             thresholds = [int(entry) for entry in ts_arg.split(",")]
-            test_pr_thresholds(thresholds)
+            pr_counts = test_pr_thresholds(thresholds)
         case "c":
             count_comments_per_user()
+        case "f":
+            threshold = safe_get_argv('-t', default=5, data_type=int)
+            output_file_name = exp_utils.get_file_name()
+            output_path = f'{exp_utils.BASE_PATH}/predictions/included_projects_{output_file_name}_{threshold}.csv'
+            pr_counts = test_pr_thresholds([threshold])
+            build_filter_list_from_pr_counts(pr_counts, output_path)

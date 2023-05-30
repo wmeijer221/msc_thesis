@@ -138,6 +138,7 @@ if __name__ == "__main__":
     entries_path = partial(exp_utils.RAW_DATA_PATH, ext=entries_ext)
 
     # Loads name for chronological data file (i.e., the output file).
+    # TODO: replace this with ``exp_utils``
     chrono_file_name = arg_utils.safe_get_argv(key="-n", default="")
     chrono_file_name = f'sorted{chrono_file_name}'
     chrono_path = exp_utils.CHRONOLOGICAL_DATASET_PATH(
