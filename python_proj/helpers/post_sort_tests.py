@@ -68,11 +68,25 @@ def count_comments_per_user():
     print(count)
 
 
+def test_duplicate_entries(input_path: str):
+    unique = set()
+    dupes = 0
+    with open(input_path, 'r') as input_file:
+        for entry in input_file:
+            j_entry = json.loads(entry)
+            unique_key = f'{j_entry["__source_path"]}--{entry["id"]}'
+            if unique_key in unique:
+                dupes += 1
+            else:
+                unique.add(unique_key)
+    print(f'{dupes=}, {len(unique)=}.')
+
+
 if __name__ == "__main__":
     mode = safe_get_argv('-m', default="t")
 
     match mode:
-        case "t" | "f":
+        case "t":
             ts_arg = safe_get_argv('-t', default="5,15,30")
             thresholds = [int(entry) for entry in ts_arg.split(",")]
             pr_counts = test_pr_thresholds(thresholds)
@@ -84,3 +98,5 @@ if __name__ == "__main__":
             output_path = f'{exp_utils.BASE_PATH}/predictions/included_projects_{output_file_name}_{threshold}.csv'
             pr_counts = test_pr_thresholds([threshold])
             build_filter_list_from_pr_counts(pr_counts, output_path)
+        case "d":
+            test_duplicate_entries(input_path)
