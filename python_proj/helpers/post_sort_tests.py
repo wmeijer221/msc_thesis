@@ -80,7 +80,7 @@ if __name__ == "__main__":
             count_comments_per_user()
         case "f":
             threshold = safe_get_argv('-t', default=5, data_type=int)
-            output_file_name = exp_utils.get_file_name()
+            output_file_name = safe_get_argv(key="-o", default="")
             output_path = f'{exp_utils.BASE_PATH}/predictions/included_projects_{output_file_name}_{threshold}.csv'
             pr_counts = test_pr_thresholds([threshold])
             build_filter_list_from_pr_counts(pr_counts, output_path)
