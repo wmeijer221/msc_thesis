@@ -11,12 +11,15 @@ from python_proj.utils.exp_utils import get_file_name
 
 def get_all(filter_type: str):
     print(f'Starting with PRs for: {filter_type}.')
-    pr_argv = ["python3", "./python_proj/data_retrieval/retrieve_issues.py",
+    pr_argv = ["python3", "./python_proj/data_retrieval/retrieve_pull_requests.py",
                "-m", "s",
                "-t", "3",
                "-f", filter_type]
-    Popen(pr_argv).wait()
-
+    try:
+        Popen(pr_argv).wait()
+    except:
+        return 
+    
     print(f'Starting with issues for: {filter_type}.')
     iss_argv = ["python3", "./python_proj/data_retrieval/retrieve_issues.py",
                 "-a", "3",
@@ -29,7 +32,7 @@ def get_all(filter_type: str):
                   "-d", "-w",
                   "-f", f'_{filter_type}']
     Popen(merge_argv).wait()
-    
+
     print("Done!")
 
 
