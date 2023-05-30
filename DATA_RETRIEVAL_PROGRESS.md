@@ -23,7 +23,8 @@
 ## Preprocessing
 
 - [ ] Merge the chronological datasets.
-- [ ] Apply the min (5) PR requirement on the chronological datasets. 
+- [ ] Remove all pull requests without either a ``closed_by`` or a ``merged_by`` field. (Earlier pull requests don't have this data apparently.)
+- [ ] Apply the min (5) PR requirement on the chronological datasets.
 - [ ] Bot filtering 
 - [ ] Alias unmasking
 - [ ] Sliding window

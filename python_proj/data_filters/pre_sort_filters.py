@@ -190,6 +190,7 @@ def exclusion_both(entry):
 
 
 def merge_inclusion_lists(list_a: str = "pr", list_b: str = "dl", list_out: str = ""):
+    """Outputs the intersection between two inclusion lists."""
     with open(f"{output_path}included_projects_{list_a}.csv", "r", encoding="utf-8") as pr_filtered:
         pr_set = set([entry.strip() for entry in pr_filtered.readlines()])
 
