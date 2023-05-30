@@ -74,7 +74,7 @@ def test_duplicate_entries(input_path: str):
     with open(input_path, 'r') as input_file:
         for entry in input_file:
             j_entry = json.loads(entry)
-            unique_key = f'{j_entry["__source_path"]}--{entry["id"]}'
+            unique_key = f'{j_entry["__source_path"]}--{j_entry["id"]}'
             if unique_key in unique:
                 dupes += 1
             else:
