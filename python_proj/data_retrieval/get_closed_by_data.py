@@ -191,7 +191,7 @@ if __name__ == "__main__":
         "closed_by_t_{worker_index}.json"
 
     dir_name = path.dirname(temp_data_path)
-    if not path.exists():
+    if not path.exists(dir_name):
         makedirs(dir_name)
 
     mode = safe_get_argv(key='-m', default="r")
