@@ -24,6 +24,7 @@ import python_proj.utils.exp_utils as exp_utils
 from python_proj.utils.mt_utils import parallelize_tasks
 
 # Loads relevant paths.
+# TODO: load these paths somewhere else for prevent sideeffects.
 exp_utils.load_paths_for_eco()
 exp_utils.load_paths_for_data_path()
 input_path = exp_utils.PROJECTS_WITH_REPO_PATH()
