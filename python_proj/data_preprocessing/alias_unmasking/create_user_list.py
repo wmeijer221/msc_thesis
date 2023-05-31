@@ -25,9 +25,9 @@ def user_list_generator() -> Generator[Tuple[Dict, str], None, None]:
                 continue
             for comment in entry["comments_data"]:
                 yield comment["user_data"], owner, repo
-        except:
+        except Exception as ex:
             print(json.dumps(entry))
-            raise
+            raise ex
 
 
 def create_user_list():
