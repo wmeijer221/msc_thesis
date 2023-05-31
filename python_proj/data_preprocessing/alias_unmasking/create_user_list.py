@@ -31,21 +31,17 @@ def user_list_generator() -> Generator[Tuple[Dict, str], None, None]:
 
 
 def create_user_list():
-    unique_users: dict[str, dict] = {}
     user_to_projects: dict[str, set[str]] = {}
     for index, (user, owner, repo) in enumerate(user_list_generator()):
         user_id = user["id"]
-        # Store user.
-        if user_id not in unique_users:
-            unique_users[user_id] = user
-            print(user_id)
         # Store project.
         if user_id not in user_to_projects:
             user_to_projects[user_id] = set()
         user_to_projects[user_id].add((owner, repo))
-        # TODO: THIS IS TEST STUFF.
         if index > 100:
             break
+        
+    print(user_to_projects)
 
     def __user_to_entry(user: dict) -> list[str]:
         print(user)
