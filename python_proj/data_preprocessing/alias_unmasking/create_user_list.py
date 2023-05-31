@@ -49,10 +49,12 @@ def create_user_list():
         login = safe_get(user, "login", "")
         name = safe_get(user, "name", "")
         email = safe_get(user, "email", "")
-        print(user_id)
-        projects = ";".join([f'{owner}/{repo}'
-                             for (owner, repo) in user_to_projects[user_id]])
-        return [user_id, login, name, email, projects]
+
+        projects = user_to_projects[user_id]
+        str_projects = [f'{owner}/{repo}' for (owner, repo) in projects]
+        projs = ";".join(str_projects)
+
+        return [user_id, login, name, email, projs]
 
     output_path = exp_utils.RAW_DATA_PATH
     for user_id, projects in user_to_projects.items():
@@ -73,8 +75,8 @@ def create_user_list():
             # File filling.
             with open(r_output_path, "a+") as output_file:
                 csv_writer = writer(output_file)
-                user = __user_to_entry(user)
-                csv_writer.writerow(user)
+                user_row = __user_to_entry(user)
+                csv_writer.writerow(user_row)
 
 
 if __name__ == "__main__":
