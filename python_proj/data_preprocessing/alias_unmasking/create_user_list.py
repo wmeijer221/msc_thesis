@@ -44,7 +44,7 @@ def create_user_list():
         user_to_projects[user_id].add((owner, repo))
         if index > 100:
             break
-        
+
     def __user_to_entry(__user: dict) -> list[str]:
         user_id = safe_get(__user, "id", "")
         login = safe_get(__user, "login", "")
@@ -60,18 +60,18 @@ def create_user_list():
     output_path = exp_utils.RAW_DATA_PATH
     for user_id, projects in user_to_projects.items():
         for (owner, repo) in projects:
-            r_output_path = output_path(owner=owner, repo=repo, ext="--user-ids")
+            r_output_path = output_path(
+                owner=owner, repo=repo, ext="--user-ids")
+
+            dirname = path.dirname(r_output_path)
+            if not path.exists(dirname):
+                makedirs(dirname)
 
             # File creation
-            if not path.exists(r_output_path):
-                with open(r_output_path, "w+") as output_file:
-                    csv_writer = writer(output_file)
-                    csv_writer.writerow(["user_id", "login",
-                                         "name", "email", "projects"])
-
-                dirname = path.dirname(r_output_path)
-                if not path.exists(dirname):
-                    makedirs(dirname)
+            with open(r_output_path, "w+") as output_file:
+                csv_writer = writer(output_file)
+                csv_writer.writerow(["user_id", "login",
+                                     "name", "email", "projects"])
 
             # File filling.
             user_row = __user_to_entry(unique_users[user_id])
