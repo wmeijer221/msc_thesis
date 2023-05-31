@@ -41,8 +41,6 @@ def create_user_list():
         if index > 100:
             break
         
-    print(user_to_projects)
-
     def __user_to_entry(user: dict) -> list[str]:
         user_id = safe_get(user, "id", "")
         login = safe_get(user, "login", "")
@@ -58,7 +56,7 @@ def create_user_list():
     output_path = exp_utils.RAW_DATA_PATH
     for user_id, projects in user_to_projects.items():
         for (owner, repo) in projects:
-            r_output_path = output_path(owner=owner, repo=repo, ext="")
+            r_output_path = output_path(owner=owner, repo=repo, ext="--user-ids")
 
             # File creation
             if not path.exists(r_output_path):
