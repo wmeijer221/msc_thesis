@@ -48,7 +48,7 @@ def create_user_list():
             break
 
     def __user_to_entry(user: dict) -> list[str]:
-        print(user["id"])
+        print(user)
         user_id = safe_get(user, "id", "")
         login = safe_get(user, "login", "")
         name = safe_get(user, "name", "")
