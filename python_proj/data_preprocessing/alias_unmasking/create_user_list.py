@@ -6,7 +6,7 @@ The generated list is used as the input for: https://github.com/bvasiles/ght_unm
 from csv import writer
 from typing import Generator, Dict, Tuple
 import json
-from os import path
+from os import path, makedirs
 
 import python_proj.utils.exp_utils as exp_utils
 from python_proj.utils.util import safe_get
@@ -68,6 +68,10 @@ def create_user_list():
                     csv_writer = writer(output_file)
                     csv_writer.writerow(["user_id", "login",
                                          "name", "email", "projects"])
+                
+                dirname = path.dirname(r_output_path)
+                if not path.exists(dirname):
+                    makedirs(dirname)
 
             # File filling.
             with open(r_output_path, "a+") as output_file:
