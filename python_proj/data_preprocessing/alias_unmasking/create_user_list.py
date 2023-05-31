@@ -49,6 +49,7 @@ def create_user_list():
         login = safe_get(user, "login", "")
         name = safe_get(user, "name", "")
         email = safe_get(user, "email", "")
+        print(user_id)
         projects = ";".join([f'{owner}/{repo}'
                              for (owner, repo) in user_to_projects[user_id]])
         return [user_id, login, name, email, projects]
