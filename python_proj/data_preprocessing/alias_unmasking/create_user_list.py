@@ -43,6 +43,8 @@ def create_user_list():
             user_to_projects[user_id] = set()
         user_to_projects[user_id].add((owner, repo))
 
+    print(f'Identified Aliases: {len(unique_users)}.')
+
     def __user_to_entry(__user: dict) -> list[str]:
         user_id = safe_get(__user, "id", "")
         login = safe_get(__user, "login", "")
