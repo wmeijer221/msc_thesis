@@ -7,7 +7,7 @@ from uuid import uuid3, NAMESPACE_OID
 
 from python_proj.utils.util import get_nested
 import python_proj.utils.exp_utils as exp_utils
-from python_proj.utils.arg_utils import safe_get_argv
+from python_proj.utils.arg_utils import safe_get_argv, get_argv
 
 import python_proj.data_preprocessing.sliding_window_features.control_variables as cvars
 import python_proj.data_preprocessing.sliding_window_features.ecosystem_experience as ecovars
@@ -17,7 +17,7 @@ input_file = None
 output_file = None
 
 
-def slide_through_timeframe(file_name: str,
+def slide_through_timeframe(file_names: list[str],
                             key_to_date: list[str],
                             window_size: timedelta = None) \
         -> Generator[Tuple[Dict[str, Dict], Dict], None, None]:
@@ -26,46 +26,45 @@ def slide_through_timeframe(file_name: str,
     window = {}
 
     ts_format = "%Y-%m-%dT%H:%M:%SZ"
-    with open(file_name, "r") as input_file:
-        # Iterates through input file.
-        # Assumes that the input file is sorted.
-        for line in input_file:
-            j_entry = json.loads(line)
-            new_date = get_nested(j_entry, key_to_date)
-            dt_new_date = datetime.strptime(new_date, ts_format)
 
-            def prune_window():
-                # Prunes outdated entries in window.
-                pruned_entries = {}
-                for source, entry in window.items():
-                    # Iterate through window to find outdated.
-                    entry_date = get_nested(entry, key_to_date)
-                    dt_entry_date = datetime.strptime(entry_date, ts_format)
-                    delta = dt_new_date - dt_entry_date
-                    if delta > window_size:
-                        pruned_entries[source] = entry
-                for source, entry in pruned_entries.items():
-                    # Iterate through window to prune outdated.
-                    del window[source]
-                return pruned_entries
+    for entry in exp_utils.iterate_through_multiple_chronological_datasets(file_names):
+        new_date = get_nested(entry, key_to_date)
+        dt_new_date = datetime.strptime(new_date, ts_format)
 
-            # Prunes entries only if there's a window.
-            if window_size is None:
-                yield ({}, j_entry)
-                continue
+        def prune_window():
+            # Prunes outdated entries in window.
+            pruned_entries = {}
+            for source, entry in window.items():
+                # Iterate through window to find outdated.
+                entry_date = get_nested(entry, key_to_date)
+                dt_entry_date = datetime.strptime(entry_date, ts_format)
+                delta = dt_new_date - dt_entry_date
+                if delta > window_size:
+                    pruned_entries[source] = entry
+            for source, entry in pruned_entries.items():
+                # Iterate through window to prune outdated.
+                del window[source]
+            return pruned_entries
 
-            pruned_entries = prune_window()
+        # Prunes entries only if there's a window.
+        if window_size is None:
+            yield ({}, entry)
+            continue
 
-            # Add new key
-            new_source = j_entry[source_key]
-            window[new_source] = j_entry
+        pruned_entries = prune_window()
 
-            # Outputs iterable.
-            yield (pruned_entries, j_entry)
+        # Add new key
+        new_source = entry[source_key]
+        window[new_source] = entry
+
+        # Outputs iterable.
+        yield (pruned_entries, entry)
 
 
 def data_set_generator(intra_pr_features: list[Feature],
-                       sliding_window_features: list[SlidingWindowFeature],
+                       sw_features_prs: list[SlidingWindowFeature],
+                       sw_features_issues: list[SlidingWindowFeature],
+                       dataset_names: list[str],
                        window_size: timedelta = None) \
         -> Generator[list[str], list[Any], None]:
     """
@@ -73,32 +72,41 @@ def data_set_generator(intra_pr_features: list[Feature],
     features with respect to the provided window size.
     """
 
-    file_name = exp_utils.CHRONOLOGICAL_DATASET_PATH
     closed_at_key = ["closed_at"]
 
     # Outputs header.
-    all_features = list(chain(intra_pr_features, sliding_window_features))
+    all_features = list(chain(intra_pr_features, sw_features_prs))
     data_headers = [field.get_name() for field in all_features]
     yield ['UUID', 'PR-Source', 'PR-ID', "User-ID", "Closed-At", *data_headers]
 
     # Generates data.
-    for pruned_entries, new_entry in slide_through_timeframe(file_name, closed_at_key, window_size):
+    for pruned_entries, new_entry in slide_through_timeframe(dataset_names, closed_at_key, window_size):
         # Generates data point by iterating through all field factories.
-        data_point = [None] * len(all_features)
 
         try:
-            # Handles intra-pr features.
-            for index, feature in enumerate(intra_pr_features):
-                value = feature.get_feature(new_entry)
-                data_point[index] = value
+            entry_is_pr = new_entry["__data_type"] == "pr"
 
-            # Handles sliding window features.
-            for index, field in enumerate(sliding_window_features, start=len(intra_pr_features)):
+            # Selects to-be-updated sliding window features
+            # based on whether we're processing a pull request.
+            sw_features = sw_features_prs if entry_is_pr \
+                else sw_features_issues
+
+            # Removes pruned entries from sliding window.
+            for sw_feature in sw_features:
                 for entry in pruned_entries.values():
-                    field.remove_entry(entry)
-                data_point[index] = field.get_feature(new_entry)
-                # This has to be added AFTERWARDS; else you'll have data leakage.
-                field.add_entry(new_entry)
+                    sw_feature.remove_entry(entry)
+
+            # Retrieves feature values if necessary.
+            if entry_is_pr:
+                data_point = [None] * len(all_features)
+                for index, feature in enumerate([*intra_pr_features, sw_features_prs, sw_features_issues]):
+                    data_point[index] = feature.get_feature(new_entry)
+                yield data_point
+
+            # Adds new entry to sliding window.
+            for sw_feature in sw_features:
+                sw_feature.add_entry(new_entry)
+
         except Exception as ex:
             print(new_entry)
             raise ex
@@ -113,43 +121,48 @@ def data_set_generator(intra_pr_features: list[Feature],
         yield [uuid, pr_source, prid, uid, closed_at, *data_point]
 
 
-def get_all_features() -> 'Tuple(List[Feature], List[SlidingWindowFeature])':
+def get_all_features() -> 'Tuple(List[Feature], List[SlidingWindowFeature], List[SlidingWindowFeature])':
     intra_features = [IsMerged(), *cvars.INTRA_PR_FEATURES]
-    swindow_features = [*cvars.SLIDING_WINDOW_FEATURES,
-                        *ecovars.SLIDING_WINDOW_FEATURES]
-    return intra_features, swindow_features
+    sw_features_pr = [*cvars.SLIDING_WINDOW_FEATURES,
+                      *ecovars.SLIDING_WINDOW_FEATURES]
+    sw_features_issue = []
+    return intra_features, sw_features_pr, sw_features_issue
 
 
-def build_cumulative_dataset():
-    output_path = exp_utils.TRAIN_DATASET_PATH(file_name="cumulative_dataset")
-    with open(output_path, "w+") as output_file:
-        csv_writer = writer(output_file)
-        intra_features, swindow_features = get_all_features()
-        for index, entry in enumerate(data_set_generator(intra_features, swindow_features)):
-            csv_writer.writerow(entry)
-            # if index == 10:
-            #     break
-
-
-def build_windowed_dataset(days: int):
+def build_cumulative_dataset(dataset_names: list[str]):
     output_path = exp_utils.TRAIN_DATASET_PATH(
-        file_name=f"windowed_{days}d_dataset")
+        file_name=f"{dataset_names}_cumulative_dataset")
     with open(output_path, "w+") as output_file:
         csv_writer = writer(output_file)
-        intra_features, swindow_features = get_all_features()
-        ninety_days = timedelta(days=90)
-        for _, entry in enumerate(data_set_generator(swindow_features, intra_features, window_size=ninety_days)):
+        intra_features, sw_features_pr, sw_features_issue = get_all_features()
+        for entry in data_set_generator(intra_features, sw_features_pr, sw_features_issue):
+            csv_writer.writerow(entry)
+
+
+def build_windowed_dataset(days: int, dataset_name: str):
+    output_path = exp_utils.TRAIN_DATASET_PATH(
+        file_name=f"{dataset_name}_windowed_{days}d_dataset")
+    with open(output_path, "w+") as output_file:
+        csv_writer = writer(output_file)
+        intra_features, sw_features_pr, sw_features_issue = get_all_features()
+        window_delta = timedelta(days=days)
+        for _, entry in enumerate(data_set_generator(intra_features, sw_features_pr,
+                                                     sw_features_issue, window_size=window_delta)):
             csv_writer.writerow(entry)
 
 
 if __name__ == "__main__":
-    exp_utils.load_paths_for_all_argv()
+    exp_utils.load_paths_for_eco()
+    exp_utils.load_paths_for_data_path
+
+    dataset_name = get_argv(key="-n")
+
     mode = safe_get_argv(key="-m", default="c")
     match mode:
         case 'c':
-            build_cumulative_dataset()
+            build_cumulative_dataset(dataset_name)
         case 'w':
             days = safe_get_argv(key="-d", default=20, data_type=int)
-            build_windowed_dataset(days)
+            build_windowed_dataset(days, dataset_name)
         case _:
             raise ValueError(f"Invalid mode {mode}.")

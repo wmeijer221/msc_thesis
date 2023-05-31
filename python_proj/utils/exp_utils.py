@@ -6,8 +6,11 @@ from functools import partial
 from datetime import datetime
 from os import getenv
 import json
+from typing import Generator
+from numbers import Number
 
 from python_proj.utils.arg_utils import safe_get_argv
+from python_proj.utils.util import OpenMany, ordered_chain
 
 # Default argv keys.
 ECO_KEY = "-e"
@@ -174,6 +177,25 @@ def iterate_through_chronological_data():
             except Exception as ex:
                 ex.add_note(line)
                 raise
+
+
+def iterate_through_multiple_chronological_datasets(dataset_names: str) -> Generator[dict]:
+    "Assumes partial paths have been loaded up to the specific dataset names."
+
+    dt_format = "%Y-%m-%dT%H:%M:%SZ"
+
+    def __key(entry: dict) -> Number:
+        closed_at = entry["closed_at"]
+        dt_closed_at = datetime.strptime(closed_at, dt_format)
+        return dt_closed_at.timestamp()
+
+    r_dataset_names = [CHRONOLOGICAL_DATASET_PATH(file_name=dataset_name)
+                       for dataset_name in dataset_names]
+    with OpenMany(r_dataset_names, mode="r") as dataset_files:
+        dataset_iterators = [[json.loads(line.strip())
+                              for line in dataset_file]
+                             for dataset_file in dataset_files]
+        return ordered_chain(dataset_iterators, key=__key)
 
 
 def get_integrator_key(entry):

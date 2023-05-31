@@ -145,6 +145,8 @@ class PullRequestHasCommentByExternalUser(Feature):
 
 
 class CIPipelineExists(Feature):
+    """Returns true when the repository has CI available."""
+    # TODO: Implement this once data is available.
     def get_feature(self, entry: dict) -> Any:
         raise NotImplementedError()
 
@@ -159,18 +161,18 @@ class HasHashTagInDescription(Feature):
 
 
 SLIDING_WINDOW_FEATURES: list[SlidingWindowFeature] = [
-    # IntraProjectPullRequestExperienceOfIntegrator(),
-    IntraProjectPullRequestSuccessRateSubmitter()
+    IntraProjectPullRequestExperienceOfIntegrator(), # prior_review_num
+    IntraProjectPullRequestSuccessRateSubmitter()    # requester_succ_rate (proxy for core_member)
 ]
 
 INTRA_PR_FEATURES: list[Feature] = [
-    # IntegratedBySameUser(),
-    PullRequestLifeTimeInMinutes(),
-    PullRequestHasComments(),
-    NumberOfCommitsInPullRequest(),
-    # PullRequestHasCommentByExternalUser(),
-    #  CIPipelineExists(), # TODO: THIS
-    HasHashTagInDescription()
+    IntegratedBySameUser(),                 # same_user
+    PullRequestLifeTimeInMinutes(),         # lifetime_minutes
+    PullRequestHasComments(),               # has_comments
+    NumberOfCommitsInPullRequest(),         # num_commits
+    PullRequestHasCommentByExternalUser(),  # other_comment
+    #  CIPipelineExists(), # TODO: THIS       # ci_exists
+    HasHashTagInDescription()               # hash_tag
 ]
 
 ALL_FEATURES: list[Feature] = [
