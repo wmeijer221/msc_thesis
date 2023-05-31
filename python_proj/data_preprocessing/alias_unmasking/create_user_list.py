@@ -19,7 +19,8 @@ def user_list_generator() -> Generator[Tuple[Dict, str], None, None]:
         try:
             yield entry["user_data"], owner, repo
             integrator_key = exp_utils.get_integrator_key(entry)
-            yield entry[integrator_key], owner, repo
+            if integrator_key in entry:
+                yield entry[integrator_key], owner, repo
             if entry["comments"] == 0 or "comments_data" not in entry:
                 continue
             for comment in entry["comments_data"]:
