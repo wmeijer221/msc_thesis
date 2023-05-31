@@ -31,7 +31,7 @@ def user_list_generator() -> Generator[Tuple[Dict, str], None, None]:
 
 
 def create_user_list():
-    unique_users = set()
+    unique_users: dict[str, dict] = {}
     user_to_projects: dict[str, set[str]] = {}
     for index, (user, owner, repo) in enumerate(user_list_generator()):
         user_id = user["id"]
