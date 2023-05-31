@@ -38,6 +38,7 @@ def create_user_list():
         # Store user.
         if user_id not in unique_users:
             unique_users[user_id] = user
+            print(user_id)
         # Store project.
         if user_id not in user_to_projects:
             user_to_projects[user_id] = set()
@@ -47,7 +48,7 @@ def create_user_list():
             break
 
     def __user_to_entry(user: dict) -> list[str]:
-        print(user)
+        print(user["id"])
         user_id = safe_get(user, "id", "")
         login = safe_get(user, "login", "")
         name = safe_get(user, "name", "")
