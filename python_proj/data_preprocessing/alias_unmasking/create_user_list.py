@@ -58,7 +58,7 @@ def create_user_list():
     output_path = exp_utils.RAW_DATA_PATH
     for user_id, projects in user_to_projects.items():
         for (owner, repo) in projects:
-            r_output_path = output_path(owner=owner, repo=repo)
+            r_output_path = output_path(owner=owner, repo=repo, ext="")
 
             # File creation
             if not path.exists(r_output_path):
