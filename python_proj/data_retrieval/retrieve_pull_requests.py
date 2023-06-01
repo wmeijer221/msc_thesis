@@ -46,7 +46,7 @@ end_date = exp_utils.LIBRARIES_IO_DATASET_END_DATE
 
 # Loads API keys.
 dotenv.load_dotenv()
-gh_token_count = safe_get_argv('-a', 3)
+gh_token_count = safe_get_argv(key='-a', default=3, data_type=int)
 all_gh_tokens = exp_utils.get_gh_tokens(gh_token_count)
 
 # General settings

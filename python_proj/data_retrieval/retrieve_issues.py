@@ -6,6 +6,7 @@ import requests
 import dotenv
 from perceval.backends.core.github import GitHub, CATEGORY_ISSUE as GH_CATEGORY_ISSUE
 
+# TODO: Get rid of this.
 from python_proj.data_retrieval.retrieve_pull_requests import matches_inclusion_criteria
 
 from python_proj.data_retrieval.gl_filters.gl_github_filters import IssueFilter as GHIssueFilter
@@ -16,7 +17,7 @@ from python_proj.utils.mt_utils import parallelize_tasks
 # TODO: Move this argv and path stuff into ``__main__``.
 # Loads API keys.
 dotenv.load_dotenv()
-gh_token_count = safe_get_argv('-a', 3)
+gh_token_count = safe_get_argv(key='-a', default=3, data_type=int)
 all_gh_tokens = exp_utils.get_gh_tokens(gh_token_count)
 
 skip_processed = False
