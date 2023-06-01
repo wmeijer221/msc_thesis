@@ -179,7 +179,7 @@ def iterate_through_chronological_data():
                 raise
 
 
-def iterate_through_multiple_chronological_datasets(dataset_names: str) -> Generator[dict]:
+def iterate_through_multiple_chronological_datasets(dataset_names: str) -> Generator[dict, None, None]:
     "Assumes partial paths have been loaded up to the specific dataset names."
 
     dt_format = "%Y-%m-%dT%H:%M:%SZ"
