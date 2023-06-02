@@ -22,7 +22,7 @@ def count_projects(filter_name: str, file_ext: str):
             continue
         counted += 1
         with open(file_path, "r") as input_file:
-            j_data = json.loads(input_file)
+            j_data = json.loads(input_file.read())
             entries += len(j_data)
 
     print(f'{counted}/{total} projects found with {entries} data entries.')
