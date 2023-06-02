@@ -14,9 +14,11 @@
 - [ ] collect periphery core-to-other ``closed_by`` data (To be re-ran; somehow 18% of the data is missing.)
     - [ ] and merged with the dataset.
 - [x] collect periphery other-to-core prs
-- [~] collect periphery other-to-core issues.
-    - [x] (First Run) 94413 PRs that satisfy requirements, spread across 1474 projects, where each project has at least 5 PRs.
-    - [ ] (Second run) Collect data of an additional 22254 randomly sampled projects.
+- [x] collect periphery other-to-core issues.
+    - [x] (First Run) Collect data of 12556 randomly sampled projects.
+        - 94413 PRs that satisfy requirements, spread across 1474 projects, where each project has at least 5 PRs.
+    - [x] (Second run) Collect data of an additional 13820 randomly sampled projects.
+        - X PRs that satisfy requirements, spread across Y projects, where each project has at least 5 PRs.
 - [~] collect periphery other-to-core ``closed_by`` data
     - [ ] and merged it with the dataset.
 
