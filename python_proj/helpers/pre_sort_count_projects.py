@@ -5,7 +5,7 @@ from python_proj.utils.arg_utils import safe_get_argv
 
 
 def count_projects(filter_name: str, file_ext: str):
-    filter_path = exp_utils.FILTER_PATH(filter_name=filter_name)
+    filter_path = exp_utils.FILTER_PATH(filter_type=filter_name)
     with open(filter_path, "r") as filter_file:
         filter = {entry.strip() for entry in filter_file}
 
