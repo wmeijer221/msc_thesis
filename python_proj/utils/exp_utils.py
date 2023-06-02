@@ -179,9 +179,12 @@ def iterate_through_chronological_data():
                 raise
 
 
-def iterate_through_multiple_chronological_datasets(dataset_names: str) -> Generator[dict, None, None]:
+def iterate_through_multiple_chronological_datasets(dataset_names: list[str], dataset_types: list[str]) -> Generator[dict, None, None]:
     "Assumes partial paths have been loaded up to the specific dataset names."
 
+    if len(dataset_names) != len(dataset_types):
+        raise ValueError("dataset names has different length than dataset types.")
+    
     dt_format = "%Y-%m-%dT%H:%M:%SZ"
 
     def __key(entry: dict) -> Number:
@@ -189,17 +192,26 @@ def iterate_through_multiple_chronological_datasets(dataset_names: str) -> Gener
         dt_closed_at = datetime.strptime(closed_at, dt_format)
         return dt_closed_at.timestamp()
 
+    def __file_iterator(file) -> Generator[dict, None, None]:
+        for line in file:
+            yield json.loads(line.strip())
+
     r_dataset_names = [CHRONOLOGICAL_DATASET_PATH(file_name=dataset_name)
                        for dataset_name in dataset_names]
+    
+    print(f'Iterating through datasets: {r_dataset_names}')
+
     with OpenMany(r_dataset_names, mode="r") as dataset_files:
-        dataset_iterators = [[json.loads(line.strip())
-                              for line in dataset_file]
+        dataset_iterators = [__file_iterator(dataset_file)
                              for dataset_file in dataset_files]
-        return ordered_chain(dataset_iterators, key=__key)
+        for file_idx, entry in ordered_chain(dataset_iterators, key=__key):
+            dataset_type = dataset_types[file_idx]
+            entry["__data_type"] = dataset_type
+            yield entry
 
 
 def get_integrator_key(entry):
-    return "merged_by" if entry["merged"] else "closed_by"
+    return "merged_by_data" if entry["merged"] else "closed_by"
 
 
 def get_owner_and_repo_from_source_path(source_path) -> tuple[str, str]:

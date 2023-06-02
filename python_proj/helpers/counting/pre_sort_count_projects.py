@@ -1,3 +1,7 @@
+"""
+Counts the number of projects.
+"""
+
 from os import path
 import json
 
