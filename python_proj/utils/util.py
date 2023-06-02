@@ -2,7 +2,7 @@
 Implements general utility functions.
 """
 
-from typing import Any, TypeVar, Generator, Callable
+from typing import Any, Tuple, TypeVar, Generator, Callable
 from numbers import Number
 import io
 import numpy
@@ -88,7 +88,7 @@ T = TypeVar("T")
 
 def ordered_chain(iterables: list[Generator[T, None, None]],
                   key: Callable[[T, T], Number]) \
-        -> Generator[T, None, None]:
+        -> Generator[Tuple[int, T], None, None]:
     """
     Iterates through multiple generators in a chained fashion,
     iterating through them in an ordered fashion. Assumes the
@@ -99,6 +99,8 @@ def ordered_chain(iterables: list[Generator[T, None, None]],
     iterable elements.
     """
 
+
+
     current_elements = [next(iterables[idx]) for idx in range(len(iterables))]
     stop_iterations = 0
 
@@ -108,7 +110,7 @@ def ordered_chain(iterables: list[Generator[T, None, None]],
     while stop_iterations != len(iterables):
         current_idx = numpy.argmin([__key_wrapper(ele)
                                    for ele in current_elements])
-        yield current_elements[current_idx]
+        yield current_idx, current_elements[current_idx]
         try:
             current_elements[current_idx] = next(iterables[current_idx])
         except StopIteration:
