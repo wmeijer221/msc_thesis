@@ -88,7 +88,7 @@ def do_the_merge(filter_type: str, delete_old: bool = False, write_new: bool = F
                 new_pr[key] = value
 
             new_prs.append(new_pr)
-
+        print(len(new_prs))
         if len(new_prs) > 0:
             # Writes enriched PRs.
             pr_output_path = exp_utils.RAW_DATA_PATH(data_type="pull-requests",
