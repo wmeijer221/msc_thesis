@@ -15,7 +15,7 @@ T = TypeVar("T")
 def slide_through_window(iterator: Generator[T, None, None],
                          key: Callable[[T], datetime],
                          window_size: timedelta | None = None) \
-        -> Generator[Tuple[list[T], T]]:
+        -> Generator[Tuple[list[T], T], None, None]:
     """Slides through an iterator, keeping track of a set timewindow."""
 
     window: dict[datetime, list[T]] = {}
