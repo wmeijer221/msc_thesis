@@ -95,7 +95,7 @@ def __get_owner_and_repo(entry: dict) -> tuple[str, str]:
     return (owner_repo[0], owner_repo[1])
 
 
-def get_closed_by_for_closed_and_unmerged_prs(worker_count: int, output_path: str):
+def get_closed_by_for_closed_and_unmerged_prs(worker_count: int, output_path: str, worker_index_offset: int):
     """
     Iterates through the chronological data file and retrieves ``closed_by``
     data for each pull request that has been closed and not merged.
@@ -134,13 +134,14 @@ def get_closed_by_for_closed_and_unmerged_prs(worker_count: int, output_path: st
             return
         entry = {"owner": task.owner, "repo": task.repo,
                  "issue": task.issue, "closed_by": closed_by}
-        r_output_path = output_path.format(worker_index=worker_index)
+        r_worker_index = worker_index_offset + worker_index
+        r_output_path = output_path.format(worker_index=r_worker_index)
         with open(r_output_path, "a+") as output_file:
             output_file.write(f"{json.dumps(entry)}\n")
 
     # Parallelizes the tasks.
     gh_tokens = exp_utils.get_gh_tokens(worker_count)
-    parallelize_tasks(tasks, __pull_data, worker_count, gh_tokens=gh_tokens)
+    parallelize_tasks(tasks, __pull_data, worker_count, gh_tokens=gh_tokens, worker_index_offset=worker_index_offset)
 
 
 def add_closed_by_data_to_prs(worker_count: int, input_path: str):
@@ -201,13 +202,15 @@ if __name__ == "__main__":
     worker_count = safe_get_argv(key="-t", default=3, data_type=int)
     match(mode):
         case "r":
+            worker_index_offset = safe_get_argv(key="-wo", default=0, data_type=int)
             get_closed_by_for_closed_and_unmerged_prs(
-                worker_count, temp_data_path)
+                worker_count, temp_data_path, worker_index_offset)
         case "m":
             add_closed_by_data_to_prs(worker_count, temp_data_path)
         case "b":
+            worker_index_offset = safe_get_argv(key="-wo", default=0, data_type=int)
             get_closed_by_for_closed_and_unmerged_prs(
-                worker_count, temp_data_path)
+                worker_count, temp_data_path, worker_index_offset)
             add_closed_by_data_to_prs(worker_count, temp_data_path)
         case _:
             raise ValueError(f"Invalid mode {mode}.")
