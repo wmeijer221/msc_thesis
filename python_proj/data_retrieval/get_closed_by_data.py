@@ -158,8 +158,6 @@ def add_closed_by_data_to_prs(worker_count: int, input_path: str):
                                             j_data["repo"],
                                             j_data["issue"])
                 identities[pr_entry] = j_data["closed_by"]
-    print(identities[PullRequestEntry("nodejitsu", 'kohai', 35)])
-    return
     print(f'Loaded {len(identities)} closed by entries.')
     # Loads data from sorted_file.
     missing = 0
@@ -167,7 +165,7 @@ def add_closed_by_data_to_prs(worker_count: int, input_path: str):
     output_path = f'{exp_utils.CHRONOLOGICAL_DATASET_PATH}.temp'
     with open(output_path, "w+") as output_file:
         for entry in exp_utils.iterate_through_chronological_data():
-            if not entry["merged"]:
+            if entry["merged"]:
                 output_file.write(f'{json.dumps(entry)}\n')
                 continue
             (owner, repo) = __get_owner_and_repo(entry)
