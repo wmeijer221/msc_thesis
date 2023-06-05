@@ -138,7 +138,9 @@ def build_dataset(pr_dataset_names: list[str],
     sliding_window_features_issue = []
 
     # Creates iterator.
-    window_size = timedelta(days=window_size_in_days)
+    window_size = None
+    if window_size_in_days is not None:
+        window_size = timedelta(days=window_size_in_days)
     dataset_iterator = generate_dataset(pr_dataset_names,
                                         issue_dataset_names,
                                         intra_pr_features,
