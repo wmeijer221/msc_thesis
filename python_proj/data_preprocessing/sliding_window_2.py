@@ -64,7 +64,7 @@ def generate_dataset(pr_dataset_names: list[str],
     the provided features, and the given time window.
     """
 
-    dataset_names = list([*pr_dataset_names, *issue_dataset_names])
+    dataset_names = list(itertools.chain([pr_dataset_names, issue_dataset_names]))
     dataset_types = ["pr" if i < len(pr_dataset_names)
                      else "issue"
                      for i in range(len(dataset_names))]
