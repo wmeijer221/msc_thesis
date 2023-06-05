@@ -64,7 +64,8 @@ def generate_dataset(pr_dataset_names: list[str],
     the provided features, and the given time window.
     """
 
-    dataset_names = list(itertools.chain([pr_dataset_names, issue_dataset_names]))
+    dataset_names = list(itertools.chain(
+        pr_dataset_names, issue_dataset_names))
     dataset_types = ["pr" if i < len(pr_dataset_names)
                      else "issue"
                      for i in range(len(dataset_names))]
@@ -175,8 +176,10 @@ def sliding_window():
     exp_utils.load_paths_for_data_path()
 
     # Sets path for chronological input data
-    input_pr_dataset_names = safe_get_argv(key="-pd", default="").split(",")
-    input_issue_dataset_names = safe_get_argv(key='-id', default="").split(",")
+    input_pr_dataset_names = [entry for entry in safe_get_argv(key="-pd", default="").split(",")
+                              if entry != '']
+    input_issue_dataset_names = [entry for entry in safe_get_argv(key='-id', default="").split(",")
+                                 if entry != '']
 
     # Sets path for output dataset.
     dt_now = datetime.now().strftime("%d-%m-%Y")
