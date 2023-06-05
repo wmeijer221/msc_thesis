@@ -87,7 +87,7 @@ def generate_dataset(pr_dataset_names: list[str],
 
     # Used to track the number of invalid entries.
     invalid_entries: dict[str, int] = {
-        feature.get_name(): 0 for fature in all_features}
+        feature.get_name(): 0 for feature in all_features}
 
     # Iterates through window, updating features on the go.
     window_iterator = slide_through_window(
