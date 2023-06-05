@@ -182,7 +182,7 @@ def sliding_window():
     dt_now = datetime.now().strftime("%d-%m-%Y")
     input_pr_dataset_names = safe_get_argv(
         key="-o", default=f"training_dataset_{dt_now}")
-    exp_utils.TRAIN_DATASET_PATH(file_name=input_pr_dataset_names)
+    exp_utils.TRAIN_DATASET_PATH = exp_utils.TRAIN_DATASET_PATH(file_name=input_pr_dataset_names)
 
     days = safe_get_argv(key="-w", default=None, data_type=int)
 
