@@ -94,6 +94,7 @@ def generate_dataset(pr_dataset_names: list[str],
     window_iterator = slide_through_window(
         dataset_iterator, __get_closed_by, window_size)
     for pruned_entries, new_entry in window_iterator:
+        print(new_entry)
         # Selects relevant sliding features.
         entry_is_pr = new_entry["__data_type"] == "pr"
         sliding_features = pr_features if entry_is_pr else issue_features
@@ -109,7 +110,8 @@ def generate_dataset(pr_dataset_names: list[str],
             data_point = []
             for feature in all_features:
                 if feature.is_valid_entry(new_entry):
-                    data_point.append(feature.get_feature(new_entry))
+                    feature_value = feature.get_feature(new_entry)
+                    data_point.append(feature_value)
             yield list(data_point)
 
         # Adds new entry.
