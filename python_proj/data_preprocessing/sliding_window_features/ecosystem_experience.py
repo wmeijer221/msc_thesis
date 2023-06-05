@@ -1,6 +1,7 @@
 
 from typing import Any
 from python_proj.data_preprocessing.sliding_window_features.base import *
+from python_proj.utils.util import has_keys
 
 
 class SubmitterExperienceEcosystemPullRequestSuccessRate(SlidingWindowFeature):
@@ -59,6 +60,9 @@ class SubmitterExperienceEcosystemPullRequestSuccessRate(SlidingWindowFeature):
     def get_feature(self, entry: dict) -> float:
         cumulative_success_rate = self._get_cumulative_success_rate(entry)
         return cumulative_success_rate.get_success_rate()
+
+    def is_valid_entry(self, entry: dict) -> bool:
+        return has_keys(entry, ["user_data", "__source_path", "merged"])
 
 
 class SubmitterExperienceEcosystemPullRequestCount(SubmitterExperienceEcosystemPullRequestSuccessRate):

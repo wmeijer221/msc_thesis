@@ -77,8 +77,6 @@ def generate_dataset(pr_dataset_names: list[str],
         return dt_closed_by
 
     # Iterables for easy iteration.
-    # sliding_features: list[SlidingWindowFeature] = [
-        # *pr_features, *issue_features]
     all_features: list[Feature] = [*intra_pr_features,
                                    *pr_features,
                                    *issue_features]
@@ -86,6 +84,10 @@ def generate_dataset(pr_dataset_names: list[str],
     # Generates header.
     header = [feature.get_name() for feature in all_features]
     yield list(header)
+
+    # Used to track the number of invalid entries.
+    invalid_entries: dict[str, int] = {
+        feature.get_name(): 0 for fature in all_features}
 
     # Iterates through window, updating features on the go.
     window_iterator = slide_through_window(
@@ -111,6 +113,13 @@ def generate_dataset(pr_dataset_names: list[str],
         for feature in sliding_features:
             if feature.is_valid_entry(new_entry):
                 feature.add_entry(new_entry)
+            else:
+                # Updates the invalid entries count for bookkeeping.
+                feature_name = feature.get_name()
+                invalid_entries[feature_name] += 1
+
+    # Prints the invalid entries count for bookkeeping.
+    print(f'{invalid_entries=}')
 
 
 def build_dataset(pr_dataset_names: list[str],

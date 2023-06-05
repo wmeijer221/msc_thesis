@@ -3,7 +3,7 @@ from typing import Any
 
 from python_proj.data_preprocessing.sliding_window_features.base import *
 from python_proj.utils.exp_utils import get_integrator_key
-from python_proj.utils.util import safe_contains_key
+from python_proj.utils.util import safe_contains_key, has_keys
 
 
 class IntegratedBySameUser(Feature):
@@ -15,6 +15,10 @@ class IntegratedBySameUser(Feature):
         integrator_id = entry[integrator_key]["id"]
         same_user = submitter_id == integrator_id
         return same_user
+
+    def is_valid_entry(self, entry: dict) -> bool:
+        integrator_key = get_integrator_key(entry)
+        return has_keys(entry, [integrator_key, "user_data"])
 
 
 class PullRequestLifeTimeInMinutes(Feature):
@@ -28,6 +32,9 @@ class PullRequestLifeTimeInMinutes(Feature):
         deltatime = closed_at - created_at
         lifetime_in_minutes = deltatime.total_seconds() / 60
         return lifetime_in_minutes
+
+    def is_valid_entry(self, entry: dict) -> bool:
+        return has_keys(entry, ["created_at", "closed_at"])
 
 
 class IntraProjectPullRequestExperienceOfIntegrator(SlidingWindowFeature):
@@ -63,6 +70,10 @@ class IntraProjectPullRequestExperienceOfIntegrator(SlidingWindowFeature):
         except KeyError:
             return 0
 
+    def is_valid_entry(self, entry: dict) -> bool:
+        integrator_key = get_integrator_key(entry)
+        return has_keys(entry, [integrator_key, "__source_path"])
+
 
 class PullRequestHasComments(Feature):
     """Whether the pull request has comments."""
@@ -70,12 +81,18 @@ class PullRequestHasComments(Feature):
     def get_feature(self, entry: dict) -> bool:
         return entry["comments"] > 0
 
+    def is_valid_entry(self, entry: dict) -> bool:
+        return has_keys(entry, "comments")
+
 
 class NumberOfCommitsInPullRequest(Feature):
     """The number of commmits in the pull request."""
 
     def get_feature(self, entry: dict) -> int:
         return entry['commits']
+
+    def is_valid_entry(self, entry: dict) -> bool:
+        return has_keys(entry, ["commits"])
 
 
 class IntraProjectPullRequestSuccessRateSubmitter(SlidingWindowFeature):
@@ -123,6 +140,9 @@ class IntraProjectPullRequestSuccessRateSubmitter(SlidingWindowFeature):
         except KeyError:
             return 0
 
+    def is_valid_entry(self, entry: dict) -> bool:
+        return has_keys(entry, ["__source_path", "user_data", "merged"])
+
 
 class PullRequestHasCommentByExternalUser(Feature):
     """
@@ -143,6 +163,9 @@ class PullRequestHasCommentByExternalUser(Feature):
                 return True
         return False
 
+    def is_valid_entry(self, entry: dict) -> bool:
+        return has_keys(entry, ["comments", "comments_data", "user_data"])
+
 
 class CIPipelineExists(Feature):
     """Returns true when the repository has CI available."""
@@ -150,6 +173,9 @@ class CIPipelineExists(Feature):
 
     def get_feature(self, entry: dict) -> Any:
         raise NotImplementedError()
+
+    def is_valid_entry(self, entry: dict) -> bool:
+        return False
 
 
 class HasHashTagInDescription(Feature):
@@ -159,6 +185,9 @@ class HasHashTagInDescription(Feature):
         return safe_contains_key(entry["title"], "#") \
             or ("body" in entry  # some PRs don't have a body.
                 and safe_contains_key(entry["body"], "#"))
+
+    def is_valid_entry(self, entry: dict) -> bool:
+        return has_keys(entry, ["title"])
 
 
 SLIDING_WINDOW_FEATURES: list[SlidingWindowFeature] = [

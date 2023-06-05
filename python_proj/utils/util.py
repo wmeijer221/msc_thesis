@@ -9,6 +9,10 @@ import numpy
 import math
 
 
+def has_keys(d: dict, keys: list) -> bool:
+    return all((key in d for key in keys))
+
+
 def safe_add_list_element(dictionary: dict[Any, list], key, value):
     if key in dictionary:
         dictionary[key].append(value)
@@ -98,8 +102,6 @@ def ordered_chain(iterables: list[Generator[T, None, None]],
     :param Callable[[T], Number] key: Method that is used for ordering
     iterable elements.
     """
-
-
 
     current_elements = [next(iterables[idx]) for idx in range(len(iterables))]
     stop_iterations = 0
