@@ -141,7 +141,8 @@ def get_closed_by_for_closed_and_unmerged_prs(worker_count: int, output_path: st
 
     # Parallelizes the tasks.
     gh_tokens = exp_utils.get_gh_tokens(worker_count)
-    parallelize_tasks(tasks, __pull_data, worker_count, gh_tokens=gh_tokens, worker_index_offset=worker_index_offset)
+    parallelize_tasks(tasks, __pull_data, worker_count,
+                      gh_tokens=gh_tokens, worker_index_offset=worker_index_offset)
 
 
 def add_closed_by_data_to_prs(worker_count: int, input_path: str):
@@ -157,6 +158,8 @@ def add_closed_by_data_to_prs(worker_count: int, input_path: str):
                                             j_data["repo"],
                                             j_data["issue"])
                 identities[pr_entry] = j_data["closed_by"]
+    print(identities[PullRequestEntry("nodejitsu", 'kohai', 35)])
+    return
     print(f'Loaded {len(identities)} closed by entries.')
     # Loads data from sorted_file.
     missing = 0
@@ -164,7 +167,7 @@ def add_closed_by_data_to_prs(worker_count: int, input_path: str):
     output_path = f'{exp_utils.CHRONOLOGICAL_DATASET_PATH}.temp'
     with open(output_path, "w+") as output_file:
         for entry in exp_utils.iterate_through_chronological_data():
-            if entry["merged"] != True:
+            if not entry["merged"]:
                 output_file.write(f'{json.dumps(entry)}\n')
                 continue
             (owner, repo) = __get_owner_and_repo(entry)
@@ -202,13 +205,15 @@ if __name__ == "__main__":
     worker_count = safe_get_argv(key="-t", default=3, data_type=int)
     match(mode):
         case "r":
-            worker_index_offset = safe_get_argv(key="-wo", default=0, data_type=int)
+            worker_index_offset = safe_get_argv(
+                key="-wo", default=0, data_type=int)
             get_closed_by_for_closed_and_unmerged_prs(
                 worker_count, temp_data_path, worker_index_offset)
         case "m":
             add_closed_by_data_to_prs(worker_count, temp_data_path)
         case "b":
-            worker_index_offset = safe_get_argv(key="-wo", default=0, data_type=int)
+            worker_index_offset = safe_get_argv(
+                key="-wo", default=0, data_type=int)
             get_closed_by_for_closed_and_unmerged_prs(
                 worker_count, temp_data_path, worker_index_offset)
             add_closed_by_data_to_prs(worker_count, temp_data_path)
