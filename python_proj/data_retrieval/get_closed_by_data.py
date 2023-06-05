@@ -188,7 +188,8 @@ def add_closed_by_data_to_prs(worker_count: int, input_path: str):
     print(
         f'Missing {missing}/{unmerged_total + merged_total} ({100 * missing / (unmerged_total + merged_total):.03f}%) entries for ALL PRs.')
 
-if __name__ == "__main__":
+
+def get_closed_by_data():
     dotenv.load_dotenv()
     exp_utils.load_paths_for_all_argv()
 
@@ -197,6 +198,8 @@ if __name__ == "__main__":
     # technically it's not temp data either.
     temp_data_path = f'{exp_utils.BASE_PATH}/temp/{subfolder}/' + \
         "closed_by_t_{worker_index}.json"
+    
+    print(f'Outputting in: {temp_data_path}.')
 
     dir_name = path.dirname(temp_data_path)
     if not path.exists(dir_name):
@@ -220,3 +223,7 @@ if __name__ == "__main__":
             add_closed_by_data_to_prs(worker_count, temp_data_path)
         case _:
             raise ValueError(f"Invalid mode {mode}.")
+
+
+if __name__ == "__main__":
+    get_closed_by_data()
