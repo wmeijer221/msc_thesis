@@ -164,7 +164,8 @@ class PullRequestHasCommentByExternalUser(Feature):
         return False
 
     def is_valid_entry(self, entry: dict) -> bool:
-        return has_keys(entry, ["comments", "comments_data", "user_data"])
+        integrator_key = get_integrator_key(entry)
+        return has_keys(entry, ["comments", "comments_data", "user_data", integrator_key])
 
 
 class CIPipelineExists(Feature):
