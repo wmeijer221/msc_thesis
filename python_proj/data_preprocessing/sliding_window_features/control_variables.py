@@ -18,7 +18,11 @@ class IntegratedBySameUser(Feature):
 
     def is_valid_entry(self, entry: dict) -> bool:
         integrator_key = get_integrator_key(entry)
-        return has_keys(entry, [integrator_key, "user_data"])
+        has_main_keys = has_keys(entry, [integrator_key, "user_data"])
+        if not has_main_keys:
+            return False
+        has_sub_keys = has_keys(entry[integrator_key], ['id'])
+        return has_sub_keys
 
 
 class PullRequestLifeTimeInMinutes(Feature):
@@ -165,7 +169,12 @@ class PullRequestHasCommentByExternalUser(Feature):
 
     def is_valid_entry(self, entry: dict) -> bool:
         integrator_key = get_integrator_key(entry)
-        return has_keys(entry, ["comments", "comments_data", "user_data", integrator_key])
+        has_main_keys = has_keys(
+            entry, ["comments", "comments_data", "user_data", integrator_key])
+        if not has_main_keys:
+            return False
+        has_sub_keys = has_keys(entry[integrator_key], ["id"])
+        return has_sub_keys
 
 
 class CIPipelineExists(Feature):
