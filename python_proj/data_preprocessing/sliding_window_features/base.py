@@ -13,6 +13,9 @@ class Feature:
     def get_feature(self, entry: dict) -> Any:
         raise NotImplementedError()
 
+    def is_valid_entry(self, entry: dict) -> bool:
+        return True
+
 
 class SlidingWindowFeature(Feature):
     def add_entry(self, entry: dict):
@@ -42,4 +45,3 @@ class PullRequestSuccess:
             return 0.0
         else:
             return self.merged / total
-
