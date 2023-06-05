@@ -136,7 +136,6 @@ def get_closed_by_for_closed_and_unmerged_prs(worker_count: int, output_path: st
                  "issue": task.issue, "closed_by": closed_by}
         r_worker_index = worker_index_offset + worker_index
         r_output_path = output_path.format(worker_index=r_worker_index)
-        print(f'Worker-{worker_index} outputting to: {r_output_path}.')
         with open(r_output_path, "a+") as output_file:
             output_file.write(f"{json.dumps(entry)}\n")
 
