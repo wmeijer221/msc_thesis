@@ -161,16 +161,18 @@ def add_closed_by_data_to_prs(worker_count: int, input_path: str):
     print(f'Loaded {len(identities)} closed by entries.')
     # Loads data from sorted_file.
     missing = 0
-    total = 0
+    merged_total = 0
+    unmerged_total = 0
     output_path = f'{exp_utils.CHRONOLOGICAL_DATASET_PATH}.temp'
     with open(output_path, "w+") as output_file:
         for entry in exp_utils.iterate_through_chronological_data():
             if entry["merged"]:
+                merged_total += 1
                 output_file.write(f'{json.dumps(entry)}\n')
                 continue
             (owner, repo) = __get_owner_and_repo(entry)
             repo_entry = PullRequestEntry(owner, repo, entry['number'])
-            total += 1
+            unmerged_total += 1
             if repo_entry in identities:
                 closed_by = identities[repo_entry]
                 entry["closed_by"] = closed_by
@@ -182,8 +184,9 @@ def add_closed_by_data_to_prs(worker_count: int, input_path: str):
                 # (so ~0.12% of the total dataset).
                 missing += 1
     print(
-        f'Missing {missing}/{total} ({100 * missing / total:.03f}%) entries for UNMERGED PRs.')
-
+        f'Missing {missing}/{unmerged_total} ({100 * missing / unmerged_total:.03f}%) entries for UNMERGED PRs.')
+    print(
+        f'Missing {missing}/{unmerged_total + merged_total} ({100 * missing / (unmerged_total + merged_total):.03f}%) entries for ALL PRs.')
 
 if __name__ == "__main__":
     dotenv.load_dotenv()
