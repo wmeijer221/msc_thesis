@@ -106,9 +106,9 @@ def generate_dataset(pr_dataset_names: list[str],
 
         # Generates data points if currently dealing with a PR.
         if entry_is_pr:
-            print(new_entry)
             data_point = [feature.get_feature(new_entry)
-                          for feature in all_features]
+                          for feature in all_features
+                          if feature.is_valid_entry(new_entry)]
             yield list(data_point)
 
         # Adds new entry.
