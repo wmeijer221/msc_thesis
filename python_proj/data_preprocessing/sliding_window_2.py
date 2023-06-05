@@ -161,24 +161,25 @@ def sliding_window():
     it to an output file.
 
     Possible arguments:
-    -e:     ecosystem
-    -d:     data source
-    -pd:    input dataset. This is the chronological dataset.
-    -pi:    input dataset. This is the chronological dataset.
-    -o:     name of the outputted training dataset.
-    -w: the size of the used sliding window in days.
+    -e:     ecosystem (optional, default='npm')
+    -d:     data source (optional, default='pull-requests')
+    -pd:    input dataset. This is the chronological dataset (optional, default='').
+    -pi:    input dataset. This is the chronological dataset (optional, default='').
+    -o:     name of the outputted training dataset (optional, default='training_dataset_{today}').
+    -w:     the size of the used sliding window in days (optional, default=None).
     """
 
     exp_utils.load_paths_for_eco()
     exp_utils.load_paths_for_data_path()
 
     # Sets path for chronological input data
-    input_pr_dataset_names = get_argv(key="-pd").split(",")
-    input_issue_dataset_names = get_argv(key='-id').split(",")
+    input_pr_dataset_names = safe_get_argv(key="-pd", default="").split(",")
+    input_issue_dataset_names = safe_get_argv(key='-id', default="").split(",")
 
     # Sets path for output dataset.
+    dt_now = datetime.now().strftime("%d-%m-%Y")
     input_pr_dataset_names = safe_get_argv(
-        key="-o", default=f"training_dataset_{input_pr_dataset_names}")
+        key="-o", default=f"training_dataset_{dt_now}")
     exp_utils.TRAIN_DATASET_PATH(file_name=input_pr_dataset_names)
 
     days = safe_get_argv(key="-w", default=None, data_type=int)
