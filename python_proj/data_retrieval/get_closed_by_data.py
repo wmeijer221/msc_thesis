@@ -136,6 +136,7 @@ def get_closed_by_for_closed_and_unmerged_prs(worker_count: int, output_path: st
                  "issue": task.issue, "closed_by": closed_by}
         r_worker_index = worker_index_offset + worker_index
         r_output_path = output_path.format(worker_index=r_worker_index)
+        print(f'Worker-{worker_index} outputting to: {r_output_path}.')
         with open(r_output_path, "a+") as output_file:
             output_file.write(f"{json.dumps(entry)}\n")
 
@@ -207,17 +208,15 @@ def get_closed_by_data():
 
     mode = safe_get_argv(key='-m', default="r")
     worker_count = safe_get_argv(key="-t", default=3, data_type=int)
+    worker_index_offset = safe_get_argv(key="-wo", default=0, data_type=int)
+    
     match(mode):
         case "r":
-            worker_index_offset = safe_get_argv(
-                key="-wo", default=0, data_type=int)
             get_closed_by_for_closed_and_unmerged_prs(
                 worker_count, temp_data_path, worker_index_offset)
         case "m":
             add_closed_by_data_to_prs(worker_count, temp_data_path)
         case "b":
-            worker_index_offset = safe_get_argv(
-                key="-wo", default=0, data_type=int)
             get_closed_by_for_closed_and_unmerged_prs(
                 worker_count, temp_data_path, worker_index_offset)
             add_closed_by_data_to_prs(worker_count, temp_data_path)
