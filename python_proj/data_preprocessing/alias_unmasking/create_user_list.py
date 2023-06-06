@@ -13,7 +13,7 @@ import python_proj.utils.exp_utils as exp_utils
 from python_proj.utils.util import safe_get
 
 
-def user_list_generator() -> Generator[Tuple[Dict, str], None, None]:
+def user_list_generator() -> Generator[Tuple[Dict, str, str], None, None]:
     for entry in exp_utils.iterate_through_chronological_data():
         owner, repo = exp_utils.get_owner_and_repo_from_source_path(
             entry["__source_path"])
@@ -82,11 +82,15 @@ def create_user_list_csv():
 
 
 def create_user_list_single_entries():
-    unique_users = set(user_list_generator())
+    unique_users = set()
     output_path = exp_utils.BASE_PATH + "/temp/user_ids.csv"
     with open(output_path, "w+") as output_file:
-        for entry in unique_users:
-            str_out = f'{entry["name"]} <{entry["email"]}>\n'
+        for entry in user_list_generator():
+            user = entry[0]
+            if user in unique_users:
+                continue
+            unique_users.add(user)
+            str_out = f'{user["name"]} <{user["email"]}>\n'
             output_file.writelines(str_out)
 
 
