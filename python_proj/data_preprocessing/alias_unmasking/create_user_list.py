@@ -8,6 +8,7 @@ from typing import Generator, Dict, Tuple
 import json
 from os import path, makedirs
 
+from python_proj.utils.arg_utils import safe_get_argv
 import python_proj.utils.exp_utils as exp_utils
 from python_proj.utils.util import safe_get
 
@@ -91,7 +92,7 @@ def create_user_list_single_entries():
 
 if __name__ == "__main__":
     exp_utils.load_paths_for_all_argv()
-    mode = safe_get(key="-m", default="csv")
+    mode = safe_get_argv(key="-m", default="csv")
     match(mode):
         case "csv":
             create_user_list_csv()
