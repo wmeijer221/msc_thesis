@@ -87,7 +87,9 @@ def create_user_list_single_entries():
     with open(output_path, "w+") as output_file:
         for entry in user_list_generator():
             user = entry[0]
-            if user["id"] in unique_users:
+            if user["id"] in unique_users \
+                or "email" not in user \
+                    or "name" not in user:
                 continue
             unique_users.add(user["id"])
             str_out = f'{user["name"]} <{user["email"]}>\n'
