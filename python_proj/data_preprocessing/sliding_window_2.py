@@ -171,7 +171,7 @@ def sliding_window():
     -d:     data source (optional, default='pull-requests')
     -pd:    input dataset. This is the chronological dataset (optional, default='').
     -pi:    input dataset. This is the chronological dataset (optional, default='').
-    -o:     name of the outputted training dataset (optional, default='training_dataset_{today}').
+    -o:     name of the outputted training dataset (optional, default='test_dataset').
     -w:     the size of the used sliding window in days (optional, default=None).
     """
 

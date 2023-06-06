@@ -199,7 +199,7 @@ def iterate_through_multiple_chronological_datasets(dataset_names: list[str], da
     r_dataset_names = [CHRONOLOGICAL_DATASET_PATH(file_name=dataset_name)
                        for dataset_name in dataset_names]
     
-    print(f'Iterating through datasets: {r_dataset_names}')
+    print(f'Iterating through {len(r_dataset_names)} datasets: {r_dataset_names}')
 
     with OpenMany(r_dataset_names, mode="r") as dataset_files:
         dataset_iterators = [__file_iterator(dataset_file)
