@@ -1,7 +1,15 @@
-from datetime import datetime, timedelta
-from typing import Generator, Callable, Tuple, TypeVar, Any
-import itertools
+"""
+Implements a sliding window algorithm used to generate training datasets
+consisting of various intra and ecosystem-wide PR merge predictors. See
+the method at the bottom of this script for the relevant command line
+parameters.
+"""
+
 from csv import writer
+from datetime import datetime, timedelta
+import itertools
+import json
+from typing import Generator, Callable, Tuple, TypeVar, Any
 
 from python_proj.data_preprocessing.sliding_window_features.base import Feature, SlidingWindowFeature
 from python_proj.data_preprocessing.sliding_window_features.control_variables import SLIDING_WINDOW_FEATURES, INTRA_PR_FEATURES
@@ -123,7 +131,7 @@ def generate_dataset(pr_dataset_names: list[str],
                 invalid_entries[feature_name] += 1
 
     # Prints the invalid entries count for bookkeeping.
-    print(f'{invalid_entries=}')
+    print(f'Invalid Entries: {json.dumps(invalid_entries)}')
 
 
 def build_dataset(pr_dataset_names: list[str],

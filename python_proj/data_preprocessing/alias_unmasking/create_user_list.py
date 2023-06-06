@@ -30,7 +30,7 @@ def user_list_generator() -> Generator[Tuple[Dict, str], None, None]:
             raise ex
 
 
-def create_user_list():
+def create_user_list_csv():
     unique_users: dict[str, dict] = {}
     user_to_projects: dict[str, set[str]] = {}
     for (user, owner, repo) in user_list_generator():
@@ -80,6 +80,20 @@ def create_user_list():
                 csv_writer.writerow(user_row)
 
 
+def create_user_list_single_entries():
+    unique_users = set(user_list_generator())
+    output_path = exp_utils.BASE_PATH + "/temp/user_ids.csv"
+    with open(output_path, "w+") as output_file:
+        for entry in unique_users:
+            str_out = f'{entry["name"]} <{entry["email"]}>\n'
+            output_file.writelines(str_out)
+
+
 if __name__ == "__main__":
     exp_utils.load_paths_for_all_argv()
-    create_user_list()
+    mode = safe_get(key="-m", default="csv")
+    match(mode):
+        case "csv":
+            create_user_list_csv()
+        case "single":
+            create_user_list_single_entries()
