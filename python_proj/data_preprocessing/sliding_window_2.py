@@ -7,7 +7,7 @@ from python_proj.data_preprocessing.sliding_window_features.base import Feature,
 from python_proj.data_preprocessing.sliding_window_features.control_variables import SLIDING_WINDOW_FEATURES, INTRA_PR_FEATURES
 from python_proj.data_preprocessing.sliding_window_features.ecosystem_experience import SLIDING_WINDOW_FEATURES as SLIDING_WINDOW_FEATURES_ECO
 import python_proj.utils.exp_utils as exp_utils
-from python_proj.utils.arg_utils import safe_get_argv, get_argv
+from python_proj.utils.arg_utils import safe_get_argv
 
 T = TypeVar("T")
 
@@ -185,9 +185,8 @@ def sliding_window():
                                  if entry != '']
 
     # Sets path for output dataset.
-    dt_now = datetime.now().strftime("%d-%m-%Y")
     output_dataset_name = safe_get_argv(
-        key="-o", default=f"training_dataset_{dt_now}")
+        key="-o", default="test_dataset")
     exp_utils.TRAIN_DATASET_PATH = exp_utils.TRAIN_DATASET_PATH(
         file_name=output_dataset_name)
 
