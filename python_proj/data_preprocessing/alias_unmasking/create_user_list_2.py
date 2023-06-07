@@ -71,10 +71,12 @@ def create_user_list(input_pr_names: list[str],
         'email': 0,
         'login': 0
     }
+    total = 0
     for (user, owner, repo) in user_iterator:
         # Some users don't have an ID.
         if 'id' not in user:
             continue
+        total += 1
         # Traces missing data for bookkeeping.
         for key in key_counter.keys():
             if key in user:
@@ -85,7 +87,8 @@ def create_user_list(input_pr_names: list[str],
             users_per_project[key] = {}
         users_per_project[key][user['id']] = user
 
-    print(f'{key_counter=}')
+    for key, value in key_counter.items():
+        print(f'Missing {value}/{total} ({100*value/total:.03f}%) entries with \"{key}\" field.')
 
     # Write it all to files.
     for (owner, repo), users in users_per_project.items():
