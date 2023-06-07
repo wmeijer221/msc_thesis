@@ -68,7 +68,7 @@ def create_user_list(input_pr_names: list[str], input_issue_names: list[str], ou
         key = (owner, repo)
         if key not in users_per_project:
             users_per_project[key] = {}
-        users_per_project[user['id']] = user
+        users_per_project[key][user['id']] = user
 
     # Write it all to files.
     for (owner, repo), users in users_per_project.items():
