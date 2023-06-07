@@ -50,7 +50,7 @@ def merge_aliases(input_file_path: str,
     aliases = {}
 
     input_data = json.loads(open(input_file_path, 'r').read())
-    input_data = sorted(input_data, key = lambda x: int(x['id']))
+    input_data = sorted(input_data, key=lambda x: int(x['id']))
 
     # Helper structures
     d_email_uid = {}
@@ -88,12 +88,12 @@ def merge_aliases(input_file_path: str,
         user_type = None
         location = None
         try:
-            name = entry['name'].strip() if 'name' in entry else ''
-            email = entry['email'].strip() if 'email' in entry else ''
+            name = entry['name'].strip()
+            email = entry['email'].strip()
         except:
-            # print(f'Failed with {entry}.')
+            print(f'Failed with {entry}.')
             failed += 1
-            # continue
+            continue
             # NOTE: This was ``exit()``. Now it just skips dead entries.
 
         row = [uid, login, '', '', name, email]
@@ -167,7 +167,8 @@ def merge_aliases(input_file_path: str,
             curidx += step
 
     print('Done: helpers')
-    print(f'Failed with {failed}/{total} ({100 * failed/total:.03f}%) entries.')
+    print(
+        f'Failed with {failed}/{total} ({100 * failed/total:.03f}%) entries.')
 
     clues = {}
 
