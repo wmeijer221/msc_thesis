@@ -30,7 +30,12 @@ def user_list_generator_pr(entry: dict) -> Generator[Tuple[Dict, str, str], None
 
 
 def user_list_generator_issue(entry: dict) -> Generator[Tuple[Dict, str, str], None, None]:
-    pass
+    owner, repo = exp_utils.get_owner_and_repo_from_source_path(
+        entry["__source_path"])
+    yield entry["user_data"], owner, repo
+    if entry["comments"] > 0 and "comments_data" in entry:
+        for comment in entry["comments_data"]:
+            yield comment["user_data"], owner, repo
 
 
 def user_list_generator_chronological_datasets(input_pr_names: list[str], input_issue_names: list[str]) -> Generator[Tuple[Dict, str, str], None, None]:
