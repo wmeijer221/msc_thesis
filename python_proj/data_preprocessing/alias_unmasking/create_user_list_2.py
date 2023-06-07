@@ -46,7 +46,7 @@ def user_list_generator_chronological_datasets(input_pr_names: list[str], input_
         all_data_sources, dataset_sources, dataset_sources)
     for entry in dataset_iterator:
         entry_user_iterator = None
-        match entry("__data_type"):
+        match entry["__data_type"]:
             case "pull-requests":
                 entry_user_iterator = user_list_generator_pr(entry)
             case "issues":
