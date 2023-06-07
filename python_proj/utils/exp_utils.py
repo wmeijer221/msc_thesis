@@ -179,12 +179,17 @@ def iterate_through_chronological_data():
                 raise
 
 
-def iterate_through_multiple_chronological_datasets(dataset_names: list[str], dataset_types: list[str]) -> Generator[dict, None, None]:
+def iterate_through_multiple_chronological_datasets(dataset_names: list[str],
+                                                    dataset_types: list[str],
+                                                    data_sources: list[str] | None = None) \
+        -> Generator[dict, None, None]:
     "Assumes partial paths have been loaded up to the specific dataset names."
 
-    if len(dataset_names) != len(dataset_types):
-        raise ValueError("dataset names has different length than dataset types.")
-    
+    # TODO: There is no reason for dataset_types and data_sources to be separate parameters; they represent the same thing.
+    if len(dataset_names) != len(dataset_types) \
+            or (data_sources and len(dataset_names) != len(data_sources)):
+        raise ValueError("input data has different lengths.")
+
     dt_format = "%Y-%m-%dT%H:%M:%SZ"
 
     def __key(entry: dict) -> Number:
@@ -196,10 +201,15 @@ def iterate_through_multiple_chronological_datasets(dataset_names: list[str], da
         for line in file:
             yield json.loads(line.strip())
 
-    r_dataset_names = [CHRONOLOGICAL_DATASET_PATH(file_name=dataset_name)
-                       for dataset_name in dataset_names]
-    
-    print(f'Iterating through {len(r_dataset_names)} datasets: {r_dataset_names}')
+    if data_sources is None:
+        r_dataset_names = [CHRONOLOGICAL_DATASET_PATH(file_name=dataset_name)
+                           for dataset_name in dataset_names]
+    else:
+        r_dataset_names = [CHRONOLOGICAL_DATASET_PATH(file_name=dataset_name, data_type=data_source)
+                           for (dataset_name, data_source) in zip(dataset_names, data_sources)]
+
+    print(
+        f'Iterating through {len(r_dataset_names)} datasets: {r_dataset_names}')
 
     with OpenMany(r_dataset_names, mode="r") as dataset_files:
         dataset_iterators = [__file_iterator(dataset_file)
