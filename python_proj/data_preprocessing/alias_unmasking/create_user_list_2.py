@@ -60,12 +60,12 @@ def create_user_list(input_pr_names: list[str], input_issue_names: list[str], ou
     # Get users per project.
     user_iterator = user_list_generator_chronological_datasets(
         input_pr_names, input_issue_names)
-    users_per_project: dict[Tuple[str, str], list[dict]] = {}
+    users_per_project: dict[Tuple[str, str], dict[dict]] = {}
     for (user, owner, repo) in user_iterator:
         key = (owner, repo)
         if key not in users_per_project:
-            users_per_project[key] = []
-        users_per_project[key].append(user)
+            users_per_project[key] = {}
+        users_per_project[user['id']] = user
 
     # Write it all to files.
     for (owner, repo), users in users_per_project.items():
@@ -76,7 +76,7 @@ def create_user_list(input_pr_names: list[str], input_issue_names: list[str], ou
             makedirs(dirname)
         # File creation
         with open(r_output_path, 'w+') as ouptut_file:
-            ouptut_file.write(json.dumps(users))
+            ouptut_file.write(json.dumps(list(users.values())))
 
 
 if __name__ == "__main__":
