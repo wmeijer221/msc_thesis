@@ -60,7 +60,7 @@ def create_user_list(input_pr_names: list[str], input_issue_names: list[str], ou
     # Get users per project.
     user_iterator = user_list_generator_chronological_datasets(
         input_pr_names, input_issue_names)
-    users_per_project: dict[Tuple[str, str], list[dict]]
+    users_per_project: dict[Tuple[str, str], list[dict]] = {}
     for (user, owner, repo) in user_iterator:
         key = (owner, repo)
         if key not in users_per_project:
