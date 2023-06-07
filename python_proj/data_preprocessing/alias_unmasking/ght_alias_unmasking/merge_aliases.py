@@ -87,9 +87,10 @@ def merge_aliases(input_file_path: str,
         login = entry['login'].strip() if 'login' in entry else ''
         user_type = None
         location = None
+
         try:
-            name = entry['name'].strip()
-            email = entry['email'].strip()
+            name = entry['name'].strip() if 'name' in entry else ''
+            email = entry['email'].strip() if 'email' in entry else ''
         except:
             print(f'Failed with {entry}.')
             failed += 1
@@ -341,7 +342,7 @@ def merge_aliases(input_file_path: str,
             merge(a, b, SIMPLE_NAME)
 
     print('Done: clusters')
-
+    print(json.dumps(clusters))
     for uid, member_uids in clusters.items():
         members = [aliases[m] for m in member_uids]
 
