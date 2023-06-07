@@ -62,6 +62,9 @@ def create_user_list(input_pr_names: list[str], input_issue_names: list[str], ou
         input_pr_names, input_issue_names)
     users_per_project: dict[Tuple[str, str], dict[dict]] = {}
     for (user, owner, repo) in user_iterator:
+        # Some users don't have an ID.
+        if 'id' not in user:
+            continue
         key = (owner, repo)
         if key not in users_per_project:
             users_per_project[key] = {}
