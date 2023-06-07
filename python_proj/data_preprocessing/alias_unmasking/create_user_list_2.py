@@ -51,7 +51,7 @@ def user_list_generator_chronological_datasets(input_pr_names: list[str], input_
             case "issues":
                 return user_list_generator_issue(entry)
             case _:
-                ValueError("Invalid data type")
+                raise ValueError("Invalid data type")
 
 
 def create_user_list(input_pr_names: list[str], input_issue_names: list[str], output_path: partial[str]):
