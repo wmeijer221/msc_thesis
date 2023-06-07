@@ -1,0 +1,1 @@
+The two scripts included here (``alias.py`` and ``merge_aliases.py``) are altered versions of the code contained in https://github.com/bvasiles/ght_unmasking_aliases which is published under a CC0-1.0 license.

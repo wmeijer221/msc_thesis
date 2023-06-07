@@ -38,7 +38,9 @@ def user_list_generator_issue(entry: dict) -> Generator[Tuple[Dict, str, str], N
             yield comment["user_data"], owner, repo
 
 
-def user_list_generator_chronological_datasets(input_pr_names: list[str], input_issue_names: list[str]) -> Generator[Tuple[Dict, str, str], None, None]:
+def user_list_generator_chronological_datasets(input_pr_names: list[str],
+                                               input_issue_names: list[str]) \
+        -> Generator[Tuple[Dict, str, str], None, None]:
     dataset_sources = ["pull-requests"] * len(input_pr_names)
     dataset_sources.extend(["issues"] * len(input_issue_names))
     all_data_sources = [*input_pr_names, *input_issue_names]
@@ -56,19 +58,34 @@ def user_list_generator_chronological_datasets(input_pr_names: list[str], input_
         for user in entry_user_iterator:
             yield user
 
-def create_user_list(input_pr_names: list[str], input_issue_names: list[str], output_path: partial[str]):
+
+def create_user_list(input_pr_names: list[str],
+                     input_issue_names: list[str],
+                     output_path: partial[str]):
     # Get users per project.
     user_iterator = user_list_generator_chronological_datasets(
         input_pr_names, input_issue_names)
     users_per_project: dict[Tuple[str, str], dict[dict]] = {}
+    key_counter = {
+        'name': 0,
+        'email': 0,
+        'login': 0
+    }
     for (user, owner, repo) in user_iterator:
         # Some users don't have an ID.
         if 'id' not in user:
             continue
+        # Traces missing data for bookkeeping.
+        for key in key_counter.keys():
+            if key in user:
+                key_counter[key] += 1
+        # Stores users per projects.
         key = (owner, repo)
         if key not in users_per_project:
             users_per_project[key] = {}
         users_per_project[key][user['id']] = user
+
+    print(f'{key_counter=}')
 
     # Write it all to files.
     for (owner, repo), users in users_per_project.items():
