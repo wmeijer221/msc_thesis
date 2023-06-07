@@ -6,7 +6,7 @@ Ouptut: json files per project containing all of the users of said project.
 from functools import partial
 import json
 from typing import Generator, Dict, Tuple
-from os import path
+from os import path, makedirs
 
 import python_proj.utils.exp_utils as exp_utils
 import python_proj.utils.arg_utils as arg_utils
@@ -73,7 +73,7 @@ def create_user_list(input_pr_names: list[str], input_issue_names: list[str], ou
         # Dir creation.
         dirname = path.dirname(r_output_path)
         if not path.exists(dirname):
-            path.makedirs(dirname)
+            makedirs(dirname)
         # File creation
         with open(r_output_path, 'w+') as ouptut_file:
             ouptut_file.write(json.dumps(users))
