@@ -45,14 +45,16 @@ def user_list_generator_chronological_datasets(input_pr_names: list[str], input_
     dataset_iterator = exp_utils.iterate_through_multiple_chronological_datasets(
         all_data_sources, dataset_sources, dataset_sources)
     for entry in dataset_iterator:
+        entry_user_iterator = None
         match entry("__data_type"):
             case "pull-requests":
-                return user_list_generator_pr(entry)
+                entry_user_iterator = user_list_generator_pr(entry)
             case "issues":
-                return user_list_generator_issue(entry)
+                entry_user_iterator = user_list_generator_issue(entry)
             case _:
                 raise ValueError("Invalid data type")
-
+        for user in entry_user_iterator:
+            yield user
 
 def create_user_list(input_pr_names: list[str], input_issue_names: list[str], output_path: partial[str]):
     # Get users per project.
