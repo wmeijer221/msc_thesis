@@ -80,19 +80,19 @@ def merge_aliases(input_file_path: str,
     failed = 0
     total = 0
 
-    for entry in input_data:
+    for row in input_data:
         total += 1
         # Builds entry.
-        uid = str(entry['id'])
-        login = entry['login'].strip() if 'login' in entry else ''
+        uid = str(row['id'])
+        login = row['login'].strip() if 'login' in row else ''
         user_type = None
         location = None
 
         try:
-            name = entry['name'].strip() if 'name' in entry else ''
-            email = entry['email'].strip() if 'email' in entry else ''
+            name = row['name'].strip() if 'name' in row else ''
+            email = row['email'].strip() if 'email' in row else ''
         except:
-            print(f'Failed with {entry}.')
+            print(f'Failed with {row}.')
             failed += 1
             continue
             # NOTE: This was ``exit()``. Now it just skips dead entries.
@@ -338,11 +338,10 @@ def merge_aliases(input_file_path: str,
             merge(a, b, FULL_NAME)
         elif COMP_EMAIL_PREFIX in list_clues:
             merge(a, b, COMP_EMAIL_PREFIX)
-        elif SIMPLE_NAME in list_clues:
-            merge(a, b, SIMPLE_NAME)
+        # elif SIMPLE_NAME in list_clues:
+        #     merge(a, b, SIMPLE_NAME)
 
     print('Done: clusters')
-    print(json.dumps(clusters))
     for uid, member_uids in clusters.items():
         members = [aliases[m] for m in member_uids]
 
@@ -450,3 +449,15 @@ def merge_aliases(input_file_path: str,
                     unmask[raw[a.uid]] = raw[rep.uid]
 
     pickle.dump(unmask, open(os.path.join(dataPath, 'aliasMap.dict'), 'wb'))
+
+    # Custom output:
+    my_output_path = os.path.join(dataPath, 'identified_pairs.csv')
+    with open(my_output_path, 'w+') as my_output_file:
+        csv_writer = writer(my_output_file)
+        for cluster_index, (uid, member_uids) in enumerate(clusters.items()):
+            members = [aliases[m] for m in member_uids]
+            for (member_a, member_b) in combinations(members, 2):
+                row = [member_a.uid, member_a.name, member_a.email, member_a.login,
+                       member_b.uid, member_b.name, member_b.email, member_b.login,
+                       cluster_index]
+                csv_writer.writerow(row)
