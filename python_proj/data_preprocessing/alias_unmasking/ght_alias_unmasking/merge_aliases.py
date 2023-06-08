@@ -31,7 +31,10 @@ def merge_aliases(input_file_path: str,
                   output_directory: str = './output/',
                   thr_min: int = THR_MIN,
                   thr_max: int = THR_MAX,
-                  min_prefix_length: int = MIN_PREFIX_LENGTH):
+                  min_prefix_length: int = MIN_PREFIX_LENGTH,
+                  require_email: bool = True,
+                  require_name: bool = True,
+                  use_simple_name: bool = True):
     unmask = {}
 
     dataPath = os.path.abspath(output_directory)
@@ -80,22 +83,26 @@ def merge_aliases(input_file_path: str,
     failed = 0
     total = 0
 
-    for row in input_data:
+    for entry in input_data:
         total += 1
         # Builds entry.
-        uid = str(row['id'])
-        login = row['login'].strip() if 'login' in row else ''
+        uid = str(entry['id'])
+        login = entry['login'].strip() if 'login' in entry else ''
         user_type = None
         location = None
 
-        try:
-            name = row['name'].strip() if 'name' in row else ''
-            email = row['email'].strip() if 'email' in row else ''
-        except:
-            print(f'Failed with {row}.')
+        if require_email and 'email' not in entry:
+            print(f'Failed with {entry}.')
             failed += 1
             continue
-            # NOTE: This was ``exit()``. Now it just skips dead entries.
+
+        if require_name and 'name' not in entry:
+            print(f'Failed with {entry}.')
+            failed += 1
+            continue
+
+        name = entry['name'].strip() if 'name' in entry else ''
+        email = entry['email'].strip() if 'email' in entry else ''
 
         row = [uid, login, '', '', name, email]
         raw[uid] = ",".join(row)
@@ -269,7 +276,7 @@ def merge_aliases(input_file_path: str,
                 clues.setdefault((a, b), [])
                 clues[(a, b)].append(SIMPLE_NAME)
 
-    print('Done: full/simple name')
+        print('Done: full/simple name')
 
     for domain, set_uid in d_domain_uid.items():
         if not (len(set_uid) > thr_min
@@ -338,8 +345,8 @@ def merge_aliases(input_file_path: str,
             merge(a, b, FULL_NAME)
         elif COMP_EMAIL_PREFIX in list_clues:
             merge(a, b, COMP_EMAIL_PREFIX)
-        # elif SIMPLE_NAME in list_clues:
-        #     merge(a, b, SIMPLE_NAME)
+        elif use_simple_name and SIMPLE_NAME in list_clues:
+            merge(a, b, SIMPLE_NAME)
 
     print('Done: clusters')
     for uid, member_uids in clusters.items():
@@ -457,7 +464,7 @@ def merge_aliases(input_file_path: str,
         for cluster_index, (uid, member_uids) in enumerate(clusters.items()):
             members = [aliases[m] for m in member_uids]
             for (member_a, member_b) in combinations(members, 2):
-                row = [member_a.uid, member_a.name, member_a.email, member_a.login,
-                       member_b.uid, member_b.name, member_b.email, member_b.login,
-                       cluster_index]
-                csv_writer.writerow(row)
+                entry = [member_a.uid, member_a.name, member_a.email, member_a.login,
+                         member_b.uid, member_b.name, member_b.email, member_b.login,
+                         cluster_index]
+                csv_writer.writerow(entry)

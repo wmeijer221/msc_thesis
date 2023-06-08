@@ -13,7 +13,7 @@ from typing import Generator, Callable, Tuple, TypeVar, Any
 
 from python_proj.data_preprocessing.sliding_window_features.base import Feature, SlidingWindowFeature
 from python_proj.data_preprocessing.sliding_window_features.control_variables import SLIDING_WINDOW_FEATURES, INTRA_PR_FEATURES
-from python_proj.data_preprocessing.sliding_window_features.ecosystem_experience import SLIDING_WINDOW_FEATURES as SLIDING_WINDOW_FEATURES_ECO
+from python_proj.data_preprocessing.sliding_window_features.ecosystem_experience import PR_SLIDING_WINDOW_FEATURES as PR_SLIDING_WINDOW_FEATURES_ECO, ISSUE_SLIDING_WINDOW_FEATURES as ISSUE_SLIDING_WINDOW_FEATURES_ECO
 import python_proj.utils.exp_utils as exp_utils
 from python_proj.utils.arg_utils import safe_get_argv
 
@@ -146,8 +146,8 @@ def build_dataset(pr_dataset_names: list[str],
     # Selects relevant features.
     intra_pr_features = [*INTRA_PR_FEATURES]
     sliding_window_features_pr = [
-        *SLIDING_WINDOW_FEATURES, *SLIDING_WINDOW_FEATURES_ECO]
-    sliding_window_features_issue = []
+        *SLIDING_WINDOW_FEATURES, *PR_SLIDING_WINDOW_FEATURES_ECO]
+    sliding_window_features_issue = [*ISSUE_SLIDING_WINDOW_FEATURES_ECO]
 
     # Creates iterator.
     window_size = None

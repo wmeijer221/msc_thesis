@@ -76,7 +76,53 @@ class SubmitterExperienceEcosystemPullRequestCount(SubmitterExperienceEcosystemP
         return cumulative_success_rate.get_total()
 
 
-SLIDING_WINDOW_FEATURES = [
+class SubmitterExperienceEcosystemIssueSubmissions(SlidingWindowFeature):
+    """
+    Tracks the user's experience in terms of total
+    number of submitted issues.
+    """
+
+    _user_to_issue_submitted_count: dict[int, dict[str, int]] = {}
+
+    def _handle(self, entry: dict, sign: int):
+        # New user.
+        user_id = entry["user_data"]["id"]
+        if user_id not in self._user_to_project_success_rate:
+            self._user_to_project_success_rate[user_id] = {}
+        # New project.
+        project = entry["__source_path"]
+        if project not in self._user_to_project_success_rate[user_id]:
+            self._user_to_project_success_rate[user_id][project] = PullRequestSuccess(
+            )
+        self._user_to_issue_submitted_count[user_id][project] += sign
+
+    def add_entry(self, entry: dict):
+        self._handle(entry, 1)
+
+    def remove_entry(self, entry: dict):
+        self._handle(entry, -1)
+
+    def get_feature(self, entry: dict) -> int:
+        user_id = entry["user_data"]["id"]
+        if user_id not in self._user_to_issue_submitted_count:
+            return 0
+        current_project = entry["__source_path"]
+        total = 0
+        for project, experience in self._user_to_issue_submitted_count[user_id].items():
+            if project == current_project:
+                continue
+            total += experience
+        return experience
+
+    def is_valid_entry(self, entry: dict) -> bool:
+        return has_keys(entry, ['user_data', "__source_path"])
+
+
+PR_SLIDING_WINDOW_FEATURES = [
     SubmitterExperienceEcosystemPullRequestCount(),
     SubmitterExperienceEcosystemPullRequestSuccessRate()
+]
+
+ISSUE_SLIDING_WINDOW_FEATURES = [
+    SubmitterExperienceEcosystemIssueSubmissions(),
 ]
