@@ -144,7 +144,9 @@ class SubmitterEcosystemExperiencePullRequestCommentCount(SlidingWindowFeature):
         has_basics = has_keys(entry, ['comments', '__source_path'])
         if not has_basics:
             return False
-        return has_keys(entry, ['comments_data'])
+        if entry['comments'] > 0:
+            return has_keys(entry, ['comments_data'])
+        return True
 
 
 class SubmitterEcosystemExperienceCommentsOnIssues(SubmitterEcosystemExperiencePullRequestCommentCount):
