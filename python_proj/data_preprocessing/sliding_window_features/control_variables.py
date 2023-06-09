@@ -177,17 +177,6 @@ class PullRequestHasCommentByExternalUser(Feature):
         return has_sub_keys
 
 
-class CIPipelineExists(Feature):
-    """Returns true when the repository has CI available."""
-    # TODO: Implement this once data is available.
-
-    def get_feature(self, entry: dict) -> Any:
-        raise NotImplementedError()
-
-    def is_valid_entry(self, entry: dict) -> bool:
-        return False
-
-
 class HasHashTagInDescription(Feature):
     """Whether the title or the body contain a #; i.e., a reference to an issue."""
 
@@ -213,7 +202,6 @@ INTRA_PR_FEATURES: list[Feature] = [
     PullRequestHasComments(),               # has_comments
     NumberOfCommitsInPullRequest(),         # num_commits
     PullRequestHasCommentByExternalUser(),  # other_comment
-    #  CIPipelineExists(), # TODO: THIS       # ci_exists
     HasHashTagInDescription()               # hash_tag
 ]
 

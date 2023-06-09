@@ -1,10 +1,14 @@
+"""
+Implements the features tracking the ecosystem experience of an individual;
+i.e., the experience they acquired through submitting PRs, issues, and comments.
+"""
 
 from typing import Any
-from python_proj.data_preprocessing.sliding_window_features.base import *
-from python_proj.utils.util import has_keys
+from python_proj.data_preprocessing.sliding_window_features.base import SlidingWindowFeature, PullRequestSuccess
+from python_proj.utils.util import has_keys, SafeDict
 
 
-class SubmitterExperienceEcosystemPullRequestSuccessRate(SlidingWindowFeature):
+class SubmitterEcosystemExperiencePullRequestSuccessRate(SlidingWindowFeature):
     """
     Calculates the experience of the pull request submitter in terms of 
     pull request success rate inside the ecosystem, excluding intra-project experience.
@@ -65,7 +69,7 @@ class SubmitterExperienceEcosystemPullRequestSuccessRate(SlidingWindowFeature):
         return has_keys(entry, ["user_data", "__source_path", "merged"])
 
 
-class SubmitterExperienceEcosystemPullRequestCount(SubmitterExperienceEcosystemPullRequestSuccessRate):
+class SubmitterEcosystemExperiencePullRequestCount(SubmitterEcosystemExperiencePullRequestSuccessRate):
     """
     Calculates the experience of a developer using the total number of pull requests submitted
     in the ecosystem, excluding intra-project pull requests.
@@ -76,13 +80,13 @@ class SubmitterExperienceEcosystemPullRequestCount(SubmitterExperienceEcosystemP
         return cumulative_success_rate.get_total()
 
 
-class SubmitterExperienceEcosystemIssueSubmissions(SlidingWindowFeature):
+class SubmitterEcosystemExperienceIssueSubmissions(SlidingWindowFeature):
     """
     Tracks the user's experience in terms of total
     number of submitted issues.
     """
 
-    _user_to_issue_submitted_count: dict[int, dict[str, int]] = {}
+    _user_to_project_issue_submitted_count: dict[int, dict[str, int]] = {}
 
     def _handle(self, entry: dict, sign: int):
         # New user.
@@ -94,7 +98,7 @@ class SubmitterExperienceEcosystemIssueSubmissions(SlidingWindowFeature):
         if project not in self._user_to_project_success_rate[user_id]:
             self._user_to_project_success_rate[user_id][project] = PullRequestSuccess(
             )
-        self._user_to_issue_submitted_count[user_id][project] += sign
+        self._user_to_project_issue_submitted_count[user_id][project] += sign
 
     def add_entry(self, entry: dict):
         self._handle(entry, 1)
@@ -104,11 +108,11 @@ class SubmitterExperienceEcosystemIssueSubmissions(SlidingWindowFeature):
 
     def get_feature(self, entry: dict) -> int:
         user_id = entry["user_data"]["id"]
-        if user_id not in self._user_to_issue_submitted_count:
+        if user_id not in self._user_to_project_issue_submitted_count:
             return 0
         current_project = entry["__source_path"]
         total = 0
-        for project, experience in self._user_to_issue_submitted_count[user_id].items():
+        for project, experience in self._user_to_project_issue_submitted_count[user_id].items():
             if project == current_project:
                 continue
             total += experience
@@ -118,11 +122,61 @@ class SubmitterExperienceEcosystemIssueSubmissions(SlidingWindowFeature):
         return has_keys(entry, ['user_data', "__source_path"])
 
 
+class SubmitterEcosystemExperiencePullRequestCommentCount(SlidingWindowFeature):
+    """Counts the number of times a person has commented on a pull request."""
+
+    _user_to_project_pr_comment_count: SafeDict[int, SafeDict[str, int]] = SafeDict(
+        default_value=SafeDict,
+        default_value_constructor_kwargs={'default_value': 0})
+
+    def _handle(self, entry: dict, sign: int):
+        if entry["comments"] == 0:
+            return
+
+        project = entry["__source_path"]
+        for comment in entry["comments_data"]:
+            commenter = comment["user_data"]
+            commenter_id = commenter['id']
+            self._user_to_project_pr_comment_count[commenter_id][project] += sign
+
+    def add_entry(self, entry: dict):
+        self._handle(entry, 1)
+
+    def remove_entry(self, entry: dict):
+        self._handle(entry, -1)
+
+    def get_feature(self, entry: dict) -> int:
+        user_id = entry["user_data"]["id"]
+        current_project = entry["__source_path"]
+        total = 0
+        for project, experience in self._user_to_project_pr_comment_count[user_id].items():
+            if project == current_project:
+                continue
+            total += experience
+        return experience
+
+    def is_valid_entry(self, entry: dict) -> bool:
+        has_basics = has_keys(entry, ['comments', '__source_path'])
+        if not has_basics:
+            return False
+        return has_keys(entry, ['comments_data'])
+
+
+class SubmitterEcosystemExperienceCommentsOnIssues(SubmitterEcosystemExperiencePullRequestCommentCount):
+    """
+    The handled datastructure is exactly the same as that for PRs,
+    so there is no need whatsoever to re-implement this behaviour for issues.
+    The class is just here to ensure the feature has a different name.
+    """
+
+
 PR_SLIDING_WINDOW_FEATURES = [
-    SubmitterExperienceEcosystemPullRequestCount(),
-    SubmitterExperienceEcosystemPullRequestSuccessRate()
+    SubmitterEcosystemExperiencePullRequestCount(),
+    SubmitterEcosystemExperiencePullRequestSuccessRate(),
+    SubmitterEcosystemExperiencePullRequestCommentCount(),
 ]
 
 ISSUE_SLIDING_WINDOW_FEATURES = [
-    SubmitterExperienceEcosystemIssueSubmissions(),
+    SubmitterEcosystemExperienceIssueSubmissions(),
+    SubmitterEcosystemExperienceCommentsOnIssues(),
 ]

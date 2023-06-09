@@ -118,3 +118,33 @@ def ordered_chain(iterables: list[Generator[T, None, None]],
         except StopIteration:
             stop_iterations += 1
             current_elements[current_idx] = None
+
+
+class SafeDict(dict):
+    """
+    Standard dictionary data structure that adds a 
+    default value to a key if none exists.
+    """
+    __default_value = None
+    __get_default_value: Callable[[], object]
+
+    def __init__(self, default_value, default_value_constructor_args=[],
+                 default_value_constructor_kwargs={}, *args, **kwargs):
+        self.__default_value = default_value
+        self.__default_value_constructor_args = default_value_constructor_args
+        self.__default_value_constructor_kwargs = default_value_constructor_kwargs
+
+        if type(default_value) == type:
+            self.__get_default_value = lambda: self.__default_value(
+                *self.__default_value_constructor_args,
+                **self.__default_value_constructor_kwargs)
+        else:
+            self.__get_default_value = lambda: self.__default_value
+
+        super().__init__(*args, **kwargs)
+
+    def __getitem__(self, __key) -> None:
+        if not __key in self:
+            value = self.__get_default_value()
+            super().__setitem__(__key, value)
+        return super().__getitem__(__key)
