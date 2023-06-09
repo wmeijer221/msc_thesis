@@ -122,14 +122,25 @@ def ordered_chain(iterables: list[Generator[T, None, None]],
 
 class SafeDict(dict):
     """
-    Standard dictionary data structure that adds a 
-    default value to a key if none exists.
+    Standard dictionary data structure that adds a default value to a key if it doesn't exist yet.
     """
+
     __default_value = None
     __get_default_value: Callable[[], object]
 
     def __init__(self, default_value, default_value_constructor_args=[],
                  default_value_constructor_kwargs={}, *args, **kwargs):
+        """
+        :param default_value: the default value for entries. 
+        If this is a ``type``, it will call said type's constructor.
+        :param default_value_constructor_args: The constructor arguments for the default value.
+        Only relevant if its constructor is called.
+        :param default_value_constructor_kwargs: Named constructor arguments for the default value.
+        Only relevant if its constructor is called.
+        :param *args, **kwargs: Constructor arguments for the inner datastructure of the dictionary.
+        These can be anything that can be passed to the constructor of a ``dict``.
+        """
+
         self.__default_value = default_value
         self.__default_value_constructor_args = default_value_constructor_args
         self.__default_value_constructor_kwargs = default_value_constructor_kwargs

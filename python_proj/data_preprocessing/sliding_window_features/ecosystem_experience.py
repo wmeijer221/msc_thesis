@@ -14,20 +14,14 @@ class SubmitterEcosystemExperiencePullRequestSuccessRate(SlidingWindowFeature):
     pull request success rate inside the ecosystem, excluding intra-project experience.
     """
 
-    _user_to_project_success_rate: dict[int,
-                                        dict[str, PullRequestSuccess]] = {}
+    _user_to_project_success_rate: SafeDict[str, SafeDict[str, PullRequestSuccess]] = SafeDict(
+        default_value=SafeDict,
+        default_value_constructor_kwargs={'default_value': PullRequestSuccess})
 
     def __handle(self, entry: dict, sign: int):
         # New user.
         user_id = entry["user_data"]["id"]
-        if user_id not in self._user_to_project_success_rate:
-            self._user_to_project_success_rate[user_id] = {}
-        # New project.
         project = entry["__source_path"]
-        if project not in self._user_to_project_success_rate[user_id]:
-            self._user_to_project_success_rate[user_id][project] = PullRequestSuccess(
-            )
-        # Handles entry
         if entry["merged"]:
             self._user_to_project_success_rate[user_id][project].merged += sign
         else:
@@ -49,13 +43,9 @@ class SubmitterEcosystemExperiencePullRequestSuccessRate(SlidingWindowFeature):
         cumulative_success_rate = PullRequestSuccess()
 
         user_id = entry["user_data"]["id"]
-        if user_id not in self._user_to_project_success_rate:
-            return cumulative_success_rate
         current_project = entry["__source_path"]
         for project_key, success_rate in self._user_to_project_success_rate[user_id].items():
             if project_key == current_project:
-                # Ignores all intra-project experience to
-                # emphasize ecosystem experience.
                 continue
             cumulative_success_rate.merged += success_rate.merged
             cumulative_success_rate.unmerged += success_rate.unmerged
@@ -86,19 +76,16 @@ class SubmitterEcosystemExperienceIssueSubmissions(SlidingWindowFeature):
     number of submitted issues.
     """
 
-    _user_to_project_issue_submitted_count: dict[int, dict[str, int]] = {}
+    _user_to_project_success_rate: SafeDict[int, SafeDict[str, int]] = SafeDict(
+        default_value=SafeDict,
+        default_value_constructor_kwargs={'default_value': 0}
+    )
 
     def _handle(self, entry: dict, sign: int):
         # New user.
         user_id = entry["user_data"]["id"]
-        if user_id not in self._user_to_project_success_rate:
-            self._user_to_project_success_rate[user_id] = {}
-        # New project.
         project = entry["__source_path"]
-        if project not in self._user_to_project_success_rate[user_id]:
-            self._user_to_project_success_rate[user_id][project] = PullRequestSuccess(
-            )
-        self._user_to_project_issue_submitted_count[user_id][project] += sign
+        self._user_to_project_success_rate[user_id][project] += sign
 
     def add_entry(self, entry: dict):
         self._handle(entry, 1)
@@ -108,15 +95,13 @@ class SubmitterEcosystemExperienceIssueSubmissions(SlidingWindowFeature):
 
     def get_feature(self, entry: dict) -> int:
         user_id = entry["user_data"]["id"]
-        if user_id not in self._user_to_project_issue_submitted_count:
-            return 0
         current_project = entry["__source_path"]
-        total = 0
-        for project, experience in self._user_to_project_issue_submitted_count[user_id].items():
+        total_experience = 0
+        for project, experience in self._user_to_project_success_rate[user_id].items():
             if project == current_project:
                 continue
-            total += experience
-        return experience
+            total_experience += experience
+        return total_experience
 
     def is_valid_entry(self, entry: dict) -> bool:
         return has_keys(entry, ['user_data', "__source_path"])
@@ -148,12 +133,12 @@ class SubmitterEcosystemExperiencePullRequestCommentCount(SlidingWindowFeature):
     def get_feature(self, entry: dict) -> int:
         user_id = entry["user_data"]["id"]
         current_project = entry["__source_path"]
-        total = 0
+        total_experience = 0
         for project, experience in self._user_to_project_pr_comment_count[user_id].items():
             if project == current_project:
                 continue
-            total += experience
-        return experience
+            total_experience += experience
+        return total_experience
 
     def is_valid_entry(self, entry: dict) -> bool:
         has_basics = has_keys(entry, ['comments', '__source_path'])

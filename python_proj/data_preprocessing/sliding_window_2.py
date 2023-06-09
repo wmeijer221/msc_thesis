@@ -19,6 +19,9 @@ from python_proj.utils.arg_utils import safe_get_argv
 
 T = TypeVar("T")
 
+PR = 'pull-requests'
+ISSUE = 'issues'
+
 
 def slide_through_window(iterator: Generator[T, None, None],
                          key: Callable[[T], datetime],
@@ -74,11 +77,11 @@ def generate_dataset(pr_dataset_names: list[str],
 
     dataset_names = list(itertools.chain(
         pr_dataset_names, issue_dataset_names))
-    dataset_types = ["pr" if i < len(pr_dataset_names)
-                     else "issue"
+    dataset_types = [PR if i < len(pr_dataset_names)
+                     else ISSUE
                      for i in range(len(dataset_names))]
     dataset_iterator = exp_utils.iterate_through_multiple_chronological_datasets(
-        dataset_names, dataset_types)
+        dataset_names, dataset_types, dataset_types)
 
     def __get_closed_by(entry: dict) -> datetime:
         closed_by = entry["closed_by"]
@@ -103,7 +106,7 @@ def generate_dataset(pr_dataset_names: list[str],
         dataset_iterator, __get_closed_by, window_size)
     for pruned_entries, new_entry in window_iterator:
         # Selects relevant sliding features.
-        entry_is_pr = new_entry["__data_type"] == "pr"
+        entry_is_pr = new_entry["__data_type"] == PR
         sliding_features = pr_features if entry_is_pr else issue_features
 
         # Removes pruned entries.
@@ -176,15 +179,13 @@ def sliding_window():
 
     Possible arguments:
     -e:     ecosystem (optional, default='npm')
-    -d:     data source (optional, default='pull-requests')
-    -pd:    input dataset. This is the chronological dataset (optional, default='').
-    -pi:    input dataset. This is the chronological dataset (optional, default='').
+    -pd:    pull request input dataset. This is the chronological dataset (optional, default='').
+    -id:    issues input dataset. This is the chronological dataset (optional, default='').
     -o:     name of the outputted training dataset (optional, default='test_dataset').
     -w:     the size of the used sliding window in days (optional, default=None).
     """
 
     exp_utils.load_paths_for_eco()
-    exp_utils.load_paths_for_data_path()
 
     # Sets path for chronological input data
     input_pr_dataset_names = [entry for entry in safe_get_argv(key="-pd", default="").split(",")

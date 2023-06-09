@@ -6,6 +6,19 @@ from python_proj.utils.exp_utils import get_integrator_key
 from python_proj.utils.util import safe_contains_key, has_keys
 
 
+class IsMerged(Feature):
+    """
+    Whether the PR is merged. 
+    Not a control variable, but I had to put it somewhere.
+    """
+
+    def get_feature(self, entry: dict) -> bool:
+        return entry["merged"]
+
+    def is_valid_entry(self, entry: dict) -> bool:
+        return "merged" in entry
+
+
 class IntegratedBySameUser(Feature):
     """Whether the PR is integrated by the same person."""
 
@@ -197,6 +210,7 @@ SLIDING_WINDOW_FEATURES: list[SlidingWindowFeature] = [
 ]
 
 INTRA_PR_FEATURES: list[Feature] = [
+    IsMerged(),
     IntegratedBySameUser(),                 # same_user
     PullRequestLifeTimeInMinutes(),         # lifetime_minutes
     PullRequestHasComments(),               # has_comments

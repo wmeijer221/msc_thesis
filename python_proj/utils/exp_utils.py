@@ -32,7 +32,7 @@ CHRONOLOGICAL_DATASET_PATH: str | partial[
 FIGURE_PATH = BASE_PATH + \
     "figures/demographics/{eco}/{data_source}/{file_name}/{figure_name}.png"
 TRAIN_DATASET_PATH = BASE_PATH + \
-    "libraries/{eco}-libraries-1.6.0-2020-01-12/{data_source}/{file_name}.csv"
+    "libraries/{eco}-libraries-1.6.0-2020-01-12/{file_name}.csv"
 
 LIBRARIES_IO_DATASET_END_DATE = datetime(year=2020, month=1, day=12)
 
