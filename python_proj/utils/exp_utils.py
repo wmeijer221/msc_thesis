@@ -168,9 +168,15 @@ def get_file_name(file_name_key: str = FILE_NAME_KEY):
     return safe_get_argv(file_name_key, default="sorted")
 
 
-def iterate_through_chronological_data():
-    print(f'Iterating through "{CHRONOLOGICAL_DATASET_PATH}".')
-    with open(CHRONOLOGICAL_DATASET_PATH, "r") as input_file:
+def iterate_through_chronological_data(data_type=None,
+                                       file_name=None):
+    if not data_type is None and not file_name is None:
+        input_path = CHRONOLOGICAL_DATASET_PATH(
+            data_type=data_type, file_name=file_name)
+    else:
+        input_path = CHRONOLOGICAL_DATASET_PATH
+    print(f'Iterating through "{input_path}".')
+    with open(input_path, "r") as input_file:
         for line in input_file:
             try:
                 yield json.loads(line.strip())
@@ -181,7 +187,8 @@ def iterate_through_chronological_data():
 
 def iterate_through_multiple_chronological_datasets(dataset_names: list[str],
                                                     dataset_types: list[str],
-                                                    data_sources: list[str] | None = None) \
+                                                    data_sources: list[str] | None = None,
+                                                    print_progress_interval: int = 50000) \
         -> Generator[dict, None, None]:
     "Assumes partial paths have been loaded up to the specific dataset names."
 
@@ -214,7 +221,10 @@ def iterate_through_multiple_chronological_datasets(dataset_names: list[str],
     with OpenMany(r_dataset_names, mode="r") as dataset_files:
         dataset_iterators = [__file_iterator(dataset_file)
                              for dataset_file in dataset_files]
-        for file_idx, entry in ordered_chain(dataset_iterators, key=__key):
+        for index, (file_idx, entry) in enumerate(ordered_chain(dataset_iterators, key=__key)):
+            if index % print_progress_interval == 0:
+                print(
+                    f'Iterating through {index + 1}st chronological data entry.')
             dataset_type = dataset_types[file_idx]
             entry["__data_type"] = dataset_type
             yield entry

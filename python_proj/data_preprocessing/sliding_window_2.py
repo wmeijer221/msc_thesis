@@ -12,10 +12,12 @@ import json
 from typing import Generator, Callable, Tuple, TypeVar, Any
 
 from python_proj.data_preprocessing.sliding_window_features.base import Feature, SlidingWindowFeature
-from python_proj.data_preprocessing.sliding_window_features.control_variables import SLIDING_WINDOW_FEATURES, INTRA_PR_FEATURES
-from python_proj.data_preprocessing.sliding_window_features.ecosystem_experience import PR_SLIDING_WINDOW_FEATURES as PR_SLIDING_WINDOW_FEATURES_ECO, ISSUE_SLIDING_WINDOW_FEATURES as ISSUE_SLIDING_WINDOW_FEATURES_ECO
+from python_proj.data_preprocessing.sliding_window_features.control_variables import CONTROL_PR_SW_FEATURES, CONTROL_PR_FEATURES
+from python_proj.data_preprocessing.sliding_window_features.ecosystem_experience import ECO_EXP_PR_SW_FEATURES, ECO_EXP_ISSUE_SW_FEATURES
+from python_proj.data_preprocessing.sliding_window_features.sna_experience import SNA_PR_SW_FEATURES, SNA_PR_FEATURES, SNA_ISSUE_SW_FEATURES
 import python_proj.utils.exp_utils as exp_utils
 from python_proj.utils.arg_utils import safe_get_argv
+from python_proj.utils.util import *
 
 T = TypeVar("T")
 
@@ -63,6 +65,25 @@ def slide_through_window(iterator: Generator[T, None, None],
         window[new_entry_date].append(new_entry)
 
 
+def __get_preamble(entry: dict) -> list:
+    (owner, repo) = exp_utils.get_owner_and_repo_from_source_path(
+        entry['__source_path'])
+    project = f'{owner}/{repo}'
+    closed_at = entry['closed_at']
+    return [entry['id'],  project, entry['number'], closed_at]
+
+
+def __get_features():
+    intra_pr_features = [*CONTROL_PR_FEATURES,
+                         *SNA_PR_FEATURES]
+    sliding_window_features_pr = [*CONTROL_PR_SW_FEATURES,
+                                  *ECO_EXP_PR_SW_FEATURES,
+                                  *SNA_PR_SW_FEATURES]
+    sliding_window_features_issue = [*ECO_EXP_ISSUE_SW_FEATURES,
+                                     *SNA_ISSUE_SW_FEATURES]
+    return intra_pr_features, sliding_window_features_pr, sliding_window_features_issue
+
+
 def generate_dataset(pr_dataset_names: list[str],
                      issue_dataset_names: list[str],
                      intra_pr_features: list[Feature],
@@ -95,11 +116,8 @@ def generate_dataset(pr_dataset_names: list[str],
 
     # Generates header.
     header = [feature.get_name() for feature in all_features]
+    header = ["ID", "Project Name", "PR Number", "Closed At", *header]
     yield list(header)
-
-    # Used to track the number of invalid entries.
-    invalid_entries: dict[str, int] = {
-        feature.get_name(): 0 for feature in all_features}
 
     # Iterates through window, updating features on the go.
     window_iterator = slide_through_window(
@@ -112,29 +130,21 @@ def generate_dataset(pr_dataset_names: list[str],
         # Removes pruned entries.
         for feature in sliding_features:
             for pruned_entry in pruned_entries:
-                if feature.is_valid_entry(pruned_entry):
-                    feature.remove_entry(pruned_entry)
+                feature.remove_entry(pruned_entry)
 
         # Generates data points if currently dealing with a PR.
         if entry_is_pr:
             data_point = []
             for feature in all_features:
-                if feature.is_valid_entry(new_entry):
-                    feature_value = feature.get_feature(new_entry)
-                    data_point.append(feature_value)
-            yield list(data_point)
+                feature_value = feature.get_feature(new_entry)
+                data_point.append(feature_value)
+            # Appends meta data to the entry for bookkeeping.
+            preamble = __get_preamble(new_entry)
+            yield [*preamble, *data_point]
 
         # Adds new entry.
         for feature in sliding_features:
-            if feature.is_valid_entry(new_entry):
-                feature.add_entry(new_entry)
-            else:
-                # Updates the invalid entries count for bookkeeping.
-                feature_name = feature.get_name()
-                invalid_entries[feature_name] += 1
-
-    # Prints the invalid entries count for bookkeeping.
-    print(f'Invalid Entries: {json.dumps(invalid_entries)}')
+            feature.add_entry(new_entry)
 
 
 def build_dataset(pr_dataset_names: list[str],
@@ -147,10 +157,7 @@ def build_dataset(pr_dataset_names: list[str],
     """
 
     # Selects relevant features.
-    intra_pr_features = [*INTRA_PR_FEATURES]
-    sliding_window_features_pr = [
-        *SLIDING_WINDOW_FEATURES, *PR_SLIDING_WINDOW_FEATURES_ECO]
-    sliding_window_features_issue = [*ISSUE_SLIDING_WINDOW_FEATURES_ECO]
+    intra_pr_features, sliding_window_features_pr, sliding_window_features_issue = __get_features()
 
     # Creates iterator.
     window_size = None
@@ -201,8 +208,74 @@ def sliding_window():
 
     days = safe_get_argv(key="-w", default=None, data_type=int)
 
+    start_time = datetime.now()
+
     build_dataset(input_pr_dataset_names, input_issue_dataset_names, days)
+
+    end_time = datetime.now()
+    delta_time = end_time - start_time
+    print(f'Ran from {start_time} till {end_time} ({delta_time}).')
+
+
+def remove_invalid_entries():
+    """
+    Removes invalid entries from the dataset. These are entries that
+    cannot be processed by any of the selected features.
+    """
+
+    exp_utils.load_paths_for_eco()
+
+    # Sets path for chronological input data
+    input_pr_dataset_names = [entry for entry in safe_get_argv(key="-pd", default="").split(",")
+                              if entry != '']
+    input_issue_dataset_names = [entry for entry in safe_get_argv(key='-id', default="").split(",")
+                                 if entry != '']
+
+    intra_pr_features, sliding_window_features_pr, sliding_window_features_issue = __get_features()
+    pr_features = [*intra_pr_features, *sliding_window_features_pr]
+
+    def __remove_invalid_entries(data_type: str, dataset_names: list[str], features: list[Feature]):
+        for dataset_name in dataset_names:
+            data_iterator = exp_utils.iterate_through_chronological_data(
+                data_type=data_type, file_name=dataset_name)
+            output_file_name = f"{dataset_name}_no_invalid"
+            output_path = exp_utils.CHRONOLOGICAL_DATASET_PATH(
+                data_type=data_type, file_name=output_file_name)
+            print(f'Outputting in {output_path}')
+            removed_count = 0
+            invalid_entries = SafeDict(default_value=0)
+            with open(output_path, "w+") as output_file:
+                for entry in data_iterator:
+                    is_valid = True
+                    for feature in features:
+                        if not feature.is_valid_entry(entry):
+                            is_valid = False
+                            # Bookkeeping of why something is removed.
+                            invalid_entries[feature.get_name()] += 1
+                    # Outputs valid entries.
+                    if is_valid:
+                        output_file.write(f'{json.dumps(entry)}\n')
+                    else:
+                        removed_count += 1
+            print(
+                f'Removed {removed_count} in {data_type}/{dataset_name} because:')
+            print(json.dumps(invalid_entries, indent=4))
+
+    __remove_invalid_entries(data_type='pull-requests',
+                             dataset_names=input_pr_dataset_names,
+                             features=pr_features)
+    __remove_invalid_entries(data_type='issues',
+                             dataset_names=input_issue_dataset_names,
+                             features=sliding_window_features_issue)
 
 
 if __name__ == "__main__":
-    sliding_window()
+    mode = safe_get_argv(key='-m', default='s')
+    print(f'Starting in mode: {mode}.')
+    match(mode):
+        case 's':
+            sliding_window()
+        case 'r':
+            remove_invalid_entries()
+        case _:
+            ValueError(f"Invalid mode {mode}.")

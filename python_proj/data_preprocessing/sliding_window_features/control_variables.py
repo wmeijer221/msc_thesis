@@ -58,7 +58,9 @@ class IntraProjectPullRequestExperienceOfIntegrator(SlidingWindowFeature):
     """Experience of the integrated measured in pull requests
     they handled inside the project (i.e., intra-project)."""
 
-    __projects_to_integrator_experience: dict[str, dict[int, int]] = {}
+    def __init__(self) -> None:
+        self.__projects_to_integrator_experience: dict[str, dict[int, int]] = {
+        }
 
     def handle(self, entry: dict, sign: int):
         project = entry["__source_path"]
@@ -99,7 +101,7 @@ class PullRequestHasComments(Feature):
         return entry["comments"] > 0
 
     def is_valid_entry(self, entry: dict) -> bool:
-        return has_keys(entry, "comments")
+        return has_keys(entry, ["comments"])
 
 
 class NumberOfCommitsInPullRequest(Feature):
@@ -118,8 +120,9 @@ class IntraProjectPullRequestSuccessRateSubmitter(SlidingWindowFeature):
     as these two variables correlate (Zhang, 2022) and this feature is
     easier to calculate."""
 
-    __projects_to_integrator_experience: dict[str,
-                                              dict[int, PullRequestSuccess]] = {}
+    def __init__(self) -> None:
+        self.__projects_to_integrator_experience: dict[str,
+                                                       dict[int, PullRequestSuccess]] = {}
 
     def handle(self, entry: dict, sign: int):
         project = entry["__source_path"]
@@ -183,9 +186,12 @@ class PullRequestHasCommentByExternalUser(Feature):
     def is_valid_entry(self, entry: dict) -> bool:
         integrator_key = get_integrator_key(entry)
         has_main_keys = has_keys(
-            entry, ["comments", "comments_data", "user_data", integrator_key])
+            entry, ["comments", "user_data", integrator_key])
         if not has_main_keys:
             return False
+        if entry['comments'] > 0:
+            if not has_keys(entry, ["comments_data"]):
+                return False
         has_sub_keys = has_keys(entry[integrator_key], ["id"])
         return has_sub_keys
 
@@ -202,14 +208,14 @@ class HasHashTagInDescription(Feature):
         return has_keys(entry, ["title"])
 
 
-SLIDING_WINDOW_FEATURES: list[SlidingWindowFeature] = [
+CONTROL_PR_SW_FEATURES: list[SlidingWindowFeature] = [
     # prior_review_num
     IntraProjectPullRequestExperienceOfIntegrator(),
     # requester_succ_rate; core_member proxy
     IntraProjectPullRequestSuccessRateSubmitter()
 ]
 
-INTRA_PR_FEATURES: list[Feature] = [
+CONTROL_PR_FEATURES: list[Feature] = [
     IsMerged(),
     IntegratedBySameUser(),                 # same_user
     PullRequestLifeTimeInMinutes(),         # lifetime_minutes
@@ -220,6 +226,6 @@ INTRA_PR_FEATURES: list[Feature] = [
 ]
 
 ALL_FEATURES: list[Feature] = [
-    *SLIDING_WINDOW_FEATURES,
-    *INTRA_PR_FEATURES
+    *CONTROL_PR_SW_FEATURES,
+    *CONTROL_PR_FEATURES
 ]

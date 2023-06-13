@@ -38,10 +38,23 @@ def get_nested(obj: dict, key: list[str]) -> Any | None:
     """
 
     current = obj
-    for key in key:
-        if not key in current:
+    for key_element in key:
+        if not key_element in current:
             return None
-        current = current[key]
+        current = current[key_element]
+    return current
+
+
+def get_nested_many(obj: dict, key: list[str]) -> list[Any] | Any | None:
+    """Same idea as ``get_nested``, however, when a variable is a list it iterates through all of them."""
+    current = obj
+    for key_index, key_element in enumerate(key):
+        if isinstance(current, list):
+            return [get_nested_many(element, key[key_index:])
+                    for element in current]
+        if not key_element in current:
+            return None
+        current = current[key_element]
     return current
 
 
@@ -125,30 +138,30 @@ class SafeDict(dict):
     Standard dictionary data structure that adds a default value to a key if it doesn't exist yet.
     """
 
-    __default_value = None
-    __get_default_value: Callable[[], object]
-
     def __init__(self, default_value, default_value_constructor_args=[],
                  default_value_constructor_kwargs={}, *args, **kwargs):
         """
         :param default_value: the default value for entries. 
-        If this is a ``type``, it will call said type's constructor.
+        If this is a ``type``, it will call said type's constructor, and if it's callable, it will call it.
         :param default_value_constructor_args: The constructor arguments for the default value.
-        Only relevant if its constructor is called.
+        Only relevant if its constructor is called or the default value is callable.
         :param default_value_constructor_kwargs: Named constructor arguments for the default value.
         Only relevant if its constructor is called.
         :param *args, **kwargs: Constructor arguments for the inner datastructure of the dictionary.
         These can be anything that can be passed to the constructor of a ``dict``.
         """
 
-        self.__default_value = default_value
-        self.__default_value_constructor_args = default_value_constructor_args
-        self.__default_value_constructor_kwargs = default_value_constructor_kwargs
+        self.__default_value: Any = default_value
+        self.__default_value_constructor_args: list = default_value_constructor_args
+        self.__default_value_constructor_kwargs: dict = default_value_constructor_kwargs
 
-        if type(default_value) == type:
+        if isinstance(default_value, type):
             self.__get_default_value = lambda: self.__default_value(
                 *self.__default_value_constructor_args,
                 **self.__default_value_constructor_kwargs)
+        elif isinstance(default_value, Callable):
+            self.__get_default_value = lambda: self.__default_value(*self.__default_value_constructor_args,
+                                                                    **self.__default_value_constructor_kwargs)
         else:
             self.__get_default_value = lambda: self.__default_value
 
