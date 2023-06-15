@@ -9,7 +9,7 @@ python3 ./python_proj/data_preprocessing/sliding_window_2.py \
     
     
 python3 ./python_proj/modelling/data_distribution_2.py
-cd ./data/figures/data_distribution_2/
+cd /data/s4509412/data/data/figures/data_distribution_2/
 mkdir ./all
 mv ./*.png ./all/
 cd ../../..
@@ -22,10 +22,10 @@ do
         -pd sorted_filtered_focal_to_other_complete,sorted_filtered_other_to_focal_sample_1_complete,sorted_other_to_focal_sample_2_complete,sorted_filtered_core_complete \
         -id sorted_filtered_issues_core,sorted_filtered_issues_core_to_other,sorted_filtered_other_to_core_sample_1,sorted_filtered_other_to_core_sample_2
     python3 ./python_proj/modelling/data_distribution_2.py
-    cd ./data/figures/data_distribution_2/
+    cd /data/s4509412/data/data/figures/data_distribution_2/
     mkdir ./d_$value/
     mv ./*.png ./d_$value/
-    cd ../../..
+    cd ~/msc_thesis
 done
 
 echo Done
