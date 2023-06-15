@@ -8,7 +8,12 @@ from python_proj.data_preprocessing.sliding_window_features.base import SlidingW
 from python_proj.utils.util import has_keys, SafeDict
 
 
-class SubmitterEcosystemExperiencePullRequestSuccessRate(SlidingWindowFeature):
+class EcosystemExperience(SlidingWindowFeature):
+    def project_is_ignored_for_cumulative_experience(self, current_project_id, other_project_id) -> bool:
+        return current_project_id == other_project_id
+
+
+class SubmitterEcosystemExperiencePullRequestSuccessRate(EcosystemExperience):
     """
     Calculates the experience of the pull request submitter in terms of 
     pull request success rate inside the ecosystem, excluding intra-project experience.
@@ -47,7 +52,7 @@ class SubmitterEcosystemExperiencePullRequestSuccessRate(SlidingWindowFeature):
         current_project = entry["__source_path"]
         for project_key, success_rate in self._user_to_project_success_rate[user_id].items():
             # Ignores intra-project experience.
-            if project_key == current_project:
+            if self.project_is_ignored_for_cumulative_experience(current_project, project_key):
                 continue
             cumulative_success_rate.merged += success_rate.merged
             cumulative_success_rate.unmerged += success_rate.unmerged
@@ -72,7 +77,7 @@ class SubmitterEcosystemExperiencePullRequestSubmissionCount(SubmitterEcosystemE
         return cumulative_success_rate.get_total()
 
 
-class SubmitterEcosystemExperienceIssueSubmissionCount(SlidingWindowFeature):
+class SubmitterEcosystemExperienceIssueSubmissionCount(EcosystemExperience):
     """
     Tracks the user's experience in terms of total number of submitted issues,
     at an ecosystem level, excluding intra-project experience.
@@ -101,7 +106,7 @@ class SubmitterEcosystemExperienceIssueSubmissionCount(SlidingWindowFeature):
         total_experience = 0
         for project, experience in self._user_to_project_success_rate[user_id].items():
             # Ignores intra-project experience.
-            if project == current_project:
+            if self.project_is_ignored_for_cumulative_experience(current_project, project):
                 continue
             total_experience += experience
         return total_experience
@@ -110,7 +115,7 @@ class SubmitterEcosystemExperienceIssueSubmissionCount(SlidingWindowFeature):
         return has_keys(entry, ['user_data', "__source_path"])
 
 
-class SubmitterEcosystemExperiencePullRequestCommentCount(SlidingWindowFeature):
+class SubmitterEcosystemExperiencePullRequestCommentCount(EcosystemExperience):
     """
     Counts the number of times a person has commented on a pull request, at an
     ecosystem level, excluding intra-project experience. It counts the total number; i.e.,
@@ -127,8 +132,7 @@ class SubmitterEcosystemExperiencePullRequestCommentCount(SlidingWindowFeature):
             return
         project = entry["__source_path"]
         for comment in entry["comments_data"]:
-            commenter = comment["user_data"]
-            commenter_id = commenter['id']
+            commenter_id = comment["user_data"]["id"]
             self._user_to_project_pr_comment_count[commenter_id][project] += sign
 
     def add_entry(self, entry: dict):
@@ -143,7 +147,7 @@ class SubmitterEcosystemExperiencePullRequestCommentCount(SlidingWindowFeature):
         total_experience = 0
         for project, experience in self._user_to_project_pr_comment_count[user_id].items():
             # Ignores intra-project experience.
-            if project == current_project:
+            if self.project_is_ignored_for_cumulative_experience(current_project, project):
                 continue
             total_experience += experience
         return total_experience

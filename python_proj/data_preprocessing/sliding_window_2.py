@@ -5,17 +5,16 @@ the method at the bottom of this script for the relevant command line
 parameters.
 """
 
-from csv import writer
-from datetime import datetime, timedelta
 import itertools
 import json
+
+from csv import writer
+from datetime import datetime, timedelta
 from typing import Generator, Callable, Tuple, TypeVar, Any
 
-from python_proj.data_preprocessing.sliding_window_features.base import Feature, SlidingWindowFeature
-from python_proj.data_preprocessing.sliding_window_features.control_variables import CONTROL_PR_SW_FEATURES, CONTROL_PR_FEATURES
-from python_proj.data_preprocessing.sliding_window_features.ecosystem_experience import ECO_EXP_PR_SW_FEATURES, ECO_EXP_ISSUE_SW_FEATURES
-from python_proj.data_preprocessing.sliding_window_features.sna_experience import SNA_PR_SW_FEATURES, SNA_PR_FEATURES, SNA_ISSUE_SW_FEATURES
 import python_proj.utils.exp_utils as exp_utils
+
+from python_proj.data_preprocessing.sliding_window_features import *
 from python_proj.utils.arg_utils import safe_get_argv
 from python_proj.utils.util import *
 
@@ -26,7 +25,7 @@ ISSUE = 'issues'
 
 
 def slide_through_window(iterator: Generator[T, None, None],
-                         key: Callable[[T], datetime],
+                         datetime_key: Callable[[T], datetime],
                          window_size: timedelta | None = None) \
         -> Generator[Tuple[list[T], T], None, None]:
     """Slides through an iterator, keeping track of a set timewindow."""
@@ -38,26 +37,28 @@ def slide_through_window(iterator: Generator[T, None, None],
         # to keep track of the window and can just
         # return the newest entry.
         if window_size is None:
-            yield ([], new_entry)
+            value_out = ([], new_entry)
+            yield value_out
             continue
 
         # Determines boundaries of the current window.
-        new_entry_date: datetime = key(new_entry)
+        new_entry_date: datetime = datetime_key(new_entry)
         window_start: datetime = new_entry_date - window_size
 
         # Collects pruned entries.
         pruned_keys = []
         pruned_entries = []
-        for key, value in window.items():
-            if key < window_start:
-                pruned_keys.append(key)
-                pruned_entries.extend(value)
+        for entry_timestamps, entry_ids in window.items():
+            if entry_timestamps < window_start:
+                pruned_keys.append(entry_timestamps)
+                pruned_entries.extend(entry_ids)
 
-        yield (pruned_entries, new_entry)
+        value_out = (pruned_entries, new_entry)
+        yield value_out
 
         # Prunes window
-        for key in pruned_keys:
-            del window[key]
+        for entry_timestamps in pruned_keys:
+            del window[entry_timestamps]
 
         # Adds new entry
         if new_entry_date not in window:
@@ -74,13 +75,27 @@ def __get_preamble(entry: dict) -> list:
 
 
 def __get_features():
-    intra_pr_features = [*CONTROL_PR_FEATURES,
-                         *SNA_PR_FEATURES]
-    sliding_window_features_pr = [*CONTROL_PR_SW_FEATURES,
-                                  *ECO_EXP_PR_SW_FEATURES,
-                                  *SNA_PR_SW_FEATURES]
-    sliding_window_features_issue = [*ECO_EXP_ISSUE_SW_FEATURES,
-                                     *SNA_ISSUE_SW_FEATURES]
+    intra_pr_features = [
+        *CONTROL_PR_FEATURES,
+        *PR_FEATURES_OTHER,
+        # *SNA_PR_FEATURES,
+    ]
+    sliding_window_features_pr = [
+        *CONTROL_PR_SW_FEATURES,
+        *ECO_EXP_PR_SW_FEATURES,
+        *SNA_PR_SW_FEATURES,
+        *DECO_EXP_PR_SW_FEATURES,
+        *IDECO_EXP_PR_SW_FEATURES,
+    ]
+    sliding_window_features_issue = [
+        *ECO_EXP_ISSUE_SW_FEATURES,
+        *SNA_ISSUE_SW_FEATURES,
+        *DECO_EXP_ISSUE_SW_FEATURES,
+        *IDECO_EXP_ISSUE_SW_FEATURES,
+    ]
+    feature_count = len(intra_pr_features) + \
+        len(sliding_window_features_pr) + len(sliding_window_features_issue)
+    print(f'{feature_count=}')
     return intra_pr_features, sliding_window_features_pr, sliding_window_features_issue
 
 
@@ -105,9 +120,9 @@ def generate_dataset(pr_dataset_names: list[str],
         dataset_names, dataset_types, dataset_types)
 
     def __get_closed_by(entry: dict) -> datetime:
-        closed_by = entry["closed_by"]
-        dt_closed_by = datetime.strptime(closed_by, "%Y-%m-%dT%H:%M:%SZ")
-        return dt_closed_by
+        closed_by = entry["closed_at"]
+        dt_closed_at = datetime.strptime(closed_by, "%Y-%m-%dT%H:%M:%SZ")
+        return dt_closed_at
 
     # Iterables for easy iteration.
     all_features: list[Feature] = [*intra_pr_features,
@@ -123,28 +138,33 @@ def generate_dataset(pr_dataset_names: list[str],
     window_iterator = slide_through_window(
         dataset_iterator, __get_closed_by, window_size)
     for pruned_entries, new_entry in window_iterator:
-        # Selects relevant sliding features.
-        entry_is_pr = new_entry["__data_type"] == PR
-        sliding_features = pr_features if entry_is_pr else issue_features
-
-        # Removes pruned entries.
-        for feature in sliding_features:
+        try:
+            # Removes pruned entries.
             for pruned_entry in pruned_entries:
-                feature.remove_entry(pruned_entry)
+                pruned_entry_is_pr = pruned_entry["__data_type"] == PR
+                sliding_features = pr_features if pruned_entry_is_pr else issue_features
+                for feature in sliding_features:
+                    feature.remove_entry(pruned_entry)
 
-        # Generates data points if currently dealing with a PR.
-        if entry_is_pr:
-            data_point = []
-            for feature in all_features:
-                feature_value = feature.get_feature(new_entry)
-                data_point.append(feature_value)
-            # Appends meta data to the entry for bookkeeping.
-            preamble = __get_preamble(new_entry)
-            yield [*preamble, *data_point]
+            # Generates data points if currently dealing with a PR.
+            new_entry_is_pr = new_entry["__data_type"] == PR
+            if new_entry_is_pr:
+                data_point = []
+                for feature in all_features:
+                    feature_value = feature.get_feature(new_entry)
+                    data_point.append(feature_value)
+                # Appends meta data to the entry for bookkeeping.
+                preamble = __get_preamble(new_entry)
+                yield [*preamble, *data_point]
 
-        # Adds new entry.
-        for feature in sliding_features:
-            feature.add_entry(new_entry)
+            # Adds new entry.
+            sliding_features = pr_features if new_entry_is_pr else issue_features
+            for feature in sliding_features:
+                feature.add_entry(new_entry)
+        except:
+            # print(f'{json.dumps(new_entry)=}')
+            # print(f'{json.dumps(pruned_entries)=}')
+            raise
 
 
 def build_dataset(pr_dataset_names: list[str],

@@ -1,25 +1,13 @@
 from datetime import datetime
-from typing import Any
 
 from python_proj.data_preprocessing.sliding_window_features.base import *
 from python_proj.utils.exp_utils import get_integrator_key
-from python_proj.utils.util import safe_contains_key, has_keys
+from python_proj.utils.util import safe_contains_key, has_keys, SafeDict
 
 
-class IsMerged(Feature):
-    """
-    Whether the PR is merged. 
-    Not a control variable, but I had to put it somewhere.
-    """
-
-    def get_feature(self, entry: dict) -> bool:
-        return entry["merged"]
-
-    def is_valid_entry(self, entry: dict) -> bool:
-        return "merged" in entry
 
 
-class IntegratedBySameUser(Feature):
+class ControlIntegratedBySameUser(Feature):
     """Whether the PR is integrated by the same person."""
 
     def get_feature(self, entry: dict) -> bool:
@@ -38,7 +26,7 @@ class IntegratedBySameUser(Feature):
         return has_sub_keys
 
 
-class PullRequestLifeTimeInMinutes(Feature):
+class ControlPullRequestLifeTimeInMinutes(Feature):
     """The lifetime of the pull request in minutes."""
 
     TS_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
@@ -54,25 +42,18 @@ class PullRequestLifeTimeInMinutes(Feature):
         return has_keys(entry, ["created_at", "closed_at"])
 
 
-class IntraProjectPullRequestExperienceOfIntegrator(SlidingWindowFeature):
+class ControlIntraProjectPullRequestExperienceOfIntegrator(SlidingWindowFeature):
     """Experience of the integrated measured in pull requests
     they handled inside the project (i.e., intra-project)."""
 
     def __init__(self) -> None:
-        self.__projects_to_integrator_experience: dict[str, dict[int, int]] = {
-        }
+        self.__projects_to_integrator_experience: SafeDict[str, SafeDict[int, int]] = \
+            SafeDict(default_value=SafeDict,
+                     default_value_constructor_kwargs={'default_value': 0})
 
     def handle(self, entry: dict, sign: int):
         project = entry["__source_path"]
-        # handle missing key.
-        if project not in self.__projects_to_integrator_experience:
-            self.__projects_to_integrator_experience[project] = {}
-
-        # handle missing key.
         integrator_key = get_integrator_key(entry)
-        if integrator_key not in self.__projects_to_integrator_experience[project]:
-            self.__projects_to_integrator_experience[project][integrator_key] = 0
-
         self.__projects_to_integrator_experience[project][integrator_key] += sign
 
     def add_entry(self, entry: dict):
@@ -84,17 +65,14 @@ class IntraProjectPullRequestExperienceOfIntegrator(SlidingWindowFeature):
     def get_feature(self, entry: dict) -> int:
         project = entry["__source_path"]
         integrator_key = get_integrator_key(entry)
-        try:
-            return self.__projects_to_integrator_experience[project][integrator_key]
-        except KeyError:
-            return 0
+        return self.__projects_to_integrator_experience[project][integrator_key]
 
     def is_valid_entry(self, entry: dict) -> bool:
         integrator_key = get_integrator_key(entry)
         return has_keys(entry, [integrator_key, "__source_path"])
 
 
-class PullRequestHasComments(Feature):
+class ControlPullRequestHasComments(Feature):
     """Whether the pull request has comments."""
 
     def get_feature(self, entry: dict) -> bool:
@@ -104,7 +82,7 @@ class PullRequestHasComments(Feature):
         return has_keys(entry, ["comments"])
 
 
-class NumberOfCommitsInPullRequest(Feature):
+class ControlNumberOfCommitsInPullRequest(Feature):
     """The number of commmits in the pull request."""
 
     def get_feature(self, entry: dict) -> int:
@@ -114,35 +92,24 @@ class NumberOfCommitsInPullRequest(Feature):
         return has_keys(entry, ["commits"])
 
 
-class IntraProjectPullRequestSuccessRateSubmitter(SlidingWindowFeature):
+class ControlIntraProjectPullRequestSuccessRateSubmitter(SlidingWindowFeature):
     """The success rate of the submitter of the pull request at 
     an intra-project level. This measure is used as a proxy for "core member"
     as these two variables correlate (Zhang, 2022) and this feature is
     easier to calculate."""
 
     def __init__(self) -> None:
-        self.__projects_to_integrator_experience: dict[str,
-                                                       dict[int, PullRequestSuccess]] = {}
+        self.__projects_to_integrator_experience: SafeDict[str, SafeDict[int, PullRequestSuccess]] \
+            = SafeDict(default_value=SafeDict,
+                       default_value_constructor_kwargs={"default_value": PullRequestSuccess})
 
     def handle(self, entry: dict, sign: int):
         project = entry["__source_path"]
-
-        if project not in self.__projects_to_integrator_experience:
-            self.__projects_to_integrator_experience[project] = {}
-
-        submitter = entry["user_data"]["id"]
-        if submitter not in self.__projects_to_integrator_experience[project]:
-            self.__projects_to_integrator_experience[project][submitter] = PullRequestSuccess(
-            )
-
+        submitter_id = entry["user_data"]["id"]
         if entry["merged"]:
-            self.__projects_to_integrator_experience[project][submitter].merged += sign
+            self.__projects_to_integrator_experience[project][submitter_id].merged += sign
         else:
-            # Yes future me, this should be a ``+= sign`` as we count
-            # the number of unmerged PRs the sign will be +/- based on whether we remove the entry.
-            # The only way this could be ``-=`` is if we would aggregate merged and unmerged entries
-            # somehow, which we don't.
-            self.__projects_to_integrator_experience[project][submitter].unmerged += sign
+            self.__projects_to_integrator_experience[project][submitter_id].unmerged += sign
 
     def add_entry(self, entry: dict):
         self.handle(entry, sign=1)
@@ -153,18 +120,14 @@ class IntraProjectPullRequestSuccessRateSubmitter(SlidingWindowFeature):
     def get_feature(self, entry: dict) -> float:
         project = entry["__source_path"]
         submitter = entry["user_data"]["id"]
-
-        try:
-            dev_success_rate = self.__projects_to_integrator_experience[project][submitter]
-            return dev_success_rate.get_success_rate()
-        except KeyError:
-            return 0
+        dev_success_rate = self.__projects_to_integrator_experience[project][submitter]
+        return dev_success_rate.get_success_rate()
 
     def is_valid_entry(self, entry: dict) -> bool:
         return has_keys(entry, ["__source_path", "user_data", "merged"])
 
 
-class PullRequestHasCommentByExternalUser(Feature):
+class ControlPullRequestHasCommentByExternalUser(Feature):
     """
     Whether the pull request has a comment form someone who is 
     not the reviewer/integrator or the submitter.
@@ -196,13 +159,13 @@ class PullRequestHasCommentByExternalUser(Feature):
         return has_sub_keys
 
 
-class HasHashTagInDescription(Feature):
+class ControlHasHashTagInDescription(Feature):
     """Whether the title or the body contain a #; i.e., a reference to an issue."""
 
     def get_feature(self, entry: dict) -> bool:
-        return safe_contains_key(entry["title"], "#") \
+        return safe_contains_key(entry["title"], key="#") \
             or ("body" in entry  # some PRs don't have a body.
-                and safe_contains_key(entry["body"], "#"))
+                and safe_contains_key(entry["body"], key="#"))
 
     def is_valid_entry(self, entry: dict) -> bool:
         return has_keys(entry, ["title"])
@@ -210,22 +173,16 @@ class HasHashTagInDescription(Feature):
 
 CONTROL_PR_SW_FEATURES: list[SlidingWindowFeature] = [
     # prior_review_num
-    IntraProjectPullRequestExperienceOfIntegrator(),
+    ControlIntraProjectPullRequestExperienceOfIntegrator(),
     # requester_succ_rate; core_member proxy
-    IntraProjectPullRequestSuccessRateSubmitter()
+    ControlIntraProjectPullRequestSuccessRateSubmitter()
 ]
 
 CONTROL_PR_FEATURES: list[Feature] = [
-    IsMerged(),
-    IntegratedBySameUser(),                 # same_user
-    PullRequestLifeTimeInMinutes(),         # lifetime_minutes
-    PullRequestHasComments(),               # has_comments
-    NumberOfCommitsInPullRequest(),         # num_commits
-    PullRequestHasCommentByExternalUser(),  # other_comment
-    HasHashTagInDescription()               # hash_tag
-]
-
-ALL_FEATURES: list[Feature] = [
-    *CONTROL_PR_SW_FEATURES,
-    *CONTROL_PR_FEATURES
+    ControlIntegratedBySameUser(),                 # same_user
+    ControlPullRequestLifeTimeInMinutes(),         # lifetime_minutes
+    ControlPullRequestHasComments(),               # has_comments
+    ControlNumberOfCommitsInPullRequest(),         # num_commits
+    ControlPullRequestHasCommentByExternalUser(),  # other_comment
+    ControlHasHashTagInDescription()               # hash_tag
 ]

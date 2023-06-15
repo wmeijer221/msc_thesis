@@ -75,9 +75,17 @@ def load_paths_for_all_argv():
     load_paths_for_file_name()
 
 
+ECO_IS_LOADED = False
+
+
 def load_paths_for_eco(eco_key: str = ECO_KEY):
     global PROJECTS_WITH_REPO_PATH, RAW_DATA_PATH, FILTER_PATH, CHRONOLOGICAL_DATASET_PATH, \
-        FIGURE_PATH, TRAIN_DATASET_PATH
+        FIGURE_PATH, TRAIN_DATASET_PATH, ECO_IS_LOADED
+
+    if ECO_IS_LOADED:
+        return
+
+    ECO_IS_LOADED = True
 
     eco = safe_get_argv(eco_key, "npm")
 
@@ -90,9 +98,17 @@ def load_paths_for_eco(eco_key: str = ECO_KEY):
     TRAIN_DATASET_PATH = partial(TRAIN_DATASET_PATH.format, eco=eco)
 
 
+DATA_SOURCE_IS_LOADED = False
 # TODO: rename this to "data_source" for consistency
+
+
 def load_paths_for_data_path(data_source_key: str = DATA_SOURCE_KEY):
-    global RAW_DATA_PATH, CHRONOLOGICAL_DATASET_PATH, FIGURE_PATH, TRAIN_DATASET_PATH
+    global RAW_DATA_PATH, CHRONOLOGICAL_DATASET_PATH, FIGURE_PATH, TRAIN_DATASET_PATH, DATA_SOURCE_IS_LOADED
+
+    if DATA_SOURCE_IS_LOADED:
+        return
+
+    DATA_SOURCE_IS_LOADED = True
 
     data_source = safe_get_argv(data_source_key, "pull-requests")
     # Assumes ``load_paths_for_eco`` has been called.
@@ -103,8 +119,15 @@ def load_paths_for_data_path(data_source_key: str = DATA_SOURCE_KEY):
     TRAIN_DATASET_PATH = partial(TRAIN_DATASET_PATH, data_source=data_source)
 
 
+FILE_NAME_IS_LOADED = False
+
+
 def load_paths_for_file_name(file_name_key: str = FILE_NAME_KEY):
-    global CHRONOLOGICAL_DATASET_PATH, FIGURE_PATH
+    global CHRONOLOGICAL_DATASET_PATH, FIGURE_PATH, FILE_NAME_IS_LOADED
+
+    if FILE_NAME_IS_LOADED:
+        return
+    FILE_NAME_IS_LOADED = True
 
     file_name = safe_get_argv(file_name_key, default="sorted")
 

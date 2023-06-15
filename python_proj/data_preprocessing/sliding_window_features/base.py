@@ -25,7 +25,7 @@ class SlidingWindowFeature(Feature):
         raise NotImplementedError()
 
 
-class IsMerged(Feature):
+class PullRequestIsMerged(Feature):
     """The dependent variable; whether the pull request is merged."""
 
     def get_feature(self, entry: dict) -> bool:
