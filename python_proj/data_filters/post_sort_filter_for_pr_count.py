@@ -40,6 +40,7 @@ if __name__ == "__main__":
     output_path = exp_utils.build_data_path_from_argv(file_name_key='-o')
 
     pr_threshold = safe_get_argv(key="-p", default=5, data_type=int)
+    print(f'PR Threshold set to {pr_threshold}.')
 
     prs_per_project = calculate_prs_per_project(input_paths)
     filter_for_pr_count(prs_per_project, input_paths,
