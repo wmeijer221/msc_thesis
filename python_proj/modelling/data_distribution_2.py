@@ -2,8 +2,9 @@
 
 from csv import reader
 from functools import partial
-import matplotlib.pyplot as plt
 from os import path, makedirs
+
+import matplotlib.pyplot as plt
 
 import python_proj.utils.exp_utils as exp_utils
 from python_proj.utils.arg_utils import safe_get_argv
