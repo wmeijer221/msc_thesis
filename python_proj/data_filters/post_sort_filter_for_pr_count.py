@@ -34,9 +34,12 @@ def filter_for_pr_count(prs_per_project: dict[str, int],
 
 
 if __name__ == "__main__":
-    # TODO: replace this to use ``exp_utils.load_argv()``.
-    input_path = get_argv(key="-i")
+    exp_utils.load_paths_for_eco()
+    exp_utils.load_paths_for_data_path()
+
+    input_paths = [entry.strip() for entry in get_argv(
+        key="-i").split(",") if entry.strip() != ""]
     output_path = exp_utils.build_data_path_from_argv(file_name_key='-o')
 
-    prs_per_project = calculate_prs_per_project(input_path)
-    filter_for_pr_count(prs_per_project, input_path, output_path)
+    prs_per_project = calculate_prs_per_project(input_paths)
+    filter_for_pr_count(prs_per_project, input_paths, output_path)
