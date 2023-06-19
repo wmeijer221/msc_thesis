@@ -1,3 +1,9 @@
 #!/bin/sh
-date > ./backup-compute-server-logs-$1.txt
-rsync -a /data/s4509412/data /data/s4509412/$1 --delete --verbose >> ./backup-compute-server-logs.txt
+
+echo Starting back-up!
+
+LOGFILE=/data/s4509412/backup-compute-server-logs-$1.txt
+date > $LOGFILE
+rsync -a $LOGFILE --delete --verbose >> $LOGFILE
+
+echo Completed back-up!
