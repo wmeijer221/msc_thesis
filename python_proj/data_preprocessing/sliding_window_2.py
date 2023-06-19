@@ -263,9 +263,11 @@ def remove_invalid_entries():
                 data_type=data_type, file_name=output_file_name)
             print(f'Outputting in {output_path}')
             removed_count = 0
+            total_entries = 0
             invalid_entries = SafeDict(default_value=0)
             with open(output_path, "w+") as output_file:
                 for entry in data_iterator:
+                    total_entries += 1
                     is_valid = True
                     for feature in features:
                         if not feature.is_valid_entry(entry):
@@ -277,8 +279,9 @@ def remove_invalid_entries():
                         output_file.write(f'{json.dumps(entry)}\n')
                     else:
                         removed_count += 1
+            perc = 100 * removed_count / total_entries
             print(
-                f'Removed {removed_count} in {data_type}/{dataset_name} because:')
+                f'Removed {removed_count}/{total_entries} ({perc:.03f}%) in {data_type}/{dataset_name} because:')
             print(json.dumps(invalid_entries, indent=4))
 
     __remove_invalid_entries(data_type='pull-requests',
