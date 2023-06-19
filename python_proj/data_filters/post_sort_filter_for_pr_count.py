@@ -1,7 +1,7 @@
 import json
 
 import python_proj.utils.exp_utils as exp_utils
-from python_proj.utils.arg_utils import get_argv
+from python_proj.utils.arg_utils import get_argv, safe_get_argv
 
 
 def calculate_prs_per_project(input_name: str) -> dict[str, int]:
@@ -39,5 +39,8 @@ if __name__ == "__main__":
         key="-i").split(",") if entry.strip() != ""]
     output_path = exp_utils.build_data_path_from_argv(file_name_key='-o')
 
+    pr_threshold = safe_get_argv(key="-p", default=5, data_type=int)
+
     prs_per_project = calculate_prs_per_project(input_paths)
-    filter_for_pr_count(prs_per_project, input_paths, output_path)
+    filter_for_pr_count(prs_per_project, input_paths,
+                        output_path, pr_threshold)
