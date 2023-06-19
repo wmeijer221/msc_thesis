@@ -184,6 +184,8 @@ class SharedExperiencePullRequestSubmittedBySubmitterCommentedOnByIntegrator(SNA
 
     def is_valid_entry(self, entry: dict) -> bool:
         if has_keys(entry, ["comments", "user_data"]):
+            if entry['comments'] == 0:
+                return True
             return has_keys(entry, ["comments_data"])
         return False
 
