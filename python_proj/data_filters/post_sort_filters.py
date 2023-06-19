@@ -157,28 +157,29 @@ def filter_for_blacklist(entry):
     return not user_login in ["fabric8cd", "mrsflux"]
 
 
-def filter_data(data: list, filters: list) -> list:
-    filtered_data = []
-    filtered_by = [0] * len(filters)
-    for entry in data:
+def filter_data(original_data: list, filter_methods: list) -> list:
+    """Iterates through data and applies provided filters."""
+    filtered = []
+    filtered_by = [0] * len(filter_methods)
+    for entry in original_data:
         is_included = True
-        for index, filter in enumerate(filters):
+        for index, filter_method in enumerate(filter_methods):
             try:
-                if not filter(entry):
+                if not filter_method(entry):
                     filtered_by[index] += 1
                     is_included = False
                     break
             except:
-                print(f'Failed with {entry=} and {filter=}.')
+                print(f'Failed with {entry=} and {filter_method=}.')
                 raise
         if is_included:
-            filtered_data.append(entry)
+            filtered.append(entry)
     print(filtered_by)
-    return filtered_data
+    return filtered
 
 
 def write_data(data: list, output_path: str):
-    with open(output_path, "w+") as output_file:
+    with open(output_path, "w+", encoding='utf-8') as output_file:
         for entry in data:
             output_file.write(f'{json.dumps(entry)}\n')
 

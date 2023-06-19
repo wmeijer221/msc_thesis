@@ -20,9 +20,9 @@ def filter_for_pr_count(prs_per_project: dict[str, int],
                         input_names: list[str],
                         output_path: str,
                         pr_threshold: int):
-    with open(output_path, "w+") as output_file:
+    with open(output_path, "w+", encoding='utf-8') as output_file:
         ds_iterator = exp_utils.iterate_through_multiple_chronological_datasets(
-            data_sources=input_names)
+            dataset_names=input_names)
         for entry in ds_iterator:
             project = entry["__source_path"]
             if prs_per_project[project] < pr_threshold:

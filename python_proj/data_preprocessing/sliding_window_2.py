@@ -192,7 +192,7 @@ def build_dataset(pr_dataset_names: list[str],
 
     # Outputs dataset.
     output_dataset_name = exp_utils.TRAIN_DATASET_PATH
-    with open(output_dataset_name, "w+") as output_dataset:
+    with open(output_dataset_name, "w+", encoding='utf-8') as output_dataset:
         csv_writer = writer(output_dataset)
         for datapoint in dataset_iterator:
             csv_writer.writerow(datapoint)
@@ -265,7 +265,7 @@ def remove_invalid_entries():
             removed_count = 0
             total_entries = 0
             invalid_entries = SafeDict(default_value=0)
-            with open(output_path, "w+") as output_file:
+            with open(output_path, "w+", encoding='utf-8') as output_file:
                 for entry in data_iterator:
                     total_entries += 1
                     is_valid = True
@@ -301,4 +301,4 @@ if __name__ == "__main__":
         case 'r':
             remove_invalid_entries()
         case _:
-            ValueError(f"Invalid mode {mode}.")
+            raise ValueError(f"Invalid mode {mode}.")
