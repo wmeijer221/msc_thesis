@@ -209,11 +209,14 @@ def iterate_through_chronological_data(data_type=None,
 
 
 def iterate_through_multiple_chronological_datasets(dataset_names: list[str],
-                                                    dataset_types: list[str],
+                                                    dataset_types: list[str] | None = None,
                                                     data_sources: list[str] | None = None,
                                                     print_progress_interval: int = 50000) \
         -> Generator[dict, None, None]:
     "Assumes partial paths have been loaded up to the specific dataset names."
+
+    if dataset_types is None:
+        dataset_types = [''] * len(dataset_names)
 
     # TODO: There is no reason for dataset_types and data_sources to be separate parameters; they represent the same thing.
     if len(dataset_names) != len(dataset_types) \

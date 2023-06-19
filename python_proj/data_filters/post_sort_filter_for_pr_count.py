@@ -6,9 +6,7 @@ from python_proj.utils.arg_utils import get_argv
 
 def calculate_prs_per_project(input_name: str) -> dict[str, int]:
     ds_iterator = exp_utils.iterate_through_multiple_chronological_datasets(
-        dataset_names=[input_name],
-        dataset_types=[''],
-        data_sources=[''])
+        dataset_names=input_name)
     pr_count_per_project = {}
     for entry in ds_iterator:
         project = entry["__source_path"]
