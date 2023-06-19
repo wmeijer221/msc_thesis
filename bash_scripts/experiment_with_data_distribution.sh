@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Does three things:
+# Iterate through all chronological datasets, removing invalid entries.
+# Generate various training datasets with those chronological datasets using different window sizes.
+# Generate figures of the data distribution.
+
 echo Removing invalid entries.
 python3 ./python_proj/data_preprocessing/sliding_window_2.py \
     -m r \
