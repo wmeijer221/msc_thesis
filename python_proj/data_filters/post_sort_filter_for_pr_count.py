@@ -28,7 +28,7 @@ def filter_for_pr_count(prs_per_project: dict[str, int],
             project = entry["__source_path"]
             if prs_per_project[project] < pr_threshold:
                 continue
-            output_file.write(json.dumps(entry))
+            output_file.write(f'{json.dumps(entry)}\n')
 
 
 if __name__ == "__main__":
