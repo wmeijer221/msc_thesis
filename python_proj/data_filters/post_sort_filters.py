@@ -31,9 +31,10 @@ def load_data(input_path: str):
     return data
 
 
-def build_filters(filter_keys: str):
-    # Standard filter: pcuadgb
-    filters = {
+def build_filters(selected_filter_keys: str):
+    """Builds a filter for a series of keys."""
+    # Standard filter: pcuadgbn
+    all_filters = {
         'p': filter_for_github,
         'c': filter_by_close_date,
         'u': filter_for_bots_by_user_type,
@@ -41,10 +42,10 @@ def build_filters(filter_keys: str):
         'd': filter_bots_dey_2020,
         'g': filter_bots_golzadeh_2021,
         'b': filter_for_blacklist,  # Add self-identified bots to this list.
-        'r': filter_for_bots_primitive_regex,  # We should not use this.
+        'n': filter_for_bot_in_name,
     }
-    filters = [filters[key] for key in filter_keys]
-    return filters
+    selected_filters = [all_filters[key] for key in selected_filter_keys]
+    return selected_filters
 
 
 def filter_by_close_date(entry):
@@ -61,11 +62,10 @@ def filter_for_github(entry):
     created_date = entry[created_at_key]
     # HACK: GitLab uses a different time format. I've got no better way to test for GH PRs, though.
     try:
-        dt = datetime.strptime(created_date, "%Y-%m-%dT%H:%M:%SZ")
+        datetime.strptime(created_date, "%Y-%m-%dT%H:%M:%SZ")
+        return True
     except:
-        dt = None
-    finally:
-        return not dt is None
+        return False
 
 
 def filter_for_bots_by_user_type(entry):
@@ -124,26 +124,6 @@ def filter_bots_golzadeh_2021(entry):
     return True
 
 
-def filter_for_bots_primitive_regex(entry):
-    user_data = entry['user_data']
-    user_login = user_data["login"].lower()
-    contains_bot = r'.*bot.*'
-
-    bot_match = re.match(contains_bot, re.escape(user_login))
-    if not bot_match is None:
-        return False
-
-    if not 'name' in user_data:
-        return True
-
-    user_name = user_data['name'].lower()
-    bot_match = re.match(contains_bot, re.escape(user_name))
-    if not bot_match is None:
-        return False
-
-    return True
-
-
 def filter_for_deleted_accounts(entry):
     user_data = entry['user_data']
     user_login = user_data['login'].lower()
@@ -154,7 +134,15 @@ def filter_for_deleted_accounts(entry):
 def filter_for_blacklist(entry):
     user_data = entry['user_data']
     user_login = user_data['login'].lower()
-    return not user_login in ["fabric8cd", "mrsflux"]
+    return not user_login in ["fabric8cd", "mrsflux", "greenkeeperio-bot", "ovh-ux-cds"]
+
+
+def filter_for_bot_in_name(entry):
+    user_data = entry['user_data']
+    login = user_data['login']
+    for _ in re.finditer('[bot]', login):
+        return True
+    return False
 
 
 def filter_data(original_data: list, filter_methods: list) -> list:
