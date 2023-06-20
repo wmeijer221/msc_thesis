@@ -177,8 +177,8 @@ def filter_for_bot_in_name(entry):
     user_data = entry['user_data']
     login = user_data['login']
     for _ in re.finditer(r'\[bot\]', login):
-        return True
-    return False
+        return False
+    return True
 
 
 def filter_data(original_data: list, filter_methods: list) -> list:
@@ -191,6 +191,7 @@ def filter_data(original_data: list, filter_methods: list) -> list:
         is_included = True
         for index, filter_method in enumerate(filter_methods):
             try:
+                # NOTE: Filters must return False if the entry is taken out.
                 if not filter_method(entry):
                     filtered_by[index] += 1
                     is_included = False
