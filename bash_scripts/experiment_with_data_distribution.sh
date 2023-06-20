@@ -5,11 +5,11 @@
 # Generate various training datasets with those chronological datasets using different window sizes.
 # Generate figures of the data distribution.
 
-echo Removing invalid entries.
-python3 ./python_proj/data_preprocessing/sliding_window_2.py \
-    -m r \
-    -pd sorted_filtered_focal_to_other_complete,sorted_filtered_other_to_focal_sample_1_complete,sorted_filtered_other_to_focal_sample_2_complete,sorted_filtered_core_complete \
-    -id sorted_filtered_issues_core,sorted_filtered_issues_core_to_other,sorted_filtered_other_to_core_sample_1,sorted_filtered_other_to_core_sample_2
+# echo Removing invalid entries.
+# python3 ./python_proj/data_preprocessing/sliding_window_2.py \
+#     -m r \
+#     -pd sorted_filtered_focal_to_other_complete,sorted_filtered_other_to_focal_sample_1_complete,sorted_filtered_other_to_focal_sample_2_complete,sorted_filtered_core_complete \
+#     -id sorted_filtered_issues_core,sorted_filtered_issues_core_to_other,sorted_filtered_other_to_core_sample_1,sorted_filtered_other_to_core_sample_2
 
 echo Starting with all
 python3 ./python_proj/data_preprocessing/sliding_window_2.py \

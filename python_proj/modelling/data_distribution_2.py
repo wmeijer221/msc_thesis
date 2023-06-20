@@ -15,7 +15,7 @@ def make_plot(feature_name: str, data: list[float], output_path: str):
 
     # Create a histogram plot
     plt.cla()
-    plt.hist(data, bins=30, density=True, edgecolor='black')
+    plt.hist(data, bins=30, edgecolor='black')
 
     # Add labels and title
     plt.xlabel('Value')
