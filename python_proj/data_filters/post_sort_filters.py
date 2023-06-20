@@ -185,7 +185,9 @@ def filter_data(original_data: list, filter_methods: list) -> list:
     """Iterates through data and applies provided filters."""
     filtered = []
     filtered_by = [0] * len(filter_methods)
-    for entry in original_data:
+    for progress, entry in enumerate(original_data):
+        if progress % 10000 == 0:
+            print(f'{progress=}/{len(original_data)}')
         is_included = True
         for index, filter_method in enumerate(filter_methods):
             try:
