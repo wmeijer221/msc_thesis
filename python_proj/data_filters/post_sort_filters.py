@@ -176,7 +176,7 @@ def filter_for_bot_in_name(entry):
 
     user_data = entry['user_data']
     login = user_data['login']
-    for _ in re.finditer('[bot]', login):
+    for _ in re.finditer(r'\[bot\]', login):
         return True
     return False
 
