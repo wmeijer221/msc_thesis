@@ -25,13 +25,16 @@ from python_proj.utils.exp_utils import build_data_path_from_argv, BASE_PATH
 def load_data(data_input_path: str) -> Generator[dict, None, None]:
     """loads dataset"""
     # j_data = []
+    ds_start_size = 0
     with open(data_input_path, "r", encoding='utf-8') as input_data:
         for line in input_data:
             line = line.strip()
             j_entry = json.loads(line)
             yield j_entry
+            ds_start_size += 1
             # j_data.append(j_entry)
     # return j_data
+    print(f'{ds_start_size=}')
 
 
 def build_filters(selected_filter_keys: str):
@@ -225,8 +228,8 @@ if __name__ == "__main__":
 
     filters = build_filters(mode)
     data = load_data(input_path)
-    print(f'Start size: {len(data)}.')
+    # print(f'Start size: {len(data)}.')
 
     filtered_data = filter_data(data, filters)
-    print(f'Filtered size: {len(filtered_data)}.')
+    # print(f'Filtered size: {len(filtered_data)}.')
     write_data(filtered_data, output_path)
