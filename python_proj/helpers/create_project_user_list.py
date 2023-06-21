@@ -12,7 +12,8 @@ def get_users(activity: dict) -> Generator[dict, None, None]:
     """Returns submitter, integrator, and commenter user data."""
     yield activity['user_data']
     integrator_key = exp_utils.get_integrator_key(activity)
-    yield activity[integrator_key]
+    if integrator_key in activity:
+        yield activity[integrator_key]
     if activity['comments'] == 0:
         return
     for comment in activity['comments_data']:
