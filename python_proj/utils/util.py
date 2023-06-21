@@ -138,8 +138,8 @@ class SafeDict(dict):
     Standard dictionary data structure that adds a default value to a key if it doesn't exist yet.
     """
 
-    def __init__(self, default_value, default_value_constructor_args=[],
-                 default_value_constructor_kwargs={}, *args, **kwargs):
+    def __init__(self, default_value, default_value_constructor_args: list[Any]=[],
+                 default_value_constructor_kwargs:dict[str, Any]={}, *args, **kwargs):
         """
         :param default_value: the default value for entries. 
         If this is a ``type``, it will call said type's constructor, and if it's callable, it will call it.

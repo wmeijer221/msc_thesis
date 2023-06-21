@@ -154,7 +154,7 @@ def merge_aliases(input_file_path: str,
                 d_login_uid.setdefault(a.login.lower(), set([a.uid]))
                 d_login_uid[a.login.lower()].add(a.uid)
 
-        # type: stores user type.
+        # - type: stores user type.
         d_uid_type[a.uid] = a.usr_type
 
         # - name: combines based on full name

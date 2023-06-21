@@ -12,7 +12,7 @@ input_path = exp_utils.RAW_DATA_PATH(owner=owner, repo=repo, ext="")
 output_path = exp_utils.RAW_DATA_PATH(owner=owner, repo=repo, ext="")
 output_dir = path.dirname(output_path)
 
-ght.merge_aliases(input_path, output_dir, 
+ght.merge_aliases(input_path, output_dir,
                   thr_min=1, thr_max=3,
                   min_prefix_length=4,
                   require_email=True,
