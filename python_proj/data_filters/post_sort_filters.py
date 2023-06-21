@@ -193,7 +193,7 @@ def filter_data(original_data: Generator, filter_methods: list) -> Generator[dic
     filtered_ds_size = 0
     for progress, entry in enumerate(original_data):
         if progress % 10000 == 0:
-            print(f'{progress=}/{len(original_data)}')
+            print(f'{progress=}')
         is_included = True
         for index, filter_method in enumerate(filter_methods):
             try:
@@ -228,8 +228,6 @@ if __name__ == "__main__":
 
     filters = build_filters(mode)
     data = load_data(input_path)
-    # print(f'Start size: {len(data)}.')
 
     filtered_data = filter_data(data, filters)
-    # print(f'Filtered size: {len(filtered_data)}.')
     write_data(filtered_data, output_path)
