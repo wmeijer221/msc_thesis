@@ -15,21 +15,23 @@ import json
 from datetime import datetime
 import re
 from csv import reader
+from typing import Generator
 
 from python_proj.data_retrieval.retrieve_pull_requests import end_date
 from python_proj.utils.arg_utils import get_argv
 from python_proj.utils.exp_utils import build_data_path_from_argv, BASE_PATH
 
 
-def load_data(data_input_path: str):
+def load_data(data_input_path: str) -> Generator[dict, None, None]:
     """loads dataset"""
-    j_data = []
+    # j_data = []
     with open(data_input_path, "r", encoding='utf-8') as input_data:
         for line in input_data:
             line = line.strip()
             j_entry = json.loads(line)
-            j_data.append(j_entry)
-    return j_data
+            yield j_entry
+            # j_data.append(j_entry)
+    # return j_data
 
 
 def build_filters(selected_filter_keys: str):
@@ -181,10 +183,11 @@ def filter_for_bot_in_name(entry):
     return True
 
 
-def filter_data(original_data: list, filter_methods: list) -> list:
+def filter_data(original_data: Generator, filter_methods: list) -> Generator[dict, None, None]:
     """Iterates through data and applies provided filters."""
-    filtered = []
+    # filtered = []
     filtered_by = [0] * len(filter_methods)
+    filtered_ds_size = 0
     for progress, entry in enumerate(original_data):
         if progress % 10000 == 0:
             print(f'{progress=}/{len(original_data)}')
@@ -200,12 +203,15 @@ def filter_data(original_data: list, filter_methods: list) -> list:
                 print(f'Failed with {entry=} and {filter_method=}.')
                 raise
         if is_included:
-            filtered.append(entry)
+            # filtered.append(entry)
+            filtered_ds_size += 1
+            yield entry
     print(filtered_by)
-    return filtered
+    print(f'{filtered_ds_size=}')
+    # return filtered
 
 
-def write_data(output_data: list, output_data_path: str):
+def write_data(output_data: Generator, output_data_path: str):
     """writes data to file."""
     with open(output_data_path, "w+", encoding='utf-8') as output_file:
         for entry in output_data:
@@ -213,10 +219,9 @@ def write_data(output_data: list, output_data_path: str):
 
 
 if __name__ == "__main__":
-    # TODO: replace this to use ``exp_utils.load_argv()``.
     input_path = build_data_path_from_argv(file_name_key='-i')
     output_path = build_data_path_from_argv(file_name_key='-o')
-    mode = get_argv("-m")
+    mode = get_argv(key="-m")
 
     filters = build_filters(mode)
     data = load_data(input_path)
