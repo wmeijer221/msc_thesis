@@ -27,4 +27,4 @@ if __name__ == "__main__":
     print(f'Outputting at: "{output_path}".')
     with open(output_path, "w+", encoding="utf-8") as output_file:
         for entry in data_iterator:
-            output_file.write(json.dumps(output_file) + "\n")
+            output_file.write(json.dumps(entry) + "\n")
