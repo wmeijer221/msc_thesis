@@ -258,6 +258,22 @@ def iterate_through_multiple_chronological_datasets(dataset_names: list[str],
             yield entry
 
 
+def iterate_through_multiple_chronological_issue_pr_datasets(issue_dataset_names: list[str],
+                                                    pull_request_dataset_names: list[str],
+                                                    issue_key: str = "issues",
+                                                    pr_key: str = "pull-requests",
+                                                    print_progress_interval: int = ...,):
+    """Iterates through various PR and issue datasets setting the correct datasource keys."""
+    data_source = [issue_key] * len(issue_dataset_names)
+    data_source.extend([pr_key] * len(pull_request_dataset_names))
+    dataset_names = [*issue_dataset_names, *pull_request_dataset_names]
+    return iterate_through_multiple_chronological_datasets(
+        dataset_names,
+        dataset_types=data_source,
+        data_sources=data_source,
+        print_progress_interval=print_progress_interval)
+
+
 def get_integrator_key(entry):
     return "merged_by_data" if entry["merged"] else "closed_by"
 
