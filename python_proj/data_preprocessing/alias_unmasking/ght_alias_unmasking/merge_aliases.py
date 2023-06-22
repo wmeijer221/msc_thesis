@@ -459,8 +459,10 @@ def merge_aliases(input_file_path: str,
 
     # Custom output:
     my_output_path = os.path.join(dataPath, 'identified_pairs.csv')
-    with open(my_output_path, 'w+') as my_output_file:
+    with open(my_output_path, 'w+', encoding='utf-8') as my_output_file:
         csv_writer = writer(my_output_file)
+        csv_writer.writerow(['User A UID', "User A Name", "User A Email", "User A Login",
+                             'User B UID', "User B Name", "User B Email", "User B Login"])
         for cluster_index, (uid, member_uids) in enumerate(clusters.items()):
             members = [aliases[m] for m in member_uids]
             for (member_a, member_b) in combinations(members, 2):
