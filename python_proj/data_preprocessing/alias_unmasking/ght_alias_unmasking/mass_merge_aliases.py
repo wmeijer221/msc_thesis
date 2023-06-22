@@ -32,7 +32,7 @@ def merge_project_aliases(project_name: str):
         thr_min=1, thr_max=3,
         min_prefix_length=4,
         require_email=True,
-        require_name=False,
+        require_name=True,
         use_simple_name=False
     )
 
