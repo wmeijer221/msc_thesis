@@ -1,10 +1,8 @@
 from datetime import datetime
 
 from python_proj.data_preprocessing.sliding_window_features.base import *
-from python_proj.utils.exp_utils import get_integrator_key
+from python_proj.utils.exp_utils import get_integrator_key, get_owner_and_repo_from_source_path
 from python_proj.utils.util import safe_contains_key, has_keys, SafeDict
-
-
 
 
 class ControlIntegratedBySameUser(Feature):
@@ -130,26 +128,52 @@ class ControlIntraProjectPullRequestSuccessRateSubmitter(SlidingWindowFeature):
 class ControlPullRequestHasCommentByExternalUser(Feature):
     """
     Whether the pull request has a comment form someone who is 
-    not the reviewer/integrator or the submitter.
+    not the integrator, the submitter or a project contributor.
     """
 
-    def get_feature(self, entry: dict) -> bool:
+    def __init__(self) -> None:
+        self._contributors_per_project = SafeDict(default_value=set)
+
+    def __add_submitter(self, entry: dict):
+        if not entry['merged']:
+            return
+        submitter_id = entry["user_data"]["id"]
+        (owner, repo) = get_owner_and_repo_from_source_path(
+            entry["__source_path"])
+        project = f'{owner}/{repo}'
+        self._contributors_per_project[project].add(submitter_id)
+
+    def __has_external_comment(self, entry: dict) -> bool:
         if entry["comments"] == 0:
             return False
+
         submitter_id = entry["user_data"]["id"]
         integrator_key = get_integrator_key(entry)
         integrator_id = entry[integrator_key]["id"]
+        (owner, repo) = get_owner_and_repo_from_source_path(
+            entry["__source_path"])
+        project = f'{owner}/{repo}'
+        project_contributors = self._contributors_per_project[project]
+
         for comment in entry["comments_data"]:
             commenter_id = comment["user_data"]["id"]
-            if commenter_id != submitter_id \
-                    and commenter_id != integrator_id:
+            if (commenter_id != submitter_id
+                    and commenter_id != integrator_id
+                    and commenter_id not in project_contributors):
                 return True
+
         return False
+
+    def get_feature(self, entry: dict) -> bool:
+        has_external_comment = self.__has_external_comment(entry)
+        self.__add_submitter(entry)
+        return has_external_comment
 
     def is_valid_entry(self, entry: dict) -> bool:
         integrator_key = get_integrator_key(entry)
         has_main_keys = has_keys(
-            entry, ["comments", "user_data", integrator_key])
+            entry, ["comments", "user_data", integrator_key, 
+                    "__source_path", 'merged'])
         if not has_main_keys:
             return False
         if entry['comments'] > 0:

@@ -329,7 +329,7 @@ DECO_EXP_ISSUE_SW_FEATURES = [
 
 
 IDECO_EXP_PR_SW_FEATURES = [
-    SubmitterInversedDependencyEcosystemExperiencePullRequestSuccessRate(),
+    SubmitterInversedDependencyEcosystemExperiencePullRequestSubmissionCount(),
     SubmitterInversedDependencyEcosystemExperiencePullRequestSuccessRate(),
     SubmitterInversedDependencyEcosystemExperiencePullRequestCommentCount(),
     SubmitterInversedDependencyEcosystemExperiencePullRequestDiscussionParticipationCount(),
