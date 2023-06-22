@@ -258,11 +258,13 @@ def iterate_through_multiple_chronological_datasets(dataset_names: list[str],
             yield entry
 
 
-def iterate_through_multiple_chronological_issue_pr_datasets(issue_dataset_names: list[str],
-                                                    pull_request_dataset_names: list[str],
-                                                    issue_key: str = "issues",
-                                                    pr_key: str = "pull-requests",
-                                                    print_progress_interval: int = ...,):
+def iterate_through_multiple_chronological_issue_pr_datasets(
+    issue_dataset_names: list[str],
+    pull_request_dataset_names: list[str],
+    issue_key: str = "issues",
+    pr_key: str = "pull-requests",
+    print_progress_interval: int = 50000
+):
     """Iterates through various PR and issue datasets setting the correct datasource keys."""
     data_source = [issue_key] * len(issue_dataset_names)
     data_source.extend([pr_key] * len(pull_request_dataset_names))
