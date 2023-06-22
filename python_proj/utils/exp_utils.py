@@ -234,8 +234,12 @@ def iterate_through_multiple_chronological_datasets(dataset_names: list[str],
 
     def __file_iterator(file) -> Generator[dict, None, None]:
         for line in file:
-            yield json.loads(line.strip())
-
+            try:
+                yield json.loads(line.strip())
+            except json.JSONDecodeError as ex:
+                print(f'{file=}')
+                ex.add_note(f'{file=}')
+                raise
     if data_sources is None:
         r_dataset_names = [CHRONOLOGICAL_DATASET_PATH(file_name=dataset_name)
                            for dataset_name in dataset_names]
