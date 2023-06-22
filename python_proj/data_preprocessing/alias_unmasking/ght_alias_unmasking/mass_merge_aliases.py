@@ -9,7 +9,7 @@ import python_proj.data_preprocessing.alias_unmasking.ght_alias_unmasking.merge_
 
 
 def merge_project_aliases(project_name: str):
-    owner, repo = project_name.split("/")[0:2]
+    owner, repo = project_name.strip().split("/")[0:2]
     input_path = exp_utils.RAW_DATA_PATH(
         data_type='user-ids',
         owner=owner, repo=repo, ext="")
