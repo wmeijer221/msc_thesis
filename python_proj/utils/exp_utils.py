@@ -235,9 +235,11 @@ def iterate_through_multiple_chronological_datasets(dataset_names: list[str],
     def __file_iterator(file) -> Generator[dict, None, None]:
         for line in file:
             try:
-                yield json.loads(line.strip())
+                stripped_line = line.strip()
+                yield json.loads(stripped_line)
             except json.JSONDecodeError:
                 print(f'JSONDecodeError with {file=}')
+                print(f'JSONDecodeError with {stripped_line=}')
                 raise
 
     if data_sources is None:
