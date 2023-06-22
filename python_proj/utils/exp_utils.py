@@ -8,6 +8,8 @@ from os import getenv
 import json
 from typing import Generator
 from numbers import Number
+import math
+
 
 from python_proj.utils.arg_utils import safe_get_argv
 from python_proj.utils.util import OpenMany, ordered_chain
@@ -269,3 +271,8 @@ def get_owner_and_repo_from_source_path(source_path) -> tuple[str, str]:
     file_name = ".".join(file_name_with_ext.split(".")[:-1])
     owner_repo = file_name.split("--")
     return (owner_repo[0], owner_repo[1])
+
+
+def log_transform(number: Number) -> Number:
+    """Applies log-tranfsorm on the number."""
+    return math.log10(1 + number)
