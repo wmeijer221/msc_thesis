@@ -33,7 +33,8 @@ def make_plots_for_all_features():
     """Makes plots for all features."""
 
     exp_utils.load_paths_for_eco()
-    input_path = exp_utils.TRAIN_DATASET_PATH(file_name="test_dataset")
+    input_file_name = safe_get_argv(key='-i', default='test_dataset')
+    input_path = exp_utils.TRAIN_DATASET_PATH(file_name=input_file_name)
     sub_directory_name = safe_get_argv(key="-s", default="")
     skip_first_x = safe_get_argv(key='--skip', default=0, data_type=int)
     figure_base_path: partial[str] = partial(
