@@ -3,14 +3,14 @@ Merges aliases of all projects using GHT alias unmasking by Vasilescu et al.
 """
 
 import json
-from os import path
+from os import path, remove
 import csv
 
 import python_proj.utils.exp_utils as exp_utils
 import python_proj.data_preprocessing.alias_unmasking.ght_alias_unmasking.merge_aliases as ght
 
 
-def merge_project_aliases(project_name: str):
+def merge_project_aliases(project_name: str, all_pairs_path: str):
     """Merges the aliases at an intra-project level."""
 
     owner, repo = project_name.strip().split("/")[0:2]
@@ -37,8 +37,6 @@ def merge_project_aliases(project_name: str):
     )
 
     pairs_path = output_dir + "identified_pairs.csv"
-    all_pairs_path = exp_utils.TRAIN_DATASET_PATH(
-        file_name='all_identified_pairs')
 
     with open(pairs_path, "r", encoding='utf-8') as pair_file:
         csv_reader = csv.reader(pair_file)
@@ -59,12 +57,18 @@ def merge_project_aliases(project_name: str):
 def merge_all_project_aliases():
     """Merges aliases of all projects."""
     exp_utils.load_paths_for_eco()
-    proj_list_output_path = exp_utils.RAW_DATA_PATH(
+    proj_list_input_path = exp_utils.RAW_DATA_PATH(
         data_type='user-ids', owner="proj", repo="list", ext="")
+    all_pairs_path = exp_utils.TRAIN_DATASET_PATH(
+        file_name='all_identified_pairs')
+    
+    remove(all_pairs_path)
 
-    with open(proj_list_output_path, "r", encoding='utf-8') as input_file:
+    with open(proj_list_input_path, "r", encoding='utf-8') as input_file:
         for entry in input_file:
-            merge_project_aliases(entry)
+            merge_project_aliases(entry, all_pairs_path)
+
+    print(f'Stored pairs in "{all_pairs_path}".')
 
 
 if __name__ == "__main__":
