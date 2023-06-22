@@ -3,6 +3,7 @@
 from csv import reader
 from functools import partial
 from os import path, makedirs
+import datetime
 
 import matplotlib.pyplot as plt
 
@@ -59,4 +60,7 @@ def make_plots_for_all_features():
 
 
 if __name__ == "__main__":
+    start_time = datetime.datetime.now()
     make_plots_for_all_features()
+    delta_time = datetime.datetime.now() - start_time
+    print(f'{delta_time=}')
