@@ -65,5 +65,5 @@ for project, users in users_per_project.items():
     output_path = exp_utils.RAW_DATA_PATH(
         data_type="user-ids", owner=owner, repo=repo, ext="")
     with open(output_path, "w+", encoding='utf-8') as output_file:
-        users = list(users)
+        users = list([user.data for user in users])
         output_file.write(json.dumps(users))
