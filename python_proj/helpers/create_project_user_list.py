@@ -63,7 +63,7 @@ for project, users in users_per_project.items():
     (owner, repo) = exp_utils.get_owner_and_repo_from_source_path(project)
     proj_list_output_file.write(f'{owner}/{repo}\n')
     output_path = exp_utils.RAW_DATA_PATH(
-        data_type="user-ids", owner=owner, repo=repo)
+        data_type="user-ids", owner=owner, repo=repo, ext="")
     with open(output_path, "w+", encoding='utf-8') as output_file:
         users = list(users)
         output_file.write(json.dumps(users))
