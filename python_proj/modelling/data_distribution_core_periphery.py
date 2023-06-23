@@ -38,7 +38,7 @@ def get_distribution(all_path: str, filter_paths: list[str]) -> dict[str, int]:
     return count_per_filter
 
 
-def generate_figure(distribution: dict[str, int]):
+def generate_figure(distribution: dict[str, int], output_path: str):
     """
     Generates pie chart for provided distribution.
     """
@@ -57,8 +57,8 @@ def generate_figure(distribution: dict[str, int]):
     # Set aspect ratio to be equal to make the pie circular
     plt.axis('equal')
 
-    # Show the chart
-    plt.show()
+    # Stores the chart
+    plt.savefig(output_path)
 
 
 if __name__ == "__main__":
@@ -73,6 +73,12 @@ if __name__ == "__main__":
         entry) for entry in filter_projects_files]
     print(f'{filter_project_paths=}')
 
+    fig_output_path = exp_utils.FIGURE_PATH(
+        data_source='pr',
+        file_name="",
+        figure_name=f"pr_project_filter_distribution_{all_projects_file}.png")
+    print(f'{fig_output_path=}')
+
     project_distribution = get_distribution(
         all_projects_file, filter_projects_files)
-    generate_figure(project_distribution)
+    generate_figure(project_distribution, fig_output_path)
