@@ -69,8 +69,7 @@ if __name__ == "__main__":
     print(f'{all_projects_path=}')
 
     filter_projects_files = get_argv(key='-f').strip().split(",")
-    filter_project_paths = [exp_utils.FILTER_PATH(
-        entry) for entry in filter_projects_files]
+    filter_project_paths = [exp_utils.FILTER_PATH(filter_type=entry) for entry in filter_projects_files]
     print(f'{filter_project_paths=}')
 
     fig_output_path = exp_utils.FIGURE_PATH(
