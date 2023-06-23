@@ -58,6 +58,9 @@ def generate_figure(distribution: dict[str, int], output_path: str):
     plt.axis('equal')
 
     # Stores the chart
+    dirname = os.path.dirname(output_path)
+    if not os.path.exists(dirname):
+        os.makedirs(dirname)
     plt.savefig(output_path)
 
 
