@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import os
 
 import python_proj.utils.exp_utils as exp_utils
-from python_proj.utils.arg_utils import get_argv
+from python_proj.utils.arg_utils import get_argv, safe_get_argv
 from python_proj.utils.util import OpenMany
 
 
@@ -63,7 +63,7 @@ def generate_figure(distribution: dict[str, int]):
 
 if __name__ == "__main__":
     exp_utils.load_paths_for_eco()
-    all_projects_file = get_argv(key='-a')
+    all_projects_file = safe_get_argv(key='-a', default="")
     all_projects_path = exp_utils.RAW_DATA_PATH(
         data_type="user-ids", owner='proj', repo='users', ext=all_projects_file)
     print(f'{all_projects_path=}')
@@ -71,6 +71,7 @@ if __name__ == "__main__":
     filter_projects_files = get_argv(key='-f').strip().split(",")
     filter_project_paths = [exp_utils.FILTER_PATH(
         entry) for entry in filter_projects_files]
+    print(f'{filter_project_paths=}')
 
     project_distribution = get_distribution(
         all_projects_file, filter_projects_files)
