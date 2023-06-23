@@ -65,7 +65,7 @@ if __name__ == "__main__":
     exp_utils.load_paths_for_eco()
     all_projects_file = safe_get_argv(key='-a', default="")
     all_projects_path = exp_utils.RAW_DATA_PATH(
-        data_type="user-ids", owner='proj', repo='users', ext=all_projects_file)
+        data_type="user-ids", owner='proj', repo='list', ext=all_projects_file)
     print(f'{all_projects_path=}')
 
     filter_projects_files = get_argv(key='-f').strip().split(",")
