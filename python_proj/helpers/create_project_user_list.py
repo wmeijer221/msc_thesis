@@ -55,9 +55,10 @@ for entry in generator:
         ud = UserData(user_id, user)
         users_per_project[project].add(ud)
 
-# Writes all users.
+# Writes all users to a file.
+ext = safe_get_argv(key='-e', default="")
 proj_list_output_path = exp_utils.RAW_DATA_PATH(
-    data_type='user-ids', owner="proj", repo="list", ext="")
+    data_type='user-ids', owner="proj", repo="list", ext=ext)
 proj_list_output_file = open(proj_list_output_path, "w+", encoding="utf-8")
 for project, users in users_per_project.items():
     (owner, repo) = exp_utils.get_owner_and_repo_from_source_path(project)

@@ -44,6 +44,7 @@ if __name__ == "__main__":
     input_paths = [entry.strip() for entry in get_argv(
         key="-i").split(",") if entry.strip() != ""]
     output_path = exp_utils.build_data_path_from_argv(file_name_key='-o')
+    print(f'Outputting at "{output_path}".')
 
     pr_threshold = safe_get_argv(key="-p", default=5, data_type=int)
     print(f'PR Threshold set to {pr_threshold}.')
