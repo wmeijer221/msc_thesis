@@ -1,6 +1,28 @@
 """
 Creates a pie chart showing the distribution of projects
 between the core and periphery projects.
+
+results for min 5 PRs:
+
+fig_output_path='/data/s4509412/data/data/figures/demographics/npm/pr//pr_project_filter_distribution_pr_only_5_prs.png.png'                                                                                       
+{                                                                                                                                                                                                                  
+    "/data/s4509412/data/data/libraries/npm-libraries-1.6.0-2020-01-12/predictors/included_projects_focal_to_other_without_core.csv": 2551,                                                                        
+    "/data/s4509412/data/data/libraries/npm-libraries-1.6.0-2020-01-12/predictors/included_projects.csv": 14506,                                                                                                   
+    "/data/s4509412/data/data/libraries/npm-libraries-1.6.0-2020-01-12/predictors/included_projects_other_to_focal_without_core_without_focal_to_other_without_core_subsampled_12556.csv": 1426,                   
+    "/data/s4509412/data/data/libraries/npm-libraries-1.6.0-2020-01-12/predictors/included_projects_other_to_focal_sample_2_sampled_13820.csv": 1568                                                               
+}   
+
+AND results for min 30 PRs
+
+fig_output_path='/data/s4509412/data/data/figures/demographics/npm/pr//pr_project_filter_distribution_pr_only_30_prs.png.png'
+{
+    "/data/s4509412/data/data/libraries/npm-libraries-1.6.0-2020-01-12/predictors/included_projects_focal_to_other_without_core.csv": 701,
+    "/data/s4509412/data/data/libraries/npm-libraries-1.6.0-2020-01-12/predictors/included_projects.csv": 6031,
+    "/data/s4509412/data/data/libraries/npm-libraries-1.6.0-2020-01-12/predictors/included_projects_other_to_focal_without_core_without_focal_to_other_without_core_subsampled_12556.csv": 298,
+    "/data/s4509412/data/data/libraries/npm-libraries-1.6.0-2020-01-12/predictors/included_projects_other_to_focal_sample_2_sampled_13820.csv": 355
+}
+
+
 """
 import json
 import matplotlib.pyplot as plt

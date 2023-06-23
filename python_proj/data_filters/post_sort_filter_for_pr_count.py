@@ -5,6 +5,7 @@ from python_proj.utils.arg_utils import get_argv, safe_get_argv
 
 
 def calculate_prs_per_project(input_names: list[str]) -> dict[str, int]:
+    """Calculates prs per project"""
     ds_iterator = exp_utils.iterate_through_multiple_chronological_datasets(
         dataset_names=input_names)
     pr_count_per_project = {}
@@ -20,6 +21,7 @@ def filter_for_pr_count(prs_per_project: dict[str, int],
                         input_names: list[str],
                         output_path: str,
                         pr_threshold: int):
+    """Filters chronological PR dataset to only include projects with sufficient prs."""
     print(f'Outputting to "{output_path}".')
     with open(output_path, "w+", encoding='utf-8') as output_file:
         ds_iterator = exp_utils.iterate_through_multiple_chronological_datasets(
