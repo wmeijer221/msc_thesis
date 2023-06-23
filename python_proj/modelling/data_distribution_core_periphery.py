@@ -38,16 +38,18 @@ def get_distribution(all_path: str, filter_paths: list[str]) -> dict[str, int]:
     return count_per_filter
 
 
-def generate_figure(distribution: dict[str, int], output_path: str):
+def generate_figure(distribution: dict[str, int], output_path: str, aliases: list[str]):
     """
     Generates pie chart for provided distribution.
     """
 
     # Sample data for the pie chart
-    labels = [".".join(os.path.basename(key).split(".")[:-1])
-              for key in distribution.keys()]
+    if aliases is None:
+        labels = [".".join(os.path.basename(key).split(".")[:-1])
+                  for key in distribution.keys()]
+    else:
+        labels = aliases
     sizes = distribution.values()
-
     # Create a pie chart
     plt.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90)
 
@@ -72,7 +74,8 @@ if __name__ == "__main__":
     print(f'{all_projects_path=}')
 
     filter_projects_files = get_argv(key='-f').strip().split(",")
-    filter_project_paths = [exp_utils.FILTER_PATH(filter_type=entry) for entry in filter_projects_files]
+    filter_project_paths = [exp_utils.FILTER_PATH(
+        filter_type=entry) for entry in filter_projects_files]
     print(f'{filter_project_paths=}')
 
     fig_output_path = exp_utils.FIGURE_PATH(
@@ -81,6 +84,9 @@ if __name__ == "__main__":
         figure_name=f"pr_project_filter_distribution_{all_projects_file}.png")
     print(f'{fig_output_path=}')
 
+    aliases = safe_get_argv(key="--aliases", default=None,
+                            data_type=lambda x: x.split(","))
+
     project_distribution = get_distribution(
         all_projects_path, filter_project_paths)
-    generate_figure(project_distribution, fig_output_path)
+    generate_figure(project_distribution, fig_output_path, aliases)
