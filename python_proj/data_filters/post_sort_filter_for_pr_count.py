@@ -24,11 +24,17 @@ def filter_for_pr_count(prs_per_project: dict[str, int],
     with open(output_path, "w+", encoding='utf-8') as output_file:
         ds_iterator = exp_utils.iterate_through_multiple_chronological_datasets(
             dataset_names=input_names)
+        written = 0
+        total = 0
         for entry in ds_iterator:
+            total += 1
             project = entry["__source_path"]
             if prs_per_project[project] < pr_threshold:
                 continue
             output_file.write(f'{json.dumps(entry)}\n')
+            written += 1
+    written_perc = 100 * written / total
+    print(f'Kept {written}/{total} ({written_perc:03f}%).')
 
 
 if __name__ == "__main__":

@@ -37,5 +37,5 @@ for entry in generator:
 rev_perc = 100 * reviewer_count / total
 assign_perc = 100 * assignee_count / total
 
-print(f'{reviewer_count}/{total} ({rev_perc:.03f}%)')
-print(f'{assignee_count}/{total} ({assign_perc:.03f}%)')
+print(f'Reviewers: {reviewer_count}/{total} ({rev_perc:.03f}%)')
+print(f'Assignees: {assignee_count}/{total} ({assign_perc:.03f}%)')
