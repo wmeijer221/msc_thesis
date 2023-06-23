@@ -47,8 +47,12 @@ if __name__ == "__main__":
         input_pr_dataset_names, input_issue_dataset_names))
     print(f'Using input data: {all_dataset_names}.')
 
-    filter_file_name = safe_get_argv(key="-f", default="")
-    filter_file_path = exp_utils.FILTER_PATH(filter_type=filter_file_name)
+    filter_file_name = safe_get_argv(key="--ext", default="")
+    filter_file_path = exp_utils.RAW_DATA_PATH(
+        data_type="user-ids",
+        owner='proj',
+        repo='list',
+        ext=filter_file_name)
     print(f'Using filter "{filter_file_path}".')
 
     # Sets path for output dataset.
