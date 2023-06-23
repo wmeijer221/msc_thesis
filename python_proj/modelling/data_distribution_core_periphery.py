@@ -79,5 +79,5 @@ if __name__ == "__main__":
     print(f'{fig_output_path=}')
 
     project_distribution = get_distribution(
-        all_projects_file, filter_projects_files)
+        all_projects_path, filter_project_paths)
     generate_figure(project_distribution, fig_output_path)
