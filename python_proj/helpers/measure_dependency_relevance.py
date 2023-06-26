@@ -28,9 +28,9 @@ def calculate_periphery_to_core_dependencies():
         key="-p").split(",") if entry != ""]
     core_filter = get_argv(key='-f')
 
-    periphery_filter_paths = [exp_utils.FILTER_PATH(filter_name=filter_name)
+    periphery_filter_paths = [exp_utils.FILTER_PATH(filter_type=filter_name)
                               for filter_name in periphery_filters]
-    core_filter_path = exp_utils.FILTER_PATH(filter_name=core_filter)
+    core_filter_path = exp_utils.FILTER_PATH(filter_type=core_filter)
 
     with open(core_filter_path, "r", encoding='utf-8') as core_file:
         core_projects = {project_name_to_id_map[entry.strip()]
