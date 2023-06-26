@@ -110,7 +110,10 @@ def __slow_load_dependency_map(output_path: str):
     print("Finished slow load!")
 
 
-def load_dependency_map():
+def load_dependency_map() \
+    -> Tuple[SafeDict[str, set[str]],
+             SafeDict[str, set[str]],
+             dict[str, int]]:
     """
     Loads the dependency map. The distinguishment between quick 
     and slow-load is largely there to make debugging faster.
@@ -125,6 +128,8 @@ def load_dependency_map():
     print(
         f'Loaded {len(PROJECT_NAME_TO_ID)} projects and {len(DEPENDENCY_MAP)} projects with dependencies.')
     print(f'Loaded dependency data in {timedelta}.')
+
+    return DEPENDENCY_MAP, INV_DEPENDENCY_MAP, PROJECT_NAME_TO_ID
 
 
 class EcosystemExperienceDecorator(SlidingWindowFeature):
