@@ -34,7 +34,7 @@ def __attempt_quick_load_dependency_map() -> Tuple[bool, str]:
         return False, ql_dependency_path
 
     try:
-        with open(ql_dependency_path, "r") as input_file:
+        with open(ql_dependency_path, "r", encoding='utf-8') as input_file:
             j_data = json.loads(input_file.read())
             DEPENDENCY_MAP = j_data["dependency_map"]
             INV_DEPENDENCY_MAP = j_data["inv_dependency_map"]
@@ -102,14 +102,19 @@ def __slow_load_dependency_map(output_path: str):
 
     with open(repo_dependency_path, "r", encoding="utf-8") as repo_dependency_file:
         csv_reader = reader(repo_dependency_file)
+        header = next(csv_reader)
+        missing_projects = 0
         for dependency in csv_reader:
             dependee_repo_name = dependency[2].lower()
-            dependency_repo_name = dependency[9].lower()
+            if not dependee_repo_name in PROJECT_NAME_TO_ID:
+                missing_projects += 1
+                continue
             dependee_id = PROJECT_NAME_TO_ID[dependee_repo_name]
-            dependency_id = PROJECT_NAME_TO_ID[dependency_repo_name]
+            dependency_id = dependency[-1]
             DEPENDENCY_MAP[dependee_id].add(dependency_id)
             INV_DEPENDENCY_MAP[dependency_id].add(dependee_id)
             dependency_count += 1
+        print(f'{missing_projects=}')
 
     print(f'Loaded {dependency_count} dependencies.')
     print(f"Creating quick load file at {output_path}.")

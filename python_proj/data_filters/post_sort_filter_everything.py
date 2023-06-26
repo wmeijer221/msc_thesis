@@ -4,7 +4,6 @@ a hassle to deal with all of them. This script combines them,
 hoping it doesn't turn into a x + 1 problem.
 """
 
-import itertools
 from importlib import reload
 
 from python_proj.utils.arg_utils import get_argv, safe_get_argv
