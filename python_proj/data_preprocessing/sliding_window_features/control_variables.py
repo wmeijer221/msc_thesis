@@ -37,7 +37,8 @@ class ControlPullRequestLifeTimeInMinutes(Feature):
         return lifetime_in_minutes
 
     def is_valid_entry(self, entry: dict) -> bool:
-        return has_keys(entry, ["created_at", "closed_at"])
+        return has_keys(entry, ["created_at", "closed_at"]) \
+            and self.get_feature(entry) > 0
 
 
 class ControlIntraProjectPullRequestExperienceOfIntegrator(SlidingWindowFeature):
@@ -172,7 +173,7 @@ class ControlPullRequestHasCommentByExternalUser(Feature):
     def is_valid_entry(self, entry: dict) -> bool:
         integrator_key = get_integrator_key(entry)
         has_main_keys = has_keys(
-            entry, ["comments", "user_data", integrator_key, 
+            entry, ["comments", "user_data", integrator_key,
                     "__source_path", 'merged'])
         if not has_main_keys:
             return False

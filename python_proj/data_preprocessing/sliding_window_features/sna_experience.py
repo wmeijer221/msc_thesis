@@ -164,8 +164,6 @@ class SharedExperiencePullRequestSubmittedByIntegratorIntegratedBySubmitter(Shar
     def __init__(self) -> None:
         super().__init__()
         self._inversed = True
-        # self._nested_source_keys = [[get_integrator_key, "id"]]
-        # self._nested_target_keys = [["user_data", "id"]]
 
 
 class SharedExperiencePullRequestSubmittedBySubmitterCommentedOnByIntegrator(SNAFeature):
