@@ -33,10 +33,17 @@ def apply_post_sort_all(
 
     def __do_basic_filter(task, *_, **__):
         input_file_name = task
+        input_path = exp_utils.CHRONOLOGICAL_DATASET_PATH(
+            data_type=task[0], file_name=task[1])
         output_file_name = f'{input_file_name}_out_{output_path_flag}'
-        apply_post_sort_filter(input_file_name, output_file_name, filter_mode)
-    tasks = list(itertools.chain(input_chronological_pr_datasets,
-                                 input_chronological_issue_datasets))
+        output_path = exp_utils.CHRONOLOGICAL_DATASET_PATH(
+            data_type=task[0], file_name=output_file_name
+        )
+        apply_post_sort_filter(input_path, output_path, filter_mode)
+    tasks = list([('pull-requests', file_name)
+                 for file_name in input_chronological_pr_datasets])
+    tasks.extend([('issues', file_name)
+                 for file_name in input_chronological_issue_datasets])
     parallelize_tasks(tasks, __do_basic_filter, thread_count=len(tasks))
 
     # Applies PR count filter
@@ -50,7 +57,6 @@ def apply_post_sort_all(
         file_name=output_name_final_datasets)
     post_sort_filter_for_pr_count(
         input_file_names, output_pr_path, min_pr_count)
-
     print(f'{output_pr_path=}')
 
     # Sieves project names from the created pull request file.
@@ -58,7 +64,7 @@ def apply_post_sort_all(
     reload(exp_utils)
     exp_utils.load_paths_for_eco()
     projects_path = create_project_user_list(
-        input_pr_dataset_names=[output_pr_path],
+        input_pr_dataset_names=[output_name_final_datasets],
         input_issue_dataset_names=[],
         ext=output_path_flag
     )
@@ -82,8 +88,8 @@ def apply_post_sort_all(
     # Invalid entry filtering
     print("Removing invalid entries from issues and PRs.")
     remove_invalid_entries(
-        [output_pr_path],
-        [output_issue_path]
+        [output_name_final_datasets],
+        [output_name_final_datasets]
     )
 
     # Create sliding window dataset.
@@ -95,8 +101,8 @@ def apply_post_sort_all(
             file_name=f'dataset_{window}_days_{output_path_flag}')
         print(f'{output_train_dataset_path=}')
         build_dataset(
-            pr_dataset_names=[f'{output_pr_path}_no_invalid'],
-            issue_dataset_names=[f'{output_issue_path}_no_invalid'],
+            pr_dataset_names=[f'{output_name_final_datasets}_no_invalid'],
+            issue_dataset_names=[f'{output_name_final_datasets}_no_invalid'],
             output_dataset_path=output_train_dataset_path,
             window_size_in_days=window
         )

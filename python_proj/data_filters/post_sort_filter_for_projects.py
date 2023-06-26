@@ -11,7 +11,7 @@ from python_proj.utils.arg_utils import safe_get_argv
 
 
 def filter_input_data_with_project_filter(
-        input_data_paths: list[str],
+        input_data_names: list[str],
         input_filter_path: str,
         output_data_path: str
 ):
@@ -22,7 +22,7 @@ def filter_input_data_with_project_filter(
         total = 0
         written = 0
 
-        for entry in exp_utils.iterate_through_multiple_chronological_datasets(input_data_paths):
+        for entry in exp_utils.iterate_through_multiple_chronological_datasets(input_data_names):
             total += 1
             owner, repo = exp_utils.get_owner_and_repo_from_source_path(
                 entry["__source_path"])

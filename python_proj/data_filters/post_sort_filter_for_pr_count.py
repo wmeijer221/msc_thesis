@@ -40,11 +40,11 @@ def filter_for_pr_count(prs_per_project: dict[str, int],
 
 
 def post_sort_filter_for_pr_count(input_file_names: list[str],
-                                  output_file_name: str,
+                                  output_file_path: str,
                                   pr_threshold: int):
     prs_per_project = calculate_prs_per_project(input_file_names)
     filter_for_pr_count(prs_per_project, input_file_names,
-                        output_file_name, pr_threshold)
+                        output_file_path, pr_threshold)
 
 
 if __name__ == "__main__":
