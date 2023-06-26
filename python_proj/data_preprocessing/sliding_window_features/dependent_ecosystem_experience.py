@@ -77,6 +77,8 @@ def __slow_load_dependency_map(output_path: str):
     dependency_path = exp_utils.TRAIN_DATASET_PATH(
         file_name=dependency_file_name)
 
+    dependency_count = 0
+
     print(f'Loading dependencies from: {dependency_path}.')
 
     with open(dependency_path, "r", encoding='utf-8') as input_file:
@@ -85,11 +87,31 @@ def __slow_load_dependency_map(output_path: str):
         focal_project_name_idx = header.index("Project ID")
         other_project_id_idx = header.index("Dependency Project ID")
         for dependency in csv_reader:
-            other_project_id = dependency[other_project_id_idx]
-            focal_project_id = dependency[focal_project_name_idx]
+            other_project_id = dependency[other_project_id_idx].lower()
+            focal_project_id = dependency[focal_project_name_idx].lower()
             DEPENDENCY_MAP[focal_project_id].add(other_project_id)
             INV_DEPENDENCY_MAP[other_project_id].add(focal_project_id)
+            dependency_count += 1
 
+    # Loads repo depdnencies from so-many GB data file; which is also slow.
+    repo_dependency_file_name = "repository_dependencies-1.6.0-2020-01-12"
+    repo_dependency_path = exp_utils.TRAIN_DATASET_PATH(
+        file_name=repo_dependency_file_name)
+
+    print(f'Loading repo dependencies from "{repo_dependency_path}".')
+
+    with open(repo_dependency_path, "r", encoding="utf-8") as repo_dependency_file:
+        csv_reader = reader(repo_dependency_file)
+        for dependency in csv_reader:
+            dependee_repo_name = dependency[2].lower()
+            dependency_repo_name = dependency[9].lower()
+            dependee_id = PROJECT_NAME_TO_ID[dependee_repo_name]
+            dependency_id = PROJECT_NAME_TO_ID[dependency_repo_name]
+            DEPENDENCY_MAP[dependee_id].add(dependency_id)
+            INV_DEPENDENCY_MAP[dependency_id].add(dependee_id)
+            dependency_count += 1
+
+    print(f'Loaded {dependency_count} dependencies.')
     print(f"Creating quick load file at {output_path}.")
 
     # Transforms sets to lists as sets aren't JSON serializable.
