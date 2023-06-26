@@ -24,7 +24,6 @@ from python_proj.utils.exp_utils import build_data_path_from_argv, BASE_PATH
 
 def load_data(data_input_path: str) -> Generator[dict, None, None]:
     """loads dataset"""
-    # j_data = []
     ds_start_size = 0
     with open(data_input_path, "r", encoding='utf-8') as input_data:
         for line in input_data:
@@ -32,8 +31,6 @@ def load_data(data_input_path: str) -> Generator[dict, None, None]:
             j_entry = json.loads(line)
             yield j_entry
             ds_start_size += 1
-            # j_data.append(j_entry)
-    # return j_data
     print(f'{ds_start_size=}')
 
 
@@ -221,13 +218,16 @@ def write_data(output_data: Generator, output_data_path: str):
             output_file.write(f'{json.dumps(entry)}\n')
 
 
-if __name__ == "__main__":
-    input_path = build_data_path_from_argv(file_name_key='-i')
-    output_path = build_data_path_from_argv(file_name_key='-o')
-    mode = get_argv(key="-m")
-
+def apply_post_sort_filter(input_path, output_path, mode):
+    """Main method of this script."""
     filters = build_filters(mode)
     data = load_data(input_path)
-
     filtered_data = filter_data(data, filters)
     write_data(filtered_data, output_path)
+
+
+if __name__ == "__main__":
+    __input_path = build_data_path_from_argv(file_name_key='-i')
+    __output_path = build_data_path_from_argv(file_name_key='-o')
+    __mode = get_argv(key="-m")
+    apply_post_sort_filter(__input_path, __output_path, __mode)

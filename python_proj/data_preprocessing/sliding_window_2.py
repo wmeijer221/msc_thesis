@@ -169,6 +169,7 @@ def generate_dataset(pr_dataset_names: list[str],
 
 def build_dataset(pr_dataset_names: list[str],
                   issue_dataset_names: list[str],
+                  output_dataset_path: str,
                   window_size_in_days: int):
     """
     Writes all data entries to a training data file 
@@ -183,16 +184,17 @@ def build_dataset(pr_dataset_names: list[str],
     window_size = None
     if window_size_in_days is not None:
         window_size = timedelta(days=window_size_in_days)
-    dataset_iterator = generate_dataset(pr_dataset_names,
-                                        issue_dataset_names,
-                                        intra_pr_features,
-                                        sliding_window_features_pr,
-                                        sliding_window_features_issue,
-                                        window_size)
+    dataset_iterator = generate_dataset(
+        pr_dataset_names,
+        issue_dataset_names,
+        intra_pr_features,
+        sliding_window_features_pr,
+        sliding_window_features_issue,
+        window_size
+    )
 
     # Outputs dataset.
-    output_dataset_name = exp_utils.TRAIN_DATASET_PATH
-    with open(output_dataset_name, "w+", encoding='utf-8') as output_dataset:
+    with open(output_dataset_path, "w+", encoding='utf-8') as output_dataset:
         csv_writer = writer(output_dataset)
         for datapoint in dataset_iterator:
             csv_writer.writerow(datapoint)
@@ -223,7 +225,7 @@ def sliding_window():
     # Sets path for output dataset.
     output_dataset_name = safe_get_argv(
         key="-o", default="test_dataset")
-    exp_utils.TRAIN_DATASET_PATH = exp_utils.TRAIN_DATASET_PATH(
+    output_dataset_path = exp_utils.TRAIN_DATASET_PATH(
         file_name=output_dataset_name)
     print(f'Output path: "{exp_utils.TRAIN_DATASET_PATH}".')
 
@@ -231,26 +233,24 @@ def sliding_window():
 
     start_time = datetime.now()
 
-    build_dataset(input_pr_dataset_names, input_issue_dataset_names, days)
+    build_dataset(
+        input_pr_dataset_names,
+        input_issue_dataset_names,
+        output_dataset_path,
+        days
+    )
 
     end_time = datetime.now()
     delta_time = end_time - start_time
     print(f'Ran from {start_time} till {end_time} ({delta_time}).')
 
 
-def remove_invalid_entries():
+def remove_invalid_entries(input_pr_dataset_names: list[str],
+                           input_issue_dataset_names: list[str]):
     """
     Removes invalid entries from the dataset. These are entries that
     cannot be processed by any of the selected features.
     """
-
-    exp_utils.load_paths_for_eco()
-
-    # Sets path for chronological input data
-    input_pr_dataset_names = [entry for entry in safe_get_argv(key="-pd", default="").split(",")
-                              if entry != '']
-    input_issue_dataset_names = [entry for entry in safe_get_argv(key='-id', default="").split(",")
-                                 if entry != '']
 
     intra_pr_features, sliding_window_features_pr, sliding_window_features_issue = __get_features()
     pr_features = [*intra_pr_features, *sliding_window_features_pr]
@@ -300,6 +300,13 @@ if __name__ == "__main__":
         case 's':
             sliding_window()
         case 'r':
-            remove_invalid_entries()
+            exp_utils.load_paths_for_eco()
+            # Sets path for chronological input data
+            __input_pr_dataset_names = [entry for entry in safe_get_argv(key="-pd", default="").split(",")
+                                        if entry != '']
+            __input_issue_dataset_names = [entry for entry in safe_get_argv(key='-id', default="").split(",")
+                                           if entry != '']
+            remove_invalid_entries(
+                __input_pr_dataset_names, __input_issue_dataset_names)
         case _:
             raise ValueError(f"Invalid mode {mode}.")

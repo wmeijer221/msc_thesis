@@ -39,18 +39,25 @@ def filter_for_pr_count(prs_per_project: dict[str, int],
     print(f'Kept {written}/{total} ({written_perc:03f}%).')
 
 
+def post_sort_filter_for_pr_count(input_file_names: list[str],
+                                  output_file_name: str,
+                                  pr_threshold: int):
+    prs_per_project = calculate_prs_per_project(input_file_names)
+    filter_for_pr_count(prs_per_project, input_file_names,
+                        output_file_name, pr_threshold)
+
+
 if __name__ == "__main__":
     exp_utils.load_paths_for_eco()
     exp_utils.load_paths_for_data_path()
 
-    input_paths = [entry.strip() for entry in get_argv(
+    __input_paths = [entry.strip() for entry in get_argv(
         key="-i").split(",") if entry.strip() != ""]
-    output_path = exp_utils.build_data_path_from_argv(file_name_key='-o')
-    print(f'Outputting at "{output_path}".')
 
-    pr_threshold = safe_get_argv(key="-p", default=5, data_type=int)
-    print(f'PR Threshold set to {pr_threshold}.')
+    __output_path = exp_utils.build_data_path_from_argv(file_name_key='-o')
+    print(f'Outputting at "{__output_path}".')
 
-    prs_per_project = calculate_prs_per_project(input_paths)
-    filter_for_pr_count(prs_per_project, input_paths,
-                        output_path, pr_threshold)
+    __pr_threshold = safe_get_argv(key="-p", default=5, data_type=int)
+    print(f'PR Threshold set to {__pr_threshold}.')
+
+    post_sort_filter_for_pr_count(__input_paths, __output_path, __pr_threshold)

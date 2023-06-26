@@ -36,6 +36,11 @@ class SimpleConsumer(multiprocessing.Process):
 
 
 def parallelize_tasks(tasks: list, on_message_received: Callable, thread_count: int, *args, **kwargs):
+    """
+    Starts a bunch of simple consumer threads that work away on the given tasks. 
+    The tasks are passed through ``task`` parameter; i.e., if it's a dict is not unpacked.
+    """
+
     worklist = multiprocessing.JoinableQueue()
     workers: list[SimpleConsumer] = [None] * thread_count
 
