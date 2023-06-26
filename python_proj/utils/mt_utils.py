@@ -7,6 +7,10 @@ import multiprocessing
 
 
 class SimpleConsumer(multiprocessing.Process):
+    """Simple consumer thread."""
+
+    class TerminateTask:
+        """When received by the simple consumer, it terminates."""
 
     def __init__(self, on_message_received: Callable, task_list: multiprocessing.JoinableQueue,
                  worker_index: int, *args, **kwargs) -> None:
@@ -22,7 +26,7 @@ class SimpleConsumer(multiprocessing.Process):
         is_running = True
         while is_running:
             task = self._task_list.get()
-            if task is None:
+            if isinstance(task, SimpleConsumer.TerminateTask):
                 is_running = False
                 break
             try:
@@ -63,7 +67,7 @@ def parallelize_tasks(tasks: list, on_message_received: Callable, thread_count: 
 
     # Kills workers.
     for _ in range(thread_count):
-        worklist.put(None)
+        worklist.put(SimpleConsumer.TerminateTask())
 
     # Waits until workers terminate.
     for worker in workers:
