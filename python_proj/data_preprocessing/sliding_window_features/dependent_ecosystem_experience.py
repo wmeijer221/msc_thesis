@@ -65,7 +65,7 @@ def __slow_load_dependency_map(output_path: str):
 
     PROJECT_NAME_TO_ID = {}
     repo_name_index = exp_utils.repo_name_index
-    with open(project_file_name, "r") as project_file:
+    with open(project_file_name, "r", encoding='utf-8') as project_file:
         csv_reader = reader(project_file)
         for project in csv_reader:
             repo_id = project[0]
@@ -79,7 +79,7 @@ def __slow_load_dependency_map(output_path: str):
 
     print(f'Loading dependencies from: {dependency_path}.')
 
-    with open(dependency_path, "r") as input_file:
+    with open(dependency_path, "r", encoding='utf-8') as input_file:
         csv_reader = reader(input_file)
         header = next(csv_reader)
         focal_project_name_idx = header.index("Project ID")
@@ -104,7 +104,7 @@ def __slow_load_dependency_map(output_path: str):
         "inv_dependency_map": INV_DEPENDENCY_MAP,
         "project_name_to_id": PROJECT_NAME_TO_ID
     }
-    with open(output_path, "w+") as output_file:
+    with open(output_path, "w+", encoding='utf-8') as output_file:
         output_file.write(json.dumps(ql_dependency_map))
 
     print("Finished slow load!")
