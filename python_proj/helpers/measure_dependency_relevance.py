@@ -76,19 +76,19 @@ def calculate_periphery_to_core_dependencies(
                 if not entry_id in included_projects:
                     dependency_counter[not_included_key] += 1
                     continue
-
-                dependencies = dependency_map[entry_id]
-                for dependency in dependencies:
-                    if dependency in core_projects:
-                        dependency_counter[filter_path]['dep'] += 1
-                        break
-                if not entry_id in inv_dependency_map:
-                    continue
-                inv_dependencies = inv_dependency_map[entry_id]
-                for dependency in inv_dependencies:
-                    if dependency in core_projects:
-                        dependency_counter[filter_path]['inv_dep'] += 1
-                        break
+                    
+                if entry_id in dependencies:
+                    dependencies = dependency_map[entry_id]
+                    for dependency in dependencies:
+                        if dependency in core_projects:
+                            dependency_counter[filter_path]['dep'] += 1
+                            break
+                if entry_id in inv_dependency_map:
+                    inv_dependencies = inv_dependency_map[entry_id]
+                    for dependency in inv_dependencies:
+                        if dependency in core_projects:
+                            dependency_counter[filter_path]['inv_dep'] += 1
+                            break
 
     print(json.dumps(dependency_counter, indent=4))
     return dependency_counter
