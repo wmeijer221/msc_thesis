@@ -55,12 +55,10 @@ def calculate_periphery_to_core_dependencies(
     periphery_filter_paths = [exp_utils.FILTER_PATH(filter_type=filter_name)
                               for filter_name in periphery_filter_names]
 
-    dependency_counter = {proj: {'dep': 0, 'inv_dep': 0}
-                          for proj in periphery_filter_paths}
     no_mapping_key = 'No Mapping'
-    dependency_counter[no_mapping_key] = 0
     not_included_key = 'Not Included'
-    dependency_counter[not_included_key] = 0
+    dependency_counter = {proj: {'dep': 0, 'inv_dep': 0, no_mapping_key: 0, not_included_key: 0}
+                          for proj in periphery_filter_paths}
 
     with OpenMany(periphery_filter_paths, "r", encoding='utf-8') as periphery_files:
         for (periphery_file, filter_path) in zip(periphery_files, periphery_filter_paths):
@@ -68,13 +66,13 @@ def calculate_periphery_to_core_dependencies(
                 entry = entry.strip().lower()
 
                 if not entry in project_name_to_id_map:
-                    dependency_counter[no_mapping_key] += 1
+                    dependency_counter[filter_path][no_mapping_key] += 1
                     continue
 
                 entry_id = project_name_to_id_map[entry]
 
                 if not entry_id in included_projects:
-                    dependency_counter[not_included_key] += 1
+                    dependency_counter[filter_path][not_included_key] += 1
                     continue
                     
                 if entry_id in dependency_map:
