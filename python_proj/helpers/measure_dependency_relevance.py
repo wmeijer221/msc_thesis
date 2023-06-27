@@ -100,10 +100,12 @@ def calculate_periphery_to_core_dependencies(
         for project_file in project_files:
             for entry in project_file:
                 entry = entry.strip().lower()
-                if entry not in project_name_to_id_map \
-                        or entry not in included_projects:
+                if entry not in project_name_to_id_map:
                     continue
-                project_ids.add(entry)
+                entry_id = project_name_to_id_map[entry]
+                if entry_id not in included_projects:
+                    continue
+                project_ids.add(entry_id)
         print(f'{len(project_ids)=}')
 
         projects_with_a_dependency = 0
