@@ -86,6 +86,7 @@ def __stage_filter_issues_with_projects(
 ):
     # filters issue dataset with project list.
     print('Stage 4: Filtering issues with filter list.')
+    exp_utils.load_paths_for_data_path(data_source='issues')
     issue_dataset_names = [f'{dataset_in}_out_{output_path_flag}'
                            for dataset_in in input_chronological_issue_datasets]
     output_issue_path = exp_utils.CHRONOLOGICAL_DATASET_PATH(
@@ -103,6 +104,8 @@ def __stage_filter_issues_with_projects(
 def __stage_remove_invalid_entries_final_datasets(output_name_final_datasets: str):
     # Invalid entry filtering
     print("Stage 5: Removing invalid entries from issues and PRs.")
+    reload(exp_utils)
+    exp_utils.load_paths_for_eco()
     remove_invalid_entries(
         [output_name_final_datasets],
         [output_name_final_datasets]

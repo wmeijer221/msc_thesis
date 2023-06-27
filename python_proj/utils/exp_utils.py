@@ -80,7 +80,7 @@ def load_paths_for_all_argv():
 ECO_IS_LOADED = False
 
 
-def load_paths_for_eco(eco_key: str = ECO_KEY):
+def load_paths_for_eco(eco_key: str = ECO_KEY, eco: str | None = None):
     global PROJECTS_WITH_REPO_PATH, RAW_DATA_PATH, FILTER_PATH, CHRONOLOGICAL_DATASET_PATH, \
         FIGURE_PATH, TRAIN_DATASET_PATH, ECO_IS_LOADED
 
@@ -89,7 +89,8 @@ def load_paths_for_eco(eco_key: str = ECO_KEY):
 
     ECO_IS_LOADED = True
 
-    eco = safe_get_argv(eco_key, "npm")
+    if eco is None:
+        eco = safe_get_argv(eco_key, "npm")
 
     PROJECTS_WITH_REPO_PATH = partial(PROJECTS_WITH_REPO_PATH.format, eco=eco)
     RAW_DATA_PATH = partial(RAW_DATA_PATH.format, eco=eco)
@@ -104,7 +105,7 @@ DATA_SOURCE_IS_LOADED = False
 # TODO: rename this to "data_source" for consistency
 
 
-def load_paths_for_data_path(data_source_key: str = DATA_SOURCE_KEY):
+def load_paths_for_data_path(data_source_key: str = DATA_SOURCE_KEY, data_source: str | None = None):
     global RAW_DATA_PATH, CHRONOLOGICAL_DATASET_PATH, FIGURE_PATH, TRAIN_DATASET_PATH, DATA_SOURCE_IS_LOADED
 
     if DATA_SOURCE_IS_LOADED:
@@ -112,7 +113,8 @@ def load_paths_for_data_path(data_source_key: str = DATA_SOURCE_KEY):
 
     DATA_SOURCE_IS_LOADED = True
 
-    data_source = safe_get_argv(data_source_key, "pull-requests")
+    if data_source is None:
+        data_source = safe_get_argv(data_source_key, "pull-requests")
     # Assumes ``load_paths_for_eco`` has been called.
     RAW_DATA_PATH = partial(RAW_DATA_PATH, data_type=data_source)
     CHRONOLOGICAL_DATASET_PATH = partial(
@@ -124,14 +126,15 @@ def load_paths_for_data_path(data_source_key: str = DATA_SOURCE_KEY):
 FILE_NAME_IS_LOADED = False
 
 
-def load_paths_for_file_name(file_name_key: str = FILE_NAME_KEY):
+def load_paths_for_file_name(file_name_key: str = FILE_NAME_KEY, file_name: str | None = None):
     global CHRONOLOGICAL_DATASET_PATH, FIGURE_PATH, FILE_NAME_IS_LOADED
 
     if FILE_NAME_IS_LOADED:
         return
     FILE_NAME_IS_LOADED = True
 
-    file_name = safe_get_argv(file_name_key, default="sorted")
+    if file_name is None:
+        file_name = safe_get_argv(file_name_key, default="sorted")
 
     # TODO: This should be partial.
     CHRONOLOGICAL_DATASET_PATH = CHRONOLOGICAL_DATASET_PATH(
