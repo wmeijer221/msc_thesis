@@ -213,6 +213,7 @@ def filter_data(original_data: Generator, filter_methods: list) -> Generator[dic
 
 def write_data(output_data: Generator, output_data_path: str):
     """writes data to file."""
+    print(f'Outputting filtered data to "{output_data_path}".')
     with open(output_data_path, "w+", encoding='utf-8') as output_file:
         for entry in output_data:
             output_file.write(f'{json.dumps(entry)}\n')
