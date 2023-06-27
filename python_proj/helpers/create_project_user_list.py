@@ -50,6 +50,8 @@ def create_project_user_list(input_pr_dataset_names: list[str],
     for entry in generator:
         project = entry["__source_path"]
         for user in get_users(entry):
+            if not 'id' in user:
+                continue
             user_id = user['id']
             ud = UserData(user_id, user)
             users_per_project[project].add(ud)

@@ -17,18 +17,14 @@ from python_proj.data_preprocessing.sliding_window_2 import remove_invalid_entri
 from python_proj.helpers.create_project_user_list import create_project_user_list
 
 
-def apply_post_sort_all(
-    input_chronological_pr_datasets: list[str],
-    input_chronological_issue_datasets: list[str],
-    output_path_flag: str,
-    min_pr_count: int,
-    filter_mode: str,
-    windows: list[str | None]
+def __stage_simple_filter(
+        filter_mode: str,
+        output_path_flag: str,
+        input_chronological_pr_datasets: list[str],
+        input_chronological_issue_datasets: list[str]
 ):
-    """Applies all post-sort filters to the input datasets."""
-
     # Applies the basic filter on all input chronological datasets.
-    print(f"Starting simple filter in mode '{filter_mode}'.")
+    print(f"Stage 1: Starting simple filter in mode '{filter_mode}'.")
 
     def __do_basic_filter(task, *_, **__):
         data_type, input_file_name = task[0], task[1]
@@ -45,21 +41,32 @@ def apply_post_sort_all(
                  for file_name in input_chronological_issue_datasets])
     parallelize_tasks(tasks, __do_basic_filter, thread_count=len(tasks))
 
+
+def __stage_pr_count_filter(
+    min_pr_count: int,
+    output_path_flag: str,
+    input_chronological_pr_datasets: list[str],
+    output_name_final_datasets: str
+):
     # Applies PR count filter
-    print(f'Starting PR count filter with threshold {min_pr_count}.')
+    print(f'Stage 2: Starting PR count filter with threshold {min_pr_count}.')
     exp_utils.load_paths_for_eco()
     exp_utils.load_paths_for_data_path()  # sets it to the default: pull-requests
     input_file_names = [f'{input_file_name}_out_{output_path_flag}'
                         for input_file_name in input_chronological_pr_datasets]
-    output_name_final_datasets = f'sorted_{output_path_flag}_min_{min_pr_count}_prs'
     output_pr_path = exp_utils.CHRONOLOGICAL_DATASET_PATH(
         file_name=output_name_final_datasets)
     post_sort_filter_for_pr_count(
         input_file_names, output_pr_path, min_pr_count)
     print(f'{output_pr_path=}')
 
+
+def __stage_create_project_list(
+        output_name_final_datasets: str,
+        output_path_flag: str
+) -> str:
     # Sieves project names from the created pull request file.
-    print("Creating project list.")
+    print("Stage 3: Creating project list.")
     reload(exp_utils)
     exp_utils.load_paths_for_eco()
     projects_path = create_project_user_list(
@@ -68,9 +75,17 @@ def apply_post_sort_all(
         ext=output_path_flag
     )
     print(f'{projects_path=}')
+    return projects_path
 
+
+def __stage_filter_issues_with_projects(
+    output_path_flag: str,
+    input_chronological_issue_datasets: list[str],
+    output_name_final_datasets: str,
+    projects_path: str
+):
     # filters issue dataset with project list.
-    print('Filtering issues with filter list.')
+    print('Stage 4: Filtering issues with filter list.')
     issue_dataset_names = [f'{dataset_in}_out_{output_path_flag}'
                            for dataset_in in input_chronological_issue_datasets]
     output_issue_path = exp_utils.CHRONOLOGICAL_DATASET_PATH(
@@ -84,15 +99,24 @@ def apply_post_sort_all(
         output_issue_path
     )
 
+
+def __stage_remove_invalid_entries_final_datasets(output_name_final_datasets: str):
     # Invalid entry filtering
-    print("Removing invalid entries from issues and PRs.")
+    print("Stage 5: Removing invalid entries from issues and PRs.")
     remove_invalid_entries(
         [output_name_final_datasets],
         [output_name_final_datasets]
     )
 
+
+def __stage_create_sliding_window_dataset(
+    windows: list[int | None],
+    output_path_flag: str,
+    output_name_final_datasets: str
+):
     # Create sliding window dataset.
-    print(f"Creating sliding window datasets with windows: {windows}.")
+    print(
+        f"Stage 6: Creating sliding window datasets with windows: {windows}.")
 
     def __create_training_dataset(task, *_, **__):
         window = task
@@ -109,6 +133,53 @@ def apply_post_sort_all(
         tasks=windows,
         on_message_received=__create_training_dataset,
         thread_count=len(windows)
+    )
+
+
+def apply_post_sort_all(
+    input_chronological_pr_datasets: list[str],
+    input_chronological_issue_datasets: list[str],
+    output_path_flag: str,
+    min_pr_count: int,
+    filter_mode: str,
+    windows: list[str | None]
+):
+    """Applies all post-sort filters to the input datasets."""
+
+    __stage_simple_filter(
+        filter_mode,
+        output_path_flag,
+        input_chronological_pr_datasets,
+        input_chronological_issue_datasets
+    )
+
+    output_name_final_datasets = f'sorted_{output_path_flag}_min_{min_pr_count}_prs'
+
+    __stage_pr_count_filter(
+        min_pr_count,
+        output_path_flag,
+        input_chronological_pr_datasets,
+        output_name_final_datasets
+    )
+
+    projects_path = __stage_create_project_list(
+        output_name_final_datasets,
+        output_path_flag
+    )
+
+    __stage_filter_issues_with_projects(
+        output_path_flag,
+        input_chronological_issue_datasets,
+        output_name_final_datasets,
+        projects_path
+    )
+
+    __stage_remove_invalid_entries_final_datasets(output_name_final_datasets)
+
+    __stage_create_sliding_window_dataset(
+        windows,
+        output_path_flag,
+        output_name_final_datasets
     )
 
     print("Done!")
