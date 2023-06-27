@@ -27,7 +27,8 @@ def get_users(activity: dict) -> Generator[dict, None, None]:
         if integrator_key in activity:
             yield activity[integrator_key]
     if not "comments" in activity \
-            or activity['comments'] == 0:
+            or activity['comments'] == 0 \
+                or "comments_data" not in activity:
         return
     for comment in activity['comments_data']:
         if 'user_data' in comment:
