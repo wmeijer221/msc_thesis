@@ -121,12 +121,13 @@ def calculate_periphery_to_core_dependencies(
                         break
 
             if entry in inv_dependency_map:
-                dependees = dependency_map[entry]
+                dependees = inv_dependency_map[entry]
                 for dependee in dependees:
                     if dependee in project_ids:
                         projects_with_a_dependendee += 1
                         break
 
+        print("Dependencies and inversed dependencies in the ENTIRE dataset:")
         print(f'{projects_with_a_dependency=}, {projects_with_a_dependendee=}.')
 
 
