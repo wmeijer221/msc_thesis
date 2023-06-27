@@ -74,25 +74,57 @@ def calculate_periphery_to_core_dependencies(
                 if not entry_id in included_projects:
                     dependency_counter[filter_path][not_included_key] += 1
                     continue
-                    
+
                 if entry_id in dependency_map:
                     # if it has listed dependencies.
-                    dependencies = dependency_map[entry_id]
-                    for dependency in dependencies:
-                        if dependency in core_projects:
+                    dependees = dependency_map[entry_id]
+                    for dependee in dependees:
+                        if dependee in core_projects:
                             dependency_counter[filter_path]['dep'] += 1
                             break
 
                 if entry_id in inv_dependency_map:
                     # if it has projects depending on it.
                     inv_dependencies = inv_dependency_map[entry_id]
-                    for dependency in inv_dependencies:
-                        if dependency in core_projects:
+                    for dependee in inv_dependencies:
+                        if dependee in core_projects:
                             dependency_counter[filter_path]['inv_dep'] += 1
                             break
 
-    print(json.dumps(dependency_counter, indent=4))
-    return dependency_counter
+    print("Overview of dependencies from and to the CORE dataset:\n" +
+          json.dumps(dependency_counter, indent=4))
+
+    project_paths = [*periphery_filter_paths, core_filter_path]
+    with OpenMany(project_paths, "r", encoding='utf-8') as project_files:
+        project_ids = set()
+        for project_file in project_files:
+            for entry in project_file:
+                entry = entry.strip().lower()
+                if not entry in project_name_to_id_map:
+                    continue
+                project_ids.add(entry)
+        print(f'{len(project_ids)=}')
+
+        projects_with_a_dependency = 0
+        projects_with_a_dependendee = 0
+
+        for entry in project_ids:
+
+            if entry in dependency_map:
+                dependees = dependency_map[entry]
+                for dependee in dependees:
+                    if dependee in project_ids:
+                        projects_with_a_dependency += 1
+                        break
+
+            if entry in inv_dependency_map:
+                dependees = dependency_map[entry]
+                for dependee in dependees:
+                    if dependee in project_ids:
+                        projects_with_a_dependendee += 1
+                        break
+
+        print(f'{projects_with_a_dependency=}, {projects_with_a_dependendee=}.')
 
 
 if __name__ == "__main__":
