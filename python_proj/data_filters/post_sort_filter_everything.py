@@ -31,12 +31,12 @@ def apply_post_sort_all(
     print(f"Starting simple filter in mode '{filter_mode}'.")
 
     def __do_basic_filter(task, *_, **__):
-        input_file_name = task
+        data_type, input_file_name = task[0], task[1]
         input_path = exp_utils.CHRONOLOGICAL_DATASET_PATH(
-            data_type=task[0], file_name=task[1])
+            data_type=data_type, file_name=input_file_name)
         output_file_name = f'{input_file_name}_out_{output_path_flag}'
         output_path = exp_utils.CHRONOLOGICAL_DATASET_PATH(
-            data_type=task[0], file_name=output_file_name
+            data_type=data_type, file_name=output_file_name
         )
         apply_post_sort_filter(input_path, output_path, filter_mode)
     tasks = list([('pull-requests', file_name)
