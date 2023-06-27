@@ -77,7 +77,7 @@ def calculate_periphery_to_core_dependencies(
                     dependency_counter[not_included_key] += 1
                     continue
                     
-                if entry_id in dependencies:
+                if entry_id in dependency_map:
                     # if it has listed dependencies.
                     dependencies = dependency_map[entry_id]
                     for dependency in dependencies:
