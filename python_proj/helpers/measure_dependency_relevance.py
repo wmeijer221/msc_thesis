@@ -43,12 +43,14 @@ def calculate_periphery_to_core_dependencies(
     )
     with open(included_projects_filter_path, "r", encoding='utf-8') as included_projects_file:
         included_projects = {project_name_to_id_map[entry.strip().lower()]
-                             for entry in included_projects_file}
+                             for entry in included_projects_file
+                             if entry.strip().lower() in project_name_to_id_map}
 
     core_filter_path = exp_utils.FILTER_PATH(filter_type=core_filter_name)
     with open(core_filter_path, "r", encoding='utf-8') as core_file:
         core_projects = {project_name_to_id_map[entry.strip().lower()]
-                         for entry in core_file}
+                         for entry in core_file
+                         if entry.strip().lower() in project_name_to_id_map}
 
     periphery_filter_paths = [exp_utils.FILTER_PATH(filter_type=filter_name)
                               for filter_name in periphery_filter_names]
