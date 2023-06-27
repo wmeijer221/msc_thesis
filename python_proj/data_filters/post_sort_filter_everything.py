@@ -120,7 +120,7 @@ if __name__ == "__main__":
     __input_chronological_issue_datasets = list([entry for entry in get_argv(
         key='--chron_in_issue').split(",") if entry != ""])
     __dataset_tag = get_argv(key='--tag')
-    __windows = [None if int(entry) == 'all' else entry
+    __windows = [None if entry == 'all' else int(entry)
                  for entry in get_argv(key='--windows').split(",")]
     __min_prs = safe_get_argv(key='--min_prs', default=5, data_type=int)
     __filter_mode = safe_get_argv(key='--filter_mode', default="pcuadgbn")
