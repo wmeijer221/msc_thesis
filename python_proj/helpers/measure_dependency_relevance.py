@@ -78,12 +78,15 @@ def calculate_periphery_to_core_dependencies(
                     continue
                     
                 if entry_id in dependencies:
+                    # if it has listed dependencies.
                     dependencies = dependency_map[entry_id]
                     for dependency in dependencies:
                         if dependency in core_projects:
                             dependency_counter[filter_path]['dep'] += 1
                             break
+
                 if entry_id in inv_dependency_map:
+                    # if it has projects depending on it.
                     inv_dependencies = inv_dependency_map[entry_id]
                     for dependency in inv_dependencies:
                         if dependency in core_projects:
