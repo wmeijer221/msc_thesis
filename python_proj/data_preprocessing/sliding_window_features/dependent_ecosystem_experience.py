@@ -159,6 +159,18 @@ def load_dependency_map() \
     return DEPENDENCY_MAP, INV_DEPENDENCY_MAP, PROJECT_NAME_TO_ID
 
 
+def safe_load_dependency_map() \
+    -> Tuple[SafeDict[str, set[str]],
+             SafeDict[str, set[str]],
+             dict[str, int]]:
+    """Returns the dependency map and loads it if necessary."""
+
+    if DEPENDENCY_MAP is None or INV_DEPENDENCY_MAP is None or PROJECT_NAME_TO_ID is None:
+        return load_dependency_map()
+    else:
+        return DEPENDENCY_MAP, INV_DEPENDENCY_MAP, PROJECT_NAME_TO_ID
+
+
 class EcosystemExperienceDecorator(SlidingWindowFeature):
     """
     Decorator class that hijacks the ``project_is_ignored_for_cumulative_experience`` 

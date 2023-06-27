@@ -17,7 +17,7 @@ from python_proj.utils.arg_utils import get_argv
 import python_proj.utils.exp_utils as exp_utils
 from python_proj.utils.util import OpenMany
 
-from python_proj.data_preprocessing.sliding_window_features.dependent_ecosystem_experience import load_dependency_map
+from python_proj.data_preprocessing.sliding_window_features.dependent_ecosystem_experience import safe_load_dependency_map
 
 
 def calculate_periphery_to_core_dependencies(
@@ -33,7 +33,7 @@ def calculate_periphery_to_core_dependencies(
 
     exp_utils.load_paths_for_eco()
 
-    dependency_map, inv_dependency_map, project_name_to_id_map = load_dependency_map()
+    dependency_map, inv_dependency_map, project_name_to_id_map = safe_load_dependency_map()
 
     included_projects_filter_path = exp_utils.RAW_DATA_PATH(
         data_type="user-ids",
