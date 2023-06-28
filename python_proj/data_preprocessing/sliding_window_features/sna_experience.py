@@ -266,6 +266,6 @@ SNA_PR_FEATURES = [
 
 SNA_ISSUE_SW_FEATURES = [
     SharedExperienceIssueSubmittedBySubmitterCommentedOnByIntegrator(),
-    SharedExperiencePullRequestSubmittedByIntegratorCommentedOnBySubmitter(),
+    SharedExperienceIssueSubmittedByIntegratorCommentedOnBySubmitter(),
     SharedExperienceIssueDiscussionParticipationByIntegratorAndSubmitter(),
 ]
