@@ -82,7 +82,7 @@ class IntraProjectPullRequestCommentCountSubmitter(SlidingWindowFeature):
         )
 
     def __handle(self, entry: dict, sign: int):
-        if entry[':comments'] == 0:
+        if entry['comments'] == 0:
             return
         project = entry['__source_path']
         for comment in entry['comments_data']:
