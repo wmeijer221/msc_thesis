@@ -116,12 +116,12 @@ class IntraProjectIssueCommentCountSubmitter(IntraProjectPullRequestCommentCount
     """Has the exact same implementation as parent class. just implemented for a different name."""
 
 
-SW_ISSUE_FEATURES = [
+IP_ISSUE_SW_FEATURES = [
     IntraProjectIssueCountSubmitter(),
     IntraProjectIssueCommentCountSubmitter()
 ]
 
-SW_PR_FEATURES = [
+IP_PR_SW_FEATURES = [
     IntraProjectPullRequestCountSubmitter(),
     IntraProjectPullRequestCommentCountSubmitter()
 ]
