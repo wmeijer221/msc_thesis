@@ -229,7 +229,7 @@ def sliding_window():
         key="-o", default="test_dataset")
     output_dataset_path = exp_utils.TRAIN_DATASET_PATH(
         file_name=output_dataset_name)
-    print(f'Output path: "{exp_utils.TRAIN_DATASET_PATH}".')
+    print(f'Output path: "{output_dataset_path}".')
 
     days = safe_get_argv(key="-w", default=None, data_type=int)
 
