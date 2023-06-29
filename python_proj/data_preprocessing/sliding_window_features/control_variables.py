@@ -91,41 +91,6 @@ class ControlNumberOfCommitsInPullRequest(Feature):
         return has_keys(entry, ["commits"])
 
 
-class ControlIntraProjectPullRequestSuccessRateSubmitter(SlidingWindowFeature):
-    """The success rate of the submitter of the pull request at 
-    an intra-project level. This measure is used as a proxy for "core member"
-    as these two variables correlate (Zhang, 2022) and this feature is
-    easier to calculate."""
-
-    def __init__(self) -> None:
-        self.__projects_to_integrator_experience: SafeDict[str, SafeDict[int, PullRequestSuccess]] \
-            = SafeDict(default_value=SafeDict,
-                       default_value_constructor_kwargs={"default_value": PullRequestSuccess})
-
-    def handle(self, entry: dict, sign: int):
-        project = entry["__source_path"]
-        submitter_id = entry["user_data"]["id"]
-        if entry["merged"]:
-            self.__projects_to_integrator_experience[project][submitter_id].merged += sign
-        else:
-            self.__projects_to_integrator_experience[project][submitter_id].unmerged += sign
-
-    def add_entry(self, entry: dict):
-        self.handle(entry, sign=1)
-
-    def remove_entry(self, entry: dict):
-        self.handle(entry, sign=-1)
-
-    def get_feature(self, entry: dict) -> float:
-        project = entry["__source_path"]
-        submitter = entry["user_data"]["id"]
-        dev_success_rate = self.__projects_to_integrator_experience[project][submitter]
-        return dev_success_rate.get_success_rate()
-
-    def is_valid_entry(self, entry: dict) -> bool:
-        return has_keys(entry, ["__source_path", "user_data", "merged"])
-
-
 class ControlPullRequestHasCommentByExternalUser(Feature):
     """
     Whether the pull request has a comment form someone who is 
@@ -198,9 +163,7 @@ class ControlHasHashTagInDescription(Feature):
 
 CONTROL_PR_SW_FEATURES: list[SlidingWindowFeature] = [
     # prior_review_num
-    ControlIntraProjectPullRequestExperienceOfIntegrator(),
-    # requester_succ_rate; core_member proxy
-    ControlIntraProjectPullRequestSuccessRateSubmitter()
+    ControlIntraProjectPullRequestExperienceOfIntegrator()
 ]
 
 CONTROL_PR_FEATURES: list[Feature] = [
