@@ -161,16 +161,20 @@ class ControlHasHashTagInDescription(Feature):
         return has_keys(entry, ["title"])
 
 
-CONTROL_PR_SW_FEATURES: list[SlidingWindowFeature] = [
-    # prior_review_num
-    ControlIntraProjectPullRequestExperienceOfIntegrator()
-]
+def build_control_variables():
+    sw_features = [
+        # prior_review_num
+        ControlIntraProjectPullRequestExperienceOfIntegrator()
+    ]
+    features = [
+        ControlIntegratedBySameUser(),                 # same_user
+        ControlPullRequestLifeTimeInMinutes(),         # lifetime_minutes
+        ControlPullRequestHasComments(),               # has_comments
+        ControlNumberOfCommitsInPullRequest(),         # num_commits
+        ControlPullRequestHasCommentByExternalUser(),  # other_comment
+        ControlHasHashTagInDescription()               # hash_tag
+    ]
+    return sw_features, features
 
-CONTROL_PR_FEATURES: list[Feature] = [
-    ControlIntegratedBySameUser(),                 # same_user
-    ControlPullRequestLifeTimeInMinutes(),         # lifetime_minutes
-    ControlPullRequestHasComments(),               # has_comments
-    ControlNumberOfCommitsInPullRequest(),         # num_commits
-    ControlPullRequestHasCommentByExternalUser(),  # other_comment
-    ControlHasHashTagInDescription()               # hash_tag
-]
+
+CONTROL_PR_SW_FEATURES, CONTROL_PR_FEATURES = build_control_variables()

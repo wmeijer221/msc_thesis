@@ -203,15 +203,19 @@ class SubmitterEcosystemExperienceIssueDiscussionParticipationCount(SubmitterEco
     """
 
 
-ECO_EXP_PR_SW_FEATURES = [
-    SubmitterEcosystemExperiencePullRequestSubmissionCount(),
-    SubmitterEcosystemExperiencePullRequestSuccessRate(),
-    SubmitterEcosystemExperiencePullRequestCommentCount(),
-    SubmitterEcosystemExperiencePullRequestDiscussionParticipationCount(),
-]
+def build_eco_experience():
+    eco_exp_pr_sw_features = [
+        SubmitterEcosystemExperiencePullRequestSubmissionCount(),
+        SubmitterEcosystemExperiencePullRequestSuccessRate(),
+        SubmitterEcosystemExperiencePullRequestCommentCount(),
+        SubmitterEcosystemExperiencePullRequestDiscussionParticipationCount(),
+    ]
+    eco_exp_issue_sw_features = [
+        SubmitterEcosystemExperienceIssueSubmissionCount(),
+        SubmitterEcosystemExperienceIssueCommentCount(),
+        SubmitterEcosystemExperienceIssueDiscussionParticipationCount(),
+    ]
+    return eco_exp_pr_sw_features, eco_exp_issue_sw_features
 
-ECO_EXP_ISSUE_SW_FEATURES = [
-    SubmitterEcosystemExperienceIssueSubmissionCount(),
-    SubmitterEcosystemExperienceIssueCommentCount(),
-    SubmitterEcosystemExperienceIssueDiscussionParticipationCount(),
-]
+
+ECO_EXP_PR_SW_FEATURES, ECO_EXP_ISSUE_SW_FEATURES = build_eco_experience()

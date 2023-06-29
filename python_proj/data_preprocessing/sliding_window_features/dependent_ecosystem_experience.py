@@ -358,29 +358,33 @@ class SubmitterInversedDependencyEcosystemExperienceIssueDiscussionParticipation
         )
 
 
-DECO_EXP_PR_SW_FEATURES = [
-    SubmitterDependencyEcosystemExperiencePullRequestSubmissionCount(),
-    SubmitterDependencyEcosystemExperiencePullRequestSuccessRate(),
-    SubmitterDependencyEcosystemExperiencePullRequestCommentCount(),
-    SubmitterDependencyEcosystemExperiencePullRequestDiscussionParticipationCount(),
-]
+def build_deco_features():
+    deco_pr = [
+        SubmitterDependencyEcosystemExperiencePullRequestSubmissionCount(),
+        SubmitterDependencyEcosystemExperiencePullRequestSuccessRate(),
+        SubmitterDependencyEcosystemExperiencePullRequestCommentCount(),
+        SubmitterDependencyEcosystemExperiencePullRequestDiscussionParticipationCount(),
+    ]
+    deco_issue = [
+        SubmitterDependencyEcosystemExperienceIssueSubmissionCount(),
+        SubmitterDependencyEcosystemExperienceIssueCommentCount(),
+        SubmitterDependencyEcosystemExperienceIssueDiscussionParticipationCount(),
+    ]
 
-DECO_EXP_ISSUE_SW_FEATURES = [
-    SubmitterDependencyEcosystemExperienceIssueSubmissionCount(),
-    SubmitterDependencyEcosystemExperienceIssueCommentCount(),
-    SubmitterDependencyEcosystemExperienceIssueDiscussionParticipationCount(),
-]
+    ideco_pr = [
+        SubmitterInversedDependencyEcosystemExperiencePullRequestSubmissionCount(),
+        SubmitterInversedDependencyEcosystemExperiencePullRequestSuccessRate(),
+        SubmitterInversedDependencyEcosystemExperiencePullRequestCommentCount(),
+        SubmitterInversedDependencyEcosystemExperiencePullRequestDiscussionParticipationCount(),
+    ]
+    ideco_issue = [
+        SubmitterInversedDependencyEcosystemExperienceIssueSubmissionCount(),
+        SubmitterInversedDependencyEcosystemExperienceIssueCommentCount(),
+        SubmitterInversedDependencyEcosystemExperienceIssueDiscussionParticipationCount(),
+    ]
+
+    return deco_pr, deco_issue, ideco_pr, ideco_issue
 
 
-IDECO_EXP_PR_SW_FEATURES = [
-    SubmitterInversedDependencyEcosystemExperiencePullRequestSubmissionCount(),
-    SubmitterInversedDependencyEcosystemExperiencePullRequestSuccessRate(),
-    SubmitterInversedDependencyEcosystemExperiencePullRequestCommentCount(),
-    SubmitterInversedDependencyEcosystemExperiencePullRequestDiscussionParticipationCount(),
-]
-
-IDECO_EXP_ISSUE_SW_FEATURES = [
-    SubmitterInversedDependencyEcosystemExperienceIssueSubmissionCount(),
-    SubmitterInversedDependencyEcosystemExperienceIssueCommentCount(),
-    SubmitterInversedDependencyEcosystemExperienceIssueDiscussionParticipationCount(),
-]
+DECO_EXP_PR_SW_FEATURES, DECO_EXP_ISSUE_SW_FEATURES, \
+    IDECO_EXP_PR_SW_FEATURES, IDECO_EXP_ISSUE_SW_FEATURES = build_deco_features()

@@ -252,20 +252,27 @@ class TransitiveExperienceSubmitter(Feature):
         return has_keys(entry, ['user_data'])
 
 
-SNA_PR_SW_FEATURES = [
-    SharedExperiencePullRequestSubmittedBySubmitterIntegratedByIntegrator(),
-    SharedExperiencePullRequestSubmittedByIntegratorIntegratedBySubmitter(),
-    SharedExperiencePullRequestSubmittedBySubmitterCommentedOnByIntegrator(),
-    SharedExperiencePullRequestSubmittedByIntegratorCommentedOnBySubmitter(),
-    SharedExperiencePullRequestDiscussionParticipationByIntegratorAndSubmitter(),
-]
+def build_sna_features():
+    """Factory method to builds all features."""
+    sna_pr_sw_features = [
+        SharedExperiencePullRequestSubmittedBySubmitterIntegratedByIntegrator(),
+        SharedExperiencePullRequestSubmittedByIntegratorIntegratedBySubmitter(),
+        SharedExperiencePullRequestSubmittedBySubmitterCommentedOnByIntegrator(),
+        SharedExperiencePullRequestSubmittedByIntegratorCommentedOnBySubmitter(),
+        SharedExperiencePullRequestDiscussionParticipationByIntegratorAndSubmitter(),
+    ]
 
-SNA_PR_FEATURES = [
-    TransitiveExperienceSubmitter(),
-]
+    sna_pr_features = [
+        TransitiveExperienceSubmitter(),
+    ]
 
-SNA_ISSUE_SW_FEATURES = [
-    SharedExperienceIssueSubmittedBySubmitterCommentedOnByIntegrator(),
-    SharedExperienceIssueSubmittedByIntegratorCommentedOnBySubmitter(),
-    SharedExperienceIssueDiscussionParticipationByIntegratorAndSubmitter(),
-]
+    sna_issue_sw_features = [
+        SharedExperienceIssueSubmittedBySubmitterCommentedOnByIntegrator(),
+        SharedExperienceIssueSubmittedByIntegratorCommentedOnBySubmitter(),
+        SharedExperienceIssueDiscussionParticipationByIntegratorAndSubmitter(),
+    ]
+
+    return sna_pr_sw_features, sna_pr_features, sna_issue_sw_features
+
+
+SNA_PR_SW_FEATURES, SNA_PR_FEATURES, SNA_ISSUE_SW_FEATURES = build_sna_features()

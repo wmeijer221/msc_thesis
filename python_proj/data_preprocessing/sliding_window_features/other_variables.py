@@ -39,7 +39,13 @@ class SubmitterIsFirstTimeContributor(Feature):
         return has_keys(entry, ['user_data', "__source_path"])
 
 
-PR_FEATURES_OTHER = [
-    PullRequestIsMerged(),
-    SubmitterIsFirstTimeContributor(),
-]
+def build_other_features():
+    """Feature factory method."""
+    pr_features_other = [
+        PullRequestIsMerged(),
+        SubmitterIsFirstTimeContributor(),
+    ]
+    return pr_features_other
+
+
+PR_FEATURES_OTHER = build_other_features()

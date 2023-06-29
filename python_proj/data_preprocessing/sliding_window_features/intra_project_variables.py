@@ -116,12 +116,17 @@ class IntraProjectIssueCommentCountSubmitter(IntraProjectPullRequestCommentCount
     """Has the exact same implementation as parent class. just implemented for a different name."""
 
 
-IP_ISSUE_SW_FEATURES = [
-    IntraProjectIssueCountSubmitter(),
-    IntraProjectIssueCommentCountSubmitter()
-]
+def build_intra_project_features():
+    """Factory method."""
+    ip_issue_sw_features = [
+        IntraProjectIssueCountSubmitter(),
+        IntraProjectIssueCommentCountSubmitter()
+    ]
+    ip_pr_sw_features = [
+        IntraProjectPullRequestCountSubmitter(),
+        IntraProjectPullRequestCommentCountSubmitter()
+    ]
+    return ip_issue_sw_features, ip_pr_sw_features
 
-IP_PR_SW_FEATURES = [
-    IntraProjectPullRequestCountSubmitter(),
-    IntraProjectPullRequestCommentCountSubmitter()
-]
+
+IP_ISSUE_SW_FEATURES, IP_PR_SW_FEATURES = build_intra_project_features()
