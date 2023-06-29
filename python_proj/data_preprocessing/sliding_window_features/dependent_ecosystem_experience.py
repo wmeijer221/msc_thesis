@@ -179,18 +179,16 @@ class EcosystemExperienceDecorator(SlidingWindowFeature):
     """
 
     def __init__(self, inner_component: type, use_reversed_dependencies: bool = False) -> None:
-        global DEPENDENCY_MAP, PROJECT_NAME_TO_ID
 
-        # initialized singleton.
-        if any(ele is None for ele in
-               [DEPENDENCY_MAP, INV_DEPENDENCY_MAP, PROJECT_NAME_TO_ID]):
-            load_dependency_map()
+        # initializes singletons.
+        safe_load_dependency_map()
 
         self.__inner_component: EcosystemExperience = inner_component()
+        # Hijacks ignore function.
         self.__inner_component.project_is_ignored_for_cumulative_experience = \
             self._project_is_ignored_for_cumulative_experience
 
-        self.__use_incoming_dependencies: bool = use_reversed_dependencies
+        self.__use_reversed_dependencies: bool = use_reversed_dependencies
 
     def _project_is_ignored_for_cumulative_experience(self, current_project_id, other_project_id) -> bool:
         # Ignores intra-project experience.
@@ -204,17 +202,18 @@ class EcosystemExperienceDecorator(SlidingWindowFeature):
             other_project_id)).lower()
 
         (focal, other) = (other_project, focal_project) \
-            if self.__use_incoming_dependencies \
+            if self.__use_reversed_dependencies \
             else (focal_project, other_project)
 
-        if focal not in PROJECT_NAME_TO_ID or other:
+        if focal not in PROJECT_NAME_TO_ID \
+                or other not in PROJECT_NAME_TO_ID:
             return True
 
         focal_project_id = PROJECT_NAME_TO_ID[focal]
 
         # Selects relevant dependency map (inv vs. regular).
         dependency_map = INV_DEPENDENCY_MAP \
-            if self.__use_incoming_dependencies \
+            if self.__use_reversed_dependencies \
             else DEPENDENCY_MAP
 
         # If the focal project has no known dependencies,
@@ -240,147 +239,150 @@ class EcosystemExperienceDecorator(SlidingWindowFeature):
         return self.__inner_component.is_valid_entry(entry)
 
 
-# Regular dependency ecosystem experience features.
+# dependency pull requests.
 
 
-class SubmitterDependencyEcosystemExperiencePullRequestSubmissionCount(EcosystemExperienceDecorator):
+class DependencyEcosystemExperienceSubmitterPullRequestSubmissionCount(EcosystemExperienceDecorator):
     def __init__(self) -> None:
         super().__init__(
-            inner_component=SubmitterEcosystemExperiencePullRequestSubmissionCount,
+            inner_component=EcosystemExperienceSubmitterPullRequestSubmissionCount,
             use_reversed_dependencies=False
         )
 
 
-class SubmitterDependencyEcosystemExperiencePullRequestSuccessRate(EcosystemExperienceDecorator):
+class DependencyEcosystemExperienceSubmitterPullRequestSuccessRate(EcosystemExperienceDecorator):
     def __init__(self) -> None:
         super().__init__(
-            inner_component=SubmitterEcosystemExperiencePullRequestSuccessRate,
+            inner_component=EcosystemExperienceSubmitterPullRequestSuccessRate,
             use_reversed_dependencies=False
         )
 
 
-class SubmitterDependencyEcosystemExperiencePullRequestCommentCount(EcosystemExperienceDecorator):
+class DependencyEcosystemExperienceSubmitterPullRequestCommentCount(EcosystemExperienceDecorator):
     def __init__(self) -> None:
         super().__init__(
-            inner_component=SubmitterEcosystemExperiencePullRequestCommentCount,
+            inner_component=EcosystemExperienceSubmitterPullRequestCommentCount,
             use_reversed_dependencies=False
         )
 
 
-class SubmitterDependencyEcosystemExperiencePullRequestDiscussionParticipationCount(EcosystemExperienceDecorator):
+class DependencyEcosystemExperienceSubmitterPullRequestDiscussionParticipationCount(EcosystemExperienceDecorator):
     def __init__(self) -> None:
         super().__init__(
-            inner_component=SubmitterEcosystemExperiencePullRequestDiscussionParticipationCount,
+            inner_component=EcosystemExperienceSubmitterPullRequestDiscussionParticipationCount,
             use_reversed_dependencies=False
         )
 
 
-class SubmitterDependencyEcosystemExperienceIssueSubmissionCount(EcosystemExperienceDecorator):
+# dependency issues
+
+
+class DependencyEcosystemExperienceSubmitterIssueSubmissionCount(EcosystemExperienceDecorator):
     def __init__(self) -> None:
         super().__init__(
-            inner_component=SubmitterEcosystemExperienceIssueSubmissionCount,
+            inner_component=EcosystemExperienceSubmitterIssueSubmissionCount,
             use_reversed_dependencies=False
         )
 
 
-class SubmitterDependencyEcosystemExperienceIssueCommentCount(EcosystemExperienceDecorator):
+class DependencyEcosystemExperienceSubmitterIssueCommentCount(EcosystemExperienceDecorator):
     def __init__(self) -> None:
         super().__init__(
-            inner_component=SubmitterEcosystemExperienceIssueCommentCount,
+            inner_component=EcosystemExperienceSubmitterIssueCommentCount,
             use_reversed_dependencies=False
         )
 
 
-class SubmitterDependencyEcosystemExperienceIssueDiscussionParticipationCount(EcosystemExperienceDecorator):
+class DependencyEcosystemExperienceSubmitterIssueDiscussionParticipationCount(EcosystemExperienceDecorator):
     def __init__(self) -> None:
         super().__init__(
-            inner_component=SubmitterEcosystemExperienceIssueDiscussionParticipationCount,
+            inner_component=EcosystemExperienceSubmitterIssueDiscussionParticipationCount,
             use_reversed_dependencies=False
         )
 
 
-# Inversed dependency ecosystem experience.
+# Inversed dependency pull requests
 
 
-class SubmitterInversedDependencyEcosystemExperiencePullRequestSubmissionCount(EcosystemExperienceDecorator):
+class InversedDependencyEcosystemExperienceSubmitterPullRequestSubmissionCount(EcosystemExperienceDecorator):
     def __init__(self) -> None:
         super().__init__(
-            inner_component=SubmitterEcosystemExperiencePullRequestSubmissionCount,
+            inner_component=EcosystemExperienceSubmitterPullRequestSubmissionCount,
             use_reversed_dependencies=True
         )
 
 
-class SubmitterInversedDependencyEcosystemExperiencePullRequestSuccessRate(EcosystemExperienceDecorator):
+class InversedDependencyEcosystemExperienceSubmitterPullRequestSuccessRate(EcosystemExperienceDecorator):
     def __init__(self) -> None:
         super().__init__(
-            inner_component=SubmitterEcosystemExperiencePullRequestSuccessRate,
+            inner_component=EcosystemExperienceSubmitterPullRequestSuccessRate,
             use_reversed_dependencies=True
         )
 
 
-class SubmitterInversedDependencyEcosystemExperiencePullRequestCommentCount(EcosystemExperienceDecorator):
+class InversedDependencyEcosystemExperienceSubmitterPullRequestCommentCount(EcosystemExperienceDecorator):
     def __init__(self) -> None:
         super().__init__(
-            inner_component=SubmitterEcosystemExperiencePullRequestCommentCount,
+            inner_component=EcosystemExperienceSubmitterPullRequestCommentCount,
             use_reversed_dependencies=True
         )
 
 
-class SubmitterInversedDependencyEcosystemExperiencePullRequestDiscussionParticipationCount(EcosystemExperienceDecorator):
+class InversedDependencyEcosystemExperienceSubmitterPullRequestDiscussionParticipationCount(EcosystemExperienceDecorator):
     def __init__(self) -> None:
         super().__init__(
-            inner_component=SubmitterEcosystemExperiencePullRequestDiscussionParticipationCount,
+            inner_component=EcosystemExperienceSubmitterPullRequestDiscussionParticipationCount,
             use_reversed_dependencies=True
         )
 
 
-class SubmitterInversedDependencyEcosystemExperienceIssueSubmissionCount(EcosystemExperienceDecorator):
+class InversedDependencyEcosystemExperienceSubmitterIssueSubmissionCount(EcosystemExperienceDecorator):
     def __init__(self) -> None:
         super().__init__(
-            inner_component=SubmitterEcosystemExperienceIssueSubmissionCount,
+            inner_component=EcosystemExperienceSubmitterIssueSubmissionCount,
             use_reversed_dependencies=True
         )
 
 
-class SubmitterInversedDependencyEcosystemExperienceIssueCommentCount(EcosystemExperienceDecorator):
+class InversedDependencyEcosystemExperienceSubmitterIssueCommentCount(EcosystemExperienceDecorator):
     def __init__(self) -> None:
         super().__init__(
-            inner_component=SubmitterEcosystemExperienceIssueCommentCount,
+            inner_component=EcosystemExperienceSubmitterIssueCommentCount,
             use_reversed_dependencies=True
         )
 
 
-class SubmitterInversedDependencyEcosystemExperienceIssueDiscussionParticipationCount(EcosystemExperienceDecorator):
+class InversedDependencyEcosystemExperienceSubmitterIssueDiscussionParticipationCount(EcosystemExperienceDecorator):
     def __init__(self) -> None:
         super().__init__(
-            inner_component=SubmitterEcosystemExperienceIssueDiscussionParticipationCount,
+            inner_component=EcosystemExperienceSubmitterIssueDiscussionParticipationCount,
             use_reversed_dependencies=True
         )
 
 
 def build_deco_features():
     deco_pr = [
-        SubmitterDependencyEcosystemExperiencePullRequestSubmissionCount(),
-        SubmitterDependencyEcosystemExperiencePullRequestSuccessRate(),
-        SubmitterDependencyEcosystemExperiencePullRequestCommentCount(),
-        SubmitterDependencyEcosystemExperiencePullRequestDiscussionParticipationCount(),
+        DependencyEcosystemExperienceSubmitterPullRequestSubmissionCount(),
+        DependencyEcosystemExperienceSubmitterPullRequestSuccessRate(),
+        DependencyEcosystemExperienceSubmitterPullRequestCommentCount(),
+        # DependencyEcosystemExperienceSubmitterPullRequestDiscussionParticipationCount(),
     ]
     deco_issue = [
-        SubmitterDependencyEcosystemExperienceIssueSubmissionCount(),
-        SubmitterDependencyEcosystemExperienceIssueCommentCount(),
-        SubmitterDependencyEcosystemExperienceIssueDiscussionParticipationCount(),
+        DependencyEcosystemExperienceSubmitterIssueSubmissionCount(),
+        DependencyEcosystemExperienceSubmitterIssueCommentCount(),
+        # DependencyEcosystemExperienceSubmitterIssueDiscussionParticipationCount(),
     ]
 
     ideco_pr = [
-        SubmitterInversedDependencyEcosystemExperiencePullRequestSubmissionCount(),
-        SubmitterInversedDependencyEcosystemExperiencePullRequestSuccessRate(),
-        SubmitterInversedDependencyEcosystemExperiencePullRequestCommentCount(),
-        SubmitterInversedDependencyEcosystemExperiencePullRequestDiscussionParticipationCount(),
+        InversedDependencyEcosystemExperienceSubmitterPullRequestSubmissionCount(),
+        InversedDependencyEcosystemExperienceSubmitterPullRequestSuccessRate(),
+        InversedDependencyEcosystemExperienceSubmitterPullRequestCommentCount(),
+        # InversedDependencyEcosystemExperienceSubmitterPullRequestDiscussionParticipationCount(),
     ]
     ideco_issue = [
-        SubmitterInversedDependencyEcosystemExperienceIssueSubmissionCount(),
-        SubmitterInversedDependencyEcosystemExperienceIssueCommentCount(),
-        SubmitterInversedDependencyEcosystemExperienceIssueDiscussionParticipationCount(),
+        InversedDependencyEcosystemExperienceSubmitterIssueSubmissionCount(),
+        InversedDependencyEcosystemExperienceSubmitterIssueCommentCount(),
+        # InversedDependencyEcosystemExperienceSubmitterIssueDiscussionParticipationCount(),
     ]
 
     return deco_pr, deco_issue, ideco_pr, ideco_issue

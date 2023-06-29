@@ -3,7 +3,7 @@ from python_proj.data_preprocessing.sliding_window_features.base import SlidingW
 from python_proj.utils.util import SafeDict, has_keys
 
 
-class IntraProjectPullRequestCountSubmitter(SlidingWindowFeature):
+class IntraProjectSubmitterPullRequestSubmissionCount(SlidingWindowFeature):
     """Intra PR submitted."""
 
     def __init__(self) -> None:
@@ -32,7 +32,7 @@ class IntraProjectPullRequestCountSubmitter(SlidingWindowFeature):
         return self.pr_counts_per_user_per_project[submitter_id][project]
 
 
-class IntraProjectPullRequestSuccessRateSubmitter(SlidingWindowFeature):
+class IntraProjectSubmitterPullRequestSuccessRate(SlidingWindowFeature):
     """
     The success rate of the submitter of the pull request at 
     an intra-project level. This measure is used as a proxy for "core member"
@@ -72,7 +72,7 @@ class IntraProjectPullRequestSuccessRateSubmitter(SlidingWindowFeature):
         return has_keys(entry, ["__source_path", "user_data", "merged"])
 
 
-class IntraProjectPullRequestCommentCountSubmitter(SlidingWindowFeature):
+class IntraProjectSubmitterPullRequestCommentCount(SlidingWindowFeature):
     """The number of comments made no pull requests at an intra-project level."""
 
     def __init__(self) -> None:
@@ -108,23 +108,24 @@ class IntraProjectPullRequestCommentCountSubmitter(SlidingWindowFeature):
         return self.comment_counts_per_user_per_project[submitter_id][project]
 
 
-class IntraProjectIssueCountSubmitter(IntraProjectPullRequestCountSubmitter):
+class IntraProjectSubmitterIssueSubmissionCount(IntraProjectSubmitterPullRequestSubmissionCount):
     """Has the exact same implementation as parent class. just implemented for a different name."""
 
 
-class IntraProjectIssueCommentCountSubmitter(IntraProjectPullRequestCommentCountSubmitter):
+class IntraProjectSubmitterIssueCommentCount(IntraProjectSubmitterPullRequestCommentCount):
     """Has the exact same implementation as parent class. just implemented for a different name."""
 
 
 def build_intra_project_features():
     """Factory method."""
     ip_issue_sw_features = [
-        IntraProjectIssueCountSubmitter(),
-        IntraProjectIssueCommentCountSubmitter()
+        IntraProjectSubmitterIssueSubmissionCount(),
+        IntraProjectSubmitterIssueCommentCount()
     ]
     ip_pr_sw_features = [
-        IntraProjectPullRequestCountSubmitter(),
-        IntraProjectPullRequestCommentCountSubmitter()
+        IntraProjectSubmitterPullRequestSubmissionCount(),
+        IntraProjectSubmitterPullRequestSuccessRate(),
+        IntraProjectSubmitterPullRequestCommentCount()
     ]
     return ip_issue_sw_features, ip_pr_sw_features
 

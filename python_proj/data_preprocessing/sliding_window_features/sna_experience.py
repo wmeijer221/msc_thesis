@@ -137,6 +137,9 @@ class SNAFeature(SlidingWindowFeature):
         return degree
 
 
+# Pull request
+
+
 class SharedExperiencePullRequestSubmittedBySubmitterIntegratedByIntegrator(SNAFeature):
     """
     Shared experience feature accounting for pull requests that have been 
@@ -213,6 +216,9 @@ class SharedExperiencePullRequestDiscussionParticipationByIntegratorAndSubmitter
         return super().get_feature(entry, ordered=True)
 
 
+# Issues
+
+
 class SharedExperienceIssueSubmittedBySubmitterCommentedOnByIntegrator(SharedExperiencePullRequestSubmittedBySubmitterCommentedOnByIntegrator):
     """
     Is functionally exactly the same as the parent class. 
@@ -232,6 +238,9 @@ class SharedExperienceIssueDiscussionParticipationByIntegratorAndSubmitter(Share
     Is functionally exactly the same as the parent class. 
     This class is implemented just to give the feature a unique name.
     """
+
+
+# Centrality
 
 
 class TransitiveExperienceSubmitter(Feature):
