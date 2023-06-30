@@ -20,7 +20,7 @@ import random
 
 import python_proj.utils.exp_utils as exp_utils
 from python_proj.utils.util import OpenMany
-from python_proj.utils.arg_utils import get_argv
+from python_proj.utils.arg_utils import get_argv, safe_get_argv
 
 from python_proj.data_preprocessing.sliding_window_features.dependent_ecosystem_experience import safe_load_dependency_map
 
@@ -116,8 +116,8 @@ if __name__ == "__main__":
     __dependency_projects_out_name = get_argv(key='-do')
     __inv_dependency_projects_out_name = get_argv(key="-io")
 
-    __dep_sample_size = get_argv(key='-ds')
-    __inv_dep_sample_size = get_argv(key='-is')
+    __dep_sample_size = safe_get_argv(key='-ds', default=0, data_type=int)
+    __inv_dep_sample_size = safe_get_argv(key='-is', default=0, data_type=int)
 
     get_dependency_periphery(__source_project_list_name,
                              __filter_project_list_names,
