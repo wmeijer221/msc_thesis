@@ -15,7 +15,7 @@ def get_dependency_periphery(
 
     # loads source
     source_project_list_path = exp_utils.RAW_DATA_PATH(
-        data_type='user-ids', owner='proj', repo='list', ext=source_project_list_name):
+        data_type='user-ids', owner='proj', repo='list', ext=source_project_list_name)
     with open(source_project_list_path, "r", encoding='utf-8') as source_project_file:
         projects = {entry.strip() for entry in source_project_file}
 
@@ -46,7 +46,7 @@ def get_dependency_periphery(
             for source_project in project_dependencies:
                 # Ignores filtered projects (i.e., previously collected ones)
                 if source_project in filtered_projects \
-                    or source_project not in project_id_to_name:
+                        or source_project not in project_id_to_name:
                     continue
                 potential_dependency_projects.add(source_project)
 
@@ -58,15 +58,15 @@ def get_dependency_periphery(
                 # Ignores filtered projects (i.e., previously collected ones)
                 # or when there's no id to the name.
                 if sink_project in filtered_projects \
-                    or sink_project not in project_id_to_name:
+                        or sink_project not in project_id_to_name:
                     continue
                 potential_inv_dependency_projects.add(sink_project)
 
     print(f'{len(potential_dependency_projects)=}')
     print(f'{len(potential_inv_dependency_projects)=}')
 
-    for project_id in potential_dependency_projects:
-        # project_name = 
+    # for project_id in potential_dependency_projects:
+    # project_name =
 
 
 if __name__ == "__main__":
