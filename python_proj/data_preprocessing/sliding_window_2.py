@@ -70,8 +70,9 @@ def __get_preamble(entry: dict) -> list:
     (owner, repo) = exp_utils.get_owner_and_repo_from_source_path(
         entry['__source_path'])
     project = f'{owner}/{repo}'
+    submitter_id = entry['user_data']['id']
     closed_at = entry['closed_at']
-    return [entry['id'],  project, entry['number'], closed_at]
+    return [entry['id'], project, submitter_id, entry['number'], closed_at]
 
 
 def __get_features():
@@ -133,7 +134,8 @@ def generate_dataset(pr_dataset_names: list[str],
 
     # Generates header.
     header = [feature.get_name() for feature in all_features]
-    header = ["ID", "Project Name", "PR Number", "Closed At", *header]
+    header = ["ID", "Project Name", "Submitter ID",
+              "PR Number", "Closed At", *header]
     yield list(header)
 
     # Iterates through window, updating features on the go.

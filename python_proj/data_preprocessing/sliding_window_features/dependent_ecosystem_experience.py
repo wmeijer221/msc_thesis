@@ -89,6 +89,9 @@ def __slow_load_dependency_map(output_path: str):
         for dependency in csv_reader:
             other_project_id = dependency[other_project_id_idx].lower()
             focal_project_id = dependency[focal_project_name_idx].lower()
+            # Some projects have self-dependencies. These are ignored.
+            if other_project_id == focal_project_id:
+                continue
             DEPENDENCY_MAP[focal_project_id].add(other_project_id)
             INV_DEPENDENCY_MAP[other_project_id].add(focal_project_id)
             dependency_count += 1
@@ -193,7 +196,7 @@ class EcosystemExperienceDecorator(SlidingWindowFeature):
     def _project_is_ignored_for_cumulative_experience(self, current_project_id, other_project_id) -> bool:
         # Ignores intra-project experience.
         if current_project_id == other_project_id:
-            return False
+            return True
 
         # Translates source file data to project IDs.
         focal_project = "/".join(exp_utils.get_owner_and_repo_from_source_path(
