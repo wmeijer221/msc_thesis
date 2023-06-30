@@ -88,6 +88,7 @@ def get_dependency_periphery(
     # Writes dependencies
     dependency_output_path = exp_utils.FILTER_PATH(
         filter_type=dependency_projects_out_name)
+    print(f'{dependency_output_path=}')
     with open(dependency_output_path, "w+", encoding='utf-8') as dep_out_file:
         dep_sample = random.sample(
             potential_dependency_projects, dep_sample_size)
@@ -98,6 +99,7 @@ def get_dependency_periphery(
     # Writes inv dependencies
     inv_dependency_output_path = exp_utils.FILTER_PATH(
         filter_type=inv_dependency_projects_out_name)
+    print(f'{inv_dependency_output_path=}')
     with open(inv_dependency_output_path, "w+", encoding='utf-8') as inv_dep_out_file:
         inv_dep_sample = random.sample(
             potential_inv_dependency_projects, inv_sample_size)
