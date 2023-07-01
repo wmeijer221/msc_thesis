@@ -396,7 +396,7 @@ DECO_EXP_PR_SW_FEATURES, DECO_EXP_ISSUE_SW_FEATURES, \
 
 if __name__ == "__main__":
     print('test start')
-    first_key = PROJECT_NAME_TO_ID.keys()[0]
-    print(first_key)
-    print(PROJECT_NAME_TO_ID[first_key])
+    for project_name, project_id in PROJECT_NAME_TO_ID.items():
+        print(f'{project_name=}, {project_id=}')
+        break
     print('test end')
