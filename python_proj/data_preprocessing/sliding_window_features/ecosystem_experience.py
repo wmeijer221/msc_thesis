@@ -56,9 +56,9 @@ class EcosystemExperienceSubmitterPullRequestSuccessRate(EcosystemExperience):
 
         user_id = entry["user_data"]["id"]
         current_project = entry["__source_path"]
-        for project_key, success_rate in self._user_to_project_success_rate[user_id].items():
+        for other_project_key, success_rate in self._user_to_project_success_rate[user_id].items():
             # Ignores intra-project experience.
-            if self.project_is_ignored_for_cumulative_experience(current_project, project_key):
+            if self.project_is_ignored_for_cumulative_experience(current_project, other_project_key):
                 continue
             cumulative_success_rate.merged += success_rate.merged
             cumulative_success_rate.unmerged += success_rate.unmerged
@@ -113,9 +113,9 @@ class EcosystemExperienceSubmitterPullRequestCommentCount(EcosystemExperience):
         user_id = entry["user_data"]["id"]
         current_project = entry["__source_path"]
         total_experience = 0
-        for project, experience in self._user_to_project_pr_comment_count[user_id].items():
+        for other_project, experience in self._user_to_project_pr_comment_count[user_id].items():
             # Ignores intra-project experience.
-            if self.project_is_ignored_for_cumulative_experience(current_project, project):
+            if self.project_is_ignored_for_cumulative_experience(current_project, other_project):
                 continue
             total_experience += experience
         return total_experience
