@@ -396,7 +396,8 @@ DECO_EXP_PR_SW_FEATURES, DECO_EXP_ISSUE_SW_FEATURES, \
 
 if __name__ == "__main__":
     print('test start')
-    for project_name, project_id in PROJECT_NAME_TO_ID.items():
+    for index, (project_name, project_id) in enumerate(PROJECT_NAME_TO_ID.items()):
         print(f'{project_name=}, {project_id=}')
-        break
+        if index == 100:
+            break
     print('test end')
