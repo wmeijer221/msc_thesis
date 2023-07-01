@@ -395,7 +395,8 @@ DECO_EXP_PR_SW_FEATURES, DECO_EXP_ISSUE_SW_FEATURES, \
     IDECO_EXP_PR_SW_FEATURES, IDECO_EXP_ISSUE_SW_FEATURES = build_deco_features()
 
 if __name__ == "__main__":
-    name_to_id_iter = iter(PROJECT_NAME_TO_ID)
-    first = next(name_to_id_iter)
-    print(first)
-    
+    print('test start')
+    first_key = PROJECT_NAME_TO_ID.keys()[0]
+    print(first_key)
+    print(PROJECT_NAME_TO_ID[first_key])
+    print('test end')
