@@ -193,16 +193,16 @@ class EcosystemExperienceDecorator(SlidingWindowFeature):
 
         self.__use_reversed_dependencies: bool = use_reversed_dependencies
 
-    def _project_is_ignored_for_cumulative_experience(self, current_project_id, other_project_id) -> bool:
+    def _project_is_ignored_for_cumulative_experience(self, current_project_key, other_project_key) -> bool:
         # Ignores intra-project experience.
-        if current_project_id == other_project_id:
+        if current_project_key == other_project_key:
             return True
 
         # Translates source file data to project IDs.
         focal_project = "/".join(exp_utils.get_owner_and_repo_from_source_path(
-            current_project_id)).lower()
+            current_project_key)).lower()
         other_project = "/".join(exp_utils.get_owner_and_repo_from_source_path(
-            other_project_id)).lower()
+            other_project_key)).lower()
 
         (focal, other) = (other_project, focal_project) \
             if self.__use_reversed_dependencies \
@@ -393,11 +393,3 @@ def build_deco_features():
 
 DECO_EXP_PR_SW_FEATURES, DECO_EXP_ISSUE_SW_FEATURES, \
     IDECO_EXP_PR_SW_FEATURES, IDECO_EXP_ISSUE_SW_FEATURES = build_deco_features()
-
-if __name__ == "__main__":
-    print('test start')
-    for index, (project_name, project_id) in enumerate(PROJECT_NAME_TO_ID.items()):
-        print(f'{project_name=}, {project_id=}')
-        if index == 100:
-            break
-    print('test end')
