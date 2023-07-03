@@ -58,7 +58,6 @@ class SNAFeature(SlidingWindowFeature):
 
     def _add_remove_edge(self,
                          u: int, v: int,
-                         label: str,
                          activity_id: int,
                          activity_timestamp: datetime,
                          sign: int):
@@ -70,19 +69,22 @@ class SNAFeature(SlidingWindowFeature):
 
         # Increments counter.
         edge_data = G.get_edge_data(u, v, default={})
-        if label in edge_data:
-            edge_data[label] += sign
+        if self._edge_label in edge_data:
+            edge_data[self._edge_label] += sign
         else:
-            edge_data[label] = sign
+            edge_data[self._edge_label] = sign
 
         # Adds timestamped edge.
         # TODO: This will not work at an "all time data" scale.
         if TIMESTAMP_KEY not in edge_data:
             edge_data[TIMESTAMP_KEY] = SafeDict(default_value=dict)
+        if activity_id == 232162:
+            print(f'{u=}, {v=}, {activity_id=}, {activity_timestamp=}, {sign=}')
+            print(edge_data)
         if sign > 0:
-            edge_data[TIMESTAMP_KEY][label][activity_id] = activity_timestamp
+            edge_data[TIMESTAMP_KEY][self._edge_label][activity_id] = activity_timestamp
         else:
-            del edge_data[TIMESTAMP_KEY][label][activity_id]
+            del edge_data[TIMESTAMP_KEY][self._edge_label][activity_id]
 
         # Updates edge.
         G.add_edge(u, v, **edge_data)
@@ -94,7 +96,6 @@ class SNAFeature(SlidingWindowFeature):
     def _add_remove_edges(self,
                           us: int | list[int],
                           vs: int | list[int],
-                          label: str,
                           activity_id: int,
                           activity_timestamp: datetime,
                           sign: int):
@@ -107,7 +108,9 @@ class SNAFeature(SlidingWindowFeature):
         for u in us:
             for v in vs:
                 self._add_remove_edge(
-                    u, v, label, activity_id, activity_timestamp, sign)
+                    u, v,
+                    activity_id, activity_timestamp,
+                    sign)
 
     def _recalculate_weight(self, u: int, v: int):
         # TODO: enable this again if this turns out to be relevant.
@@ -143,7 +146,7 @@ class SNAFeature(SlidingWindowFeature):
                     nodes.update(new_nodes)
                 else:
                     nodes.add(new_nodes)
-            return nodes
+            return list(nodes)
 
         us = __get_nodes(self._nested_source_keys)
         vs = __get_nodes(self._nested_target_keys)
@@ -158,16 +161,18 @@ class SNAFeature(SlidingWindowFeature):
         activity_id = entry['id']
         timestamp = datetime.datetime.strptime(
             entry['closed_at'], "%Y-%m-%dT%H:%M:%SZ")
-        self._add_remove_edges(us, vs, self._edge_label,
-                               activity_id, timestamp, sign=1)
+        self._add_remove_edges(us, vs,
+                               activity_id, timestamp,
+                               sign=1)
 
     def remove_entry(self, entry: dict):
         us, vs = self._get_us_and_vs(entry)
         activity_id = entry['id']
         timestamp = datetime.datetime.strptime(
             entry['closed_at'], "%Y-%m-%dT%H:%M:%SZ")
-        self._add_remove_edges(us, vs, self._edge_label,
-                               activity_id, timestamp, sign=-1)
+        self._add_remove_edges(us, vs,
+                               activity_id, timestamp,
+                               sign=-1)
 
     def get_feature(self, entry: dict, ordered: bool = False) -> Any:
         submitter_id = entry['user_data']['id']
@@ -251,12 +256,14 @@ class SharedExperiencePullRequestDiscussionParticipationByIntegratorAndSubmitter
         self._nested_source_keys = [["comments_data", "id"]]
         self._nested_target_keys = [["comments_data", "id"]]
 
-    def _add_remove_edge(self, u: int, v: int, label: str, activity_id: int, activity_timestamp: datetime, sign: int):
+    def _add_remove_edge(self, u: int, v: int,
+                         activity_id: int, activity_timestamp: datetime,
+                         sign: int):
         # Every edge is added twice because it's done
         # pair-wise, so the sign is halved.
 
         r_sign = sign * 0.5
-        super()._add_remove_edge(u, v, label, activity_id, activity_timestamp, r_sign)
+        super()._add_remove_edge(u, v, activity_id, activity_timestamp, r_sign)
 
     def get_feature(self, entry: dict) -> Any:
         return super().get_feature(entry, ordered=True)
