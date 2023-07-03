@@ -150,13 +150,13 @@ class SNAFeature(SlidingWindowFeature):
 
     def add_entry(self, entry: dict):
         us, vs = self._get_us_and_vs(entry)
-        timestamp = datetime.datetime.strftime(
+        timestamp = datetime.datetime.strptime(
             entry['closed_at'], "%Y-%m-%dT%H:%M:%SZ")
         self._add_remove_edges(us, vs, self._edge_label, timestamp, sign=1)
 
     def remove_entry(self, entry: dict):
         us, vs = self._get_us_and_vs(entry)
-        timestamp = datetime.datetime.strftime(
+        timestamp = datetime.datetime.strptime(
             entry['closed_at'], "%Y-%m-%dT%H:%M:%SZ")
         self._add_remove_edges(us, vs, self._edge_label, timestamp, sign=-1)
 
