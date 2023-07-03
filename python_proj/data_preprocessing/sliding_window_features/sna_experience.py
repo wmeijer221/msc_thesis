@@ -78,6 +78,7 @@ class SNAFeature(SlidingWindowFeature):
         # TODO: This will not work at an "all time data" scale.
         if TIMESTAMP_KEY not in edge_data:
             edge_data[TIMESTAMP_KEY] = SafeDict(default_value=set)
+        print(edge_data[TIMESTAMP_KEY])
         if sign > 0:
             edge_data[TIMESTAMP_KEY][label].add(timestamp)
         else:
