@@ -78,9 +78,6 @@ class SNAFeature(SlidingWindowFeature):
         # TODO: This will not work at an "all time data" scale.
         if TIMESTAMP_KEY not in edge_data:
             edge_data[TIMESTAMP_KEY] = SafeDict(default_value=dict)
-        if activity_id == 232162:
-            print(f'{u=}, {v=}, {activity_id=}, {activity_timestamp=}, {sign=}')
-            print(edge_data)
         if sign > 0:
             edge_data[TIMESTAMP_KEY][self._edge_label][activity_id] = activity_timestamp
         else:
