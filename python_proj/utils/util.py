@@ -138,8 +138,9 @@ class SafeDict(dict):
     Standard dictionary data structure that adds a default value to a key if it doesn't exist yet.
     """
 
-    def __init__(self, default_value, default_value_constructor_args: list[Any]=[],
-                 default_value_constructor_kwargs:dict[str, Any]={}, *args, **kwargs):
+    def __init__(self, default_value, default_value_constructor_args: list[Any] = [],
+                 default_value_constructor_kwargs: dict[str, Any] = {},
+                 map: dict | None = None, *args, **kwargs):
         """
         :param default_value: the default value for entries. 
         If this is a ``type``, it will call said type's constructor, and if it's callable, it will call it.
@@ -147,9 +148,13 @@ class SafeDict(dict):
         Only relevant if its constructor is called or the default value is callable.
         :param default_value_constructor_kwargs: Named constructor arguments for the default value.
         Only relevant if its constructor is called.
+        :param map: Can be set to come with a pre-filled mapping. 
         :param *args, **kwargs: Constructor arguments for the inner datastructure of the dictionary.
         These can be anything that can be passed to the constructor of a ``dict``.
         """
+
+        if not map is None:
+            super().__init__(map)
 
         self.__default_value: Any = default_value
         self.__default_value_constructor_args: list = default_value_constructor_args

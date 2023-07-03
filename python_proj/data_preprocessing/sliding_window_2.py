@@ -102,6 +102,20 @@ def __get_features():
     return intra_pr_features, sliding_window_features_pr, sliding_window_features_issue
 
 
+def __get_second_run_features():
+    post_pr_features = [
+        SNA_POST_PR_FEATURES
+    ]
+    sliding_window_features_pr = [
+        *SNA_PR_SW_FEATURES,
+    ]
+    sliding_window_features_issue = [
+        *SNA_ISSUE_SW_FEATURES,
+    ]
+
+    return post_pr_features, sliding_window_features_issue, sliding_window_features_pr
+
+
 def generate_dataset(pr_dataset_names: list[str],
                      issue_dataset_names: list[str],
                      intra_pr_features: list[Feature],
@@ -174,6 +188,7 @@ def generate_dataset(pr_dataset_names: list[str],
 def build_dataset(pr_dataset_names: list[str],
                   issue_dataset_names: list[str],
                   output_dataset_path: str,
+                  output_dataset_path_2: str,
                   window_size_in_days: int):
     """
     Writes all data entries to a training data file 
@@ -203,6 +218,26 @@ def build_dataset(pr_dataset_names: list[str],
         for datapoint in dataset_iterator:
             csv_writer.writerow(datapoint)
 
+    # Second run.
+    post_pr_features, sliding_window_features_issue, sliding_window_features_pr = __get_second_run_features()
+    for entry in itertools.chain(post_pr_features, sliding_window_features_pr, sliding_window_features_issue):
+        if isinstance(entry, PostRunFeature):
+            entry.late_init()
+
+    second_dataset_iterator = generate_dataset(
+        pr_dataset_names,
+        issue_dataset_names,
+        post_pr_features,
+        sliding_window_features_pr,
+        sliding_window_features_issue,
+        window_size
+    )
+    # Outputs dataset.
+    with open(output_dataset_path_2, "w+", encoding='utf-8') as output_dataset_2:
+        csv_writer = writer(output_dataset_2)
+        for datapoint in second_dataset_iterator:
+            csv_writer.writerow(datapoint)
+
 
 def sliding_window():
     """
@@ -227,11 +262,17 @@ def sliding_window():
                                  if entry != '']
 
     # Sets path for output dataset.
+    # TODO: output all data to the same path.
     output_dataset_name = safe_get_argv(
         key="-o", default="test_dataset")
     output_dataset_path = exp_utils.TRAIN_DATASET_PATH(
         file_name=output_dataset_name)
+    output_dataset_name_2 = safe_get_argv(
+        key='-o2', default=f'{output_dataset_name}_2')
+    output_dataset_path_2 = exp_utils.TRAIN_DATASET_PATH(
+        file_name=output_dataset_name_2)
     print(f'Output path: "{output_dataset_path}".')
+    print(f'Output path 2: "{output_dataset_path_2}"')
 
     days = safe_get_argv(key="-w", default=None, data_type=int)
 
@@ -241,6 +282,7 @@ def sliding_window():
         input_pr_dataset_names,
         input_issue_dataset_names,
         output_dataset_path,
+        output_dataset_path_2,
         days
     )
 

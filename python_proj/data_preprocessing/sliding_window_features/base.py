@@ -32,6 +32,12 @@ class PullRequestIsMerged(Feature):
         return entry["merged"]
 
 
+class PostRunFeature:
+    def late_init(self):
+        """called to do a late init."""
+        raise NotImplementedError()
+
+
 @dataclass
 class PullRequestSuccess:
     merged: int = 0
