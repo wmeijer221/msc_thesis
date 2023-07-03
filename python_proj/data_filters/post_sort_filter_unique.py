@@ -26,7 +26,7 @@ def filter_unique(input_ds_names: list[str], output_ds_name: list[str]):
             output_file.write(json.dumps(entry) + "\n")
 
     unique_count = len(unique)
-    print(f'{unique_count=}, {total=}.')
+    print(f'{unique_count=}, {total=}, lost={total-unique_count}.')
 
 
 if __name__ == "__main__":
