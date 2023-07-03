@@ -242,14 +242,13 @@ class SharedExperiencePullRequestDiscussionParticipationByIntegratorAndSubmitter
         self._nested_source_keys = [["comments_data", "id"]]
         self._nested_target_keys = [["comments_data", "id"]]
 
-    def _add_remove_edge(self, u: int, v: int, label: str, sign: int):
+    def _add_remove_edge(self, u: int, v: int, label: str, timestamp: datetime, sign: int):
         # Every edge is added twice because it's done
         # pair-wise, so the sign is halved.
+        
         r_sign = sign * 0.5
-        if u < v:
-            super()._add_remove_edge(u, v, label, r_sign)
-        else:
-            super()._add_remove_edge(v, u, label, r_sign)
+        super()._add_remove_edge(u, v, label, timestamp, r_sign)
+
 
     def get_feature(self, entry: dict) -> Any:
         return super().get_feature(entry, ordered=True)
