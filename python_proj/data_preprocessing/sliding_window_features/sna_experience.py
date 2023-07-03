@@ -126,7 +126,8 @@ class SNAFeature(SlidingWindowFeature):
         def __get_nodes(nested_keys: list[list[str | Callable[[dict], str]]]) -> list[int]:
             # TODO: This is set up assuming there are multiple nested keys,
             # however, none of the predictors use this, so it could be removed.
-            nodes = []
+            # NOTE: reates one edge per activity.
+            nodes = set()
             for nested_key in nested_keys:
                 # It resolves the callables in the nested key.
                 r_nested_key = []
@@ -139,9 +140,9 @@ class SNAFeature(SlidingWindowFeature):
                 if new_nodes is None:
                     continue
                 elif isinstance(new_nodes, list):
-                    nodes.extend(new_nodes)
+                    nodes.update(new_nodes)
                 else:
-                    nodes.append(new_nodes)
+                    nodes.add(new_nodes)
             return nodes
 
         us = __get_nodes(self._nested_source_keys)
