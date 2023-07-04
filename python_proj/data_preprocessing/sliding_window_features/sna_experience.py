@@ -326,7 +326,8 @@ class WeightedMultiLayerFirstOrderDegreeCentrality(Feature, PostRunFeature):
         """
 
         global TOTAL_EDGE_COUNT_PER_TYPE, EDGE_COUNT_PER_TYPE, G, \
-            SNA_PR_SW_FEATURES, SNA_PR_FEATURES, SNA_ISSUE_SW_FEATURES
+            SNA_PR_SW_FEATURES, SNA_PR_FEATURES, SNA_ISSUE_SW_FEATURES,\
+            SNA_POST_PR_FEATURES
 
         total_edges = sum(TOTAL_EDGE_COUNT_PER_TYPE.values())
         self.__edge_weight = {edge_type: 1 - (edge_couont / total_edges)
@@ -338,7 +339,7 @@ class WeightedMultiLayerFirstOrderDegreeCentrality(Feature, PostRunFeature):
         G = None
 
         # Resets features.
-        SNA_PR_SW_FEATURES, SNA_PR_FEATURES, SNA_ISSUE_SW_FEATURES = build_sna_features()
+        SNA_PR_SW_FEATURES, SNA_PR_FEATURES, SNA_ISSUE_SW_FEATURES, SNA_POST_PR_FEATURES = build_sna_features()
 
     def __is_time_respecting(self,
                              edge_data: dict, conn_edge_label: str,
