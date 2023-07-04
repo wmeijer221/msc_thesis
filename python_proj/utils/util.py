@@ -7,6 +7,8 @@ from numbers import Number
 import io
 import numpy
 import math
+import os
+import matplotlib.pyplot as plt
 
 
 def has_keys(d: dict, keys: list) -> bool:
@@ -177,3 +179,30 @@ class SafeDict(dict):
             value = self.__get_default_value()
             super().__setitem__(__key, value)
         return super().__getitem__(__key)
+
+
+def safe_save_fig(output_path):
+    """Helper method to safe figures in a potentially non-existent directory."""
+    dir_name = os.path.dirname(output_path)
+    if not os.path.exists(dir_name):
+        os.makedirs(dir_name)
+    plt.savefig(output_path)
+
+
+def subtract_dict(original: dict[Any, Number], subtracted: dict[Any, Number]) -> dict[Any, Number]:
+    ""'Subtracts the values of one dict from another.'""
+    key_intersect = set(original.keys()).intersection(subtracted.keys())
+    if len(key_intersect) != len(original) or len(key_intersect) != len(subtracted):
+        raise ValueError("Elements don't have the same keys.")
+    return {key: original[key] - subtracted[key] for key in key_intersect}
+
+
+class Counter:
+    """Simple tool for picking the next number in line."""
+    def __init__(self, start_value: int = 42, increment: int = 1) -> None:
+        self.__current_value = start_value
+        self.__increment = increment
+
+    def get_next(self):
+        self.__current_value += self.__increment
+        return self.__current_value
