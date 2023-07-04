@@ -106,7 +106,7 @@ def __get_features():
 
 def __get_second_run_features():
     post_pr_features = [
-        SNA_POST_PR_FEATURES
+        *SNA_POST_PR_FEATURES
     ]
     sliding_window_features_pr = [
         *SNA_PR_SW_FEATURES,
