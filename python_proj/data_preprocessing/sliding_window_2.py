@@ -7,8 +7,10 @@ parameters.
 
 import itertools
 import json
+import tempfile
+import shutil
 
-from csv import writer
+from csv import reader, writer
 from datetime import datetime, timedelta
 from typing import Generator, Callable, Tuple, TypeVar, Any
 
@@ -188,7 +190,6 @@ def generate_dataset(pr_dataset_names: list[str],
 def build_dataset(pr_dataset_names: list[str],
                   issue_dataset_names: list[str],
                   output_dataset_path: str,
-                  output_dataset_path_2: str,
                   window_size_in_days: int):
     """
     Writes all data entries to a training data file 
@@ -233,10 +234,26 @@ def build_dataset(pr_dataset_names: list[str],
         window_size
     )
     # Outputs dataset.
-    with open(output_dataset_path_2, "w+", encoding='utf-8') as output_dataset_2:
-        csv_writer = writer(output_dataset_2)
-        for datapoint in second_dataset_iterator:
-            csv_writer.writerow(datapoint)
+    temp_out = tempfile.NamedTemporaryFile('w+', delete=False)
+    print(f'Storing temp data in "{temp_out.name}".')
+    with open(output_dataset_path, 'r', encoding='utf-8') as input_dataset:
+        csv_writer = writer(temp_out)
+        csv_reader = reader(input_dataset)
+
+        # creates new header, skipping duplicate fields.
+        old_header = next(csv_reader)
+        new_header = next(second_dataset_iterator)
+        novel_field_indices = [i for i, field in enumerate(new_header)
+                        if field not in old_header]
+        novel_fields = [new_header[i] for i in novel_field_indices]
+        csv_writer.writerow([*old_header, *novel_fields])
+
+        # Writes data point.
+        for old_entry, new_entry in zip(csv_reader, second_dataset_iterator):
+            novel_entries = [new_entry[i] for i in novel_field_indices]
+            csv_writer.writerow([*old_entry, *novel_entries])
+
+    shutil.move(temp_out.name, output_dataset_path)
 
 
 def sliding_window():
@@ -262,17 +279,11 @@ def sliding_window():
                                  if entry != '']
 
     # Sets path for output dataset.
-    # TODO: output all data to the same path.
     output_dataset_name = safe_get_argv(
         key="-o", default="test_dataset")
     output_dataset_path = exp_utils.TRAIN_DATASET_PATH(
         file_name=output_dataset_name)
-    output_dataset_name_2 = safe_get_argv(
-        key='-o2', default=f'{output_dataset_name}_2')
-    output_dataset_path_2 = exp_utils.TRAIN_DATASET_PATH(
-        file_name=output_dataset_name_2)
     print(f'Output path: "{output_dataset_path}".')
-    print(f'Output path 2: "{output_dataset_path_2}"')
 
     days = safe_get_argv(key="-w", default=None, data_type=int)
 
@@ -282,7 +293,6 @@ def sliding_window():
         input_pr_dataset_names,
         input_issue_dataset_names,
         output_dataset_path,
-        output_dataset_path_2,
         days
     )
 

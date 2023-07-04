@@ -8,7 +8,7 @@ import python_proj.utils.exp_utils as exp_utils
 from python_proj.utils.arg_utils import safe_get_argv
 
 
-def filter_unique(input_ds_names: list[str], output_ds_name: list[str]):
+def filter_unique(input_ds_names: list[str], output_ds_name: str):
     iterator = exp_utils.iterate_through_multiple_chronological_datasets(
         input_ds_names)
     unique = set()

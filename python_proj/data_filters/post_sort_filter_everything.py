@@ -5,6 +5,7 @@ hoping it doesn't turn into a x + 1 problem.
 """
 
 from importlib import reload
+from functools import partial
 
 from python_proj.utils.arg_utils import get_argv, safe_get_argv
 from python_proj.utils.mt_utils import parallelize_tasks
@@ -15,6 +16,7 @@ from python_proj.data_filters.post_sort_filter_for_pr_count import post_sort_fil
 from python_proj.data_filters.post_sort_filter_for_projects import filter_input_data_with_project_filter
 from python_proj.data_preprocessing.sliding_window_2 import remove_invalid_entries, build_dataset
 from python_proj.helpers.create_project_user_list import create_project_user_list
+from python_proj.data_filters.post_sort_filter_unique import filter_unique
 
 
 def __stage_simple_filter(
@@ -112,6 +114,22 @@ def __stage_remove_invalid_entries_final_datasets(output_name_final_datasets: st
     )
 
 
+def __stage_remove_duplicates(input_name_final_datasets: str,
+                              output_name_final_datasets: str):
+    print("Stage 6: removing duplicates from PR and issue sets.")
+    reload(exp_utils)
+    exp_utils.load_paths_for_eco()
+    exp_utils.load_paths_for_data_path()
+    filter_unique([input_name_final_datasets], output_name_final_datasets)
+    reload(exp_utils)
+    exp_utils.load_paths_for_eco()
+    # HACK: loading data path after this will definitely break it.
+    exp_utils.CHRONOLOGICAL_DATASET_PATH = partial(
+        exp_utils.CHRONOLOGICAL_DATASET_PATH, data_type='issues')
+    filter_unique([input_name_final_datasets], output_name_final_datasets)
+    reload(exp_utils)
+
+
 def __stage_create_sliding_window_dataset(
     windows: list[int | None],
     output_path_flag: str,
@@ -120,6 +138,8 @@ def __stage_create_sliding_window_dataset(
     # Create sliding window dataset.
     print(
         f"Stage 6: Creating sliding window datasets with windows: {windows}.")
+
+    exp_utils.load_paths_for_eco()
 
     def __create_training_dataset(task, *_, **__):
         window = task
@@ -179,10 +199,14 @@ def apply_post_sort_all(
 
     __stage_remove_invalid_entries_final_datasets(output_name_final_datasets)
 
+    output_name_final_datasets_no_dupes = f'{output_name_final_datasets}_no_dupes'
+    __stage_remove_duplicates(output_name_final_datasets, 
+                              output_name_final_datasets_no_dupes)
+
     __stage_create_sliding_window_dataset(
         windows,
         output_path_flag,
-        output_name_final_datasets
+        output_name_final_datasets_no_dupes
     )
 
     print("Done!")
