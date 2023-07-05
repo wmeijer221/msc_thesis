@@ -44,7 +44,7 @@ def __attempt_quick_load_dependency_map() -> Tuple[bool, str,
             j_data = json.loads(input_file.read())
             dependency_map = SafeDict(map=j_data["dependency_map"],
                                       default_value=set)
-            project_name_to_id = set(j_data["project_name_to_id"])
+            project_name_to_id = j_data["project_name_to_id"]
 
         print("Finished quick load!")
 
