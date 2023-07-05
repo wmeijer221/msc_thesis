@@ -167,7 +167,7 @@ def load_dependency_map() \
             ql_dependency_path)
     timedelta = datetime.datetime.now() - start
     print(
-        f'Loaded {len(PROJECT_NAME_TO_ID)} projects and {len(DEPENDENCY_MAP)} projects with dependencies.')
+        f'Loaded {len(project_name_to_id)} projects and {len(dependency_map)} projects with dependencies.')
     print(f'Loaded dependency data in {timedelta}.')
 
     return dependency_map, project_name_to_id
