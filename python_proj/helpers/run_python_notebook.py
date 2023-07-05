@@ -17,6 +17,7 @@ def transpile_notebook_to_python(notebook_path: str) -> str:
     """
 
     python_path = __get_file_name_without_extension(notebook_path) + ".py"
+    print(f'Storing temporary python file at "{python_path}".')
 
     with open(notebook_path, "r", encoding='utf-8') as notebook_file:
         notebook = json.loads(notebook_file.read())
@@ -47,11 +48,14 @@ def execute_notebook(notebook_path: str):
     try:
         # Creates python
         python_path = transpile_notebook_to_python(notebook_path)
-        notebook_output = subprocess.check_output(['python3', python_path])
+        args = ['python3', python_path]
+        popen = subprocess.Popen(args,stdout=subprocess.PIPE, universal_newlines=True)
         output_path = __get_file_name_without_extension(notebook_path) + ".out"
-        with open(output_path, "bw+") as output_file:
-            output_file.write(notebook_output)
-        print(f'Stored output at "{output_path}".')
+        print(f'Storing output at "{output_path}".')
+        with open(output_path, "w+", encoding='utf-8') as output_file:
+            for stdout_line in iter(popen.stdout.readline, ""):
+                print(stdout_line, end="")
+                output_file.write(stdout_line)
     finally:
         os.remove(python_path)
 
