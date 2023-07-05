@@ -351,6 +351,12 @@ class WeightedMultiLayerFirstOrderDegreeCentrality(Feature, PostRunFeature):
     def get_feature(self, entry: dict) -> float:
         focal_id = entry['user_data']['id']
 
+        # This is the case when the node performed it's first activity.
+        # In this case they have not prior activities yet and thus they
+        # have 0 centrality.
+        if not G.has_node(focal_id):
+            return 0.0
+
         edge_types = self.__edge_weight.keys()
         neighbor_ids = G.neighbors(focal_id)
         centrality = 0.0
