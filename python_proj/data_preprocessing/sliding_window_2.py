@@ -17,7 +17,7 @@ from typing import Generator, Callable, Tuple, TypeVar, Any
 import python_proj.utils.exp_utils as exp_utils
 
 from python_proj.data_preprocessing.sliding_window_features import *
-from python_proj.utils.arg_utils import safe_get_argv
+from python_proj.utils.arg_utils import safe_get_argv, get_argv
 from python_proj.utils.util import *
 
 T = TypeVar("T")
@@ -360,9 +360,9 @@ if __name__ == "__main__":
         case 'r':
             exp_utils.load_paths_for_eco()
             # Sets path for chronological input data
-            __input_pr_dataset_names = [entry for entry in safe_get_argv(key="-pd", default="").split(",")
+            __input_pr_dataset_names = [entry for entry in get_argv(key="-pd").split(",")
                                         if entry != '']
-            __input_issue_dataset_names = [entry for entry in safe_get_argv(key='-id', default="").split(",")
+            __input_issue_dataset_names = [entry for entry in get_argv(key='-id').split(",")
                                            if entry != '']
             remove_invalid_entries(
                 __input_pr_dataset_names, __input_issue_dataset_names)

@@ -14,8 +14,10 @@ def safe_get_argv(key: str, default: object = None, data_type: type = str) -> ob
 
 
 def get_argv(key: str) -> str:
-    return argv[argv.index(key) + 1]
-
+    try:
+        return argv[argv.index(key) + 1]
+    except KeyError as ex:
+        raise Exception(f'Mandatory commandline argument {key} not set.', ex)
 
 def get_argv_flag(key: str) -> bool:
     return safe_index(argv, key) >= 0
