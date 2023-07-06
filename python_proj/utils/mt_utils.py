@@ -2,7 +2,7 @@
 Contains utility scripts for multithreading related tasks.
 """
 
-from typing import Callable
+from typing import Callable, Generator
 import multiprocessing
 
 
@@ -39,7 +39,12 @@ class SimpleConsumer(multiprocessing.Process):
         print(f'Consumer-{self._worker_index} stopped.')
 
 
-def parallelize_tasks(tasks: list, on_message_received: Callable, thread_count: int, *args, **kwargs):
+def parallelize_tasks(
+    tasks: list | Generator,
+    on_message_received: Callable,
+    thread_count: int,
+    *args, **kwargs
+):
     """
     Starts a bunch of simple consumer threads that work away on the given tasks. 
     The tasks are passed through ``task`` parameter; i.e., if it's a dict is not unpacked.
@@ -56,7 +61,7 @@ def parallelize_tasks(tasks: list, on_message_received: Callable, thread_count: 
         workers[index] = worker
 
     # Creates tasks.
-    total_tasks = len(tasks)
+    total_tasks = len(tasks) if isinstance(tasks, list) else "unknown"
     for task_id, task in enumerate(tasks, start=1):
         work_task = {
             'task': task,

@@ -223,3 +223,39 @@ class Counter:
     def get_next(self):
         self.__current_value += self.__increment
         return self.__current_value
+
+
+def tuple_chain(
+    generator: Generator[T, None, None],
+    yield_first: bool = False,
+    yield_last: bool = False
+) -> Generator[Tuple[T | None, T | None], None, None]:
+    """Returns tuples of entries. Given [a, b, c, d], it outputs [(a,b), (b,c), (c,d)]"""
+    previous = None
+    current = next(generator)
+
+    if yield_first:
+        yield previous, current
+
+    for entry in generator:
+        previous = current
+        current = entry
+        yield previous, current
+
+    if yield_last:
+        yield current, None
+
+
+def intermediary_chain(
+    generator: Generator[T, None, None],
+    on_yield: Callable[[T], None]
+) -> Generator[T, None, None]:
+    """Calls the specified function before yielding the entry like normal."""
+    for entry in generator:
+        on_yield(entry)
+        yield entry
+
+
+def safe_makedirs(dirname: str):
+    if not os.path.exists(dirname):
+        os.makedirs(dirname)
