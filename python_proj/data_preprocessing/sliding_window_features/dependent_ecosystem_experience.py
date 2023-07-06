@@ -42,7 +42,7 @@ def __attempt_quick_load_dependency_map() -> Tuple[bool, str,
     try:
         with open(ql_dependency_path, "r", encoding='utf-8') as input_file:
             j_data = json.loads(input_file.read())
-            dependency_map = SafeDict(map=j_data["dependency_map"],
+            dependency_map = SafeDict(initial_mapping=j_data["dependency_map"],
                                       default_value=set)
             project_name_to_id = j_data["project_name_to_id"]
 

@@ -204,7 +204,7 @@ def iterate_through_chronological_data(data_type=None,
     else:
         input_path = CHRONOLOGICAL_DATASET_PATH
     print(f'Iterating through "{input_path}".')
-    with open(input_path, "r") as input_file:
+    with open(input_path, "r", encoding='utf-8') as input_file:
         for line in input_file:
             try:
                 yield json.loads(line.strip())

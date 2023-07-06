@@ -104,18 +104,18 @@ def __get_features():
     return intra_pr_features, sliding_window_features_pr, sliding_window_features_issue
 
 
-def __get_second_run_features():
-    post_pr_features = [
-        *SNA_POST_PR_FEATURES
-    ]
-    sliding_window_features_pr = [
-        *SNA_PR_SW_FEATURES,
-    ]
-    sliding_window_features_issue = [
-        *SNA_ISSUE_SW_FEATURES,
-    ]
+# def __get_second_run_features():
+#     post_pr_features = [
+#         *SNA_POST_PR_FEATURES
+#     ]
+#     sliding_window_features_pr = [
+#         *SNA_PR_SW_FEATURES,
+#     ]
+#     sliding_window_features_issue = [
+#         *SNA_ISSUE_SW_FEATURES,
+#     ]
 
-    return post_pr_features, sliding_window_features_issue, sliding_window_features_pr
+#     return post_pr_features, sliding_window_features_issue, sliding_window_features_pr
 
 
 def generate_dataset(pr_dataset_names: list[str],
@@ -126,7 +126,7 @@ def generate_dataset(pr_dataset_names: list[str],
                      window_size: timedelta) \
         -> Generator[list[Any], None, None]:
     """
-    Generates dataset using the input files, 
+    Generates dataset using the input files,
     the provided features, and the given time window.
     """
 
@@ -192,8 +192,8 @@ def build_dataset(pr_dataset_names: list[str],
                   output_dataset_path: str,
                   window_size_in_days: int):
     """
-    Writes all data entries to a training data file 
-    using all considered predictive features using 
+    Writes all data entries to a training data file
+    using all considered predictive features using
     data that lies within the given time window.
     """
 
@@ -219,46 +219,46 @@ def build_dataset(pr_dataset_names: list[str],
         for datapoint in dataset_iterator:
             csv_writer.writerow(datapoint)
 
-    # Second run.
-    post_pr_features, sliding_window_features_issue, sliding_window_features_pr = __get_second_run_features()
-    for entry in itertools.chain(post_pr_features, sliding_window_features_pr, sliding_window_features_issue):
-        if isinstance(entry, PostRunFeature):
-            entry.late_init()
+    # # Second run.
+    # post_pr_features, sliding_window_features_issue, sliding_window_features_pr = __get_second_run_features()
+    # for entry in itertools.chain(post_pr_features, sliding_window_features_pr, sliding_window_features_issue):
+    #     if isinstance(entry, PostRunFeature):
+    #         entry.late_init()
 
-    second_dataset_iterator = generate_dataset(
-        pr_dataset_names,
-        issue_dataset_names,
-        post_pr_features,
-        sliding_window_features_pr,
-        sliding_window_features_issue,
-        window_size
-    )
-    # Outputs dataset.
-    temp_out = tempfile.NamedTemporaryFile('w+', delete=False)
-    print(f'Storing temp data in "{temp_out.name}".')
-    with open(output_dataset_path, 'r', encoding='utf-8') as input_dataset:
-        csv_writer = writer(temp_out)
-        csv_reader = reader(input_dataset)
+    # second_dataset_iterator = generate_dataset(
+    #     pr_dataset_names,
+    #     issue_dataset_names,
+    #     post_pr_features,
+    #     sliding_window_features_pr,
+    #     sliding_window_features_issue,
+    #     window_size
+    # )
+    # # Outputs dataset.
+    # temp_out = tempfile.NamedTemporaryFile('w+', delete=False)
+    # print(f'Storing temp data in "{temp_out.name}".')
+    # with open(output_dataset_path, 'r', encoding='utf-8') as input_dataset:
+    #     csv_writer = writer(temp_out)
+    #     csv_reader = reader(input_dataset)
 
-        # creates new header, skipping duplicate fields.
-        old_header = next(csv_reader)
-        new_header = next(second_dataset_iterator)
-        novel_field_indices = [i for i, field in enumerate(new_header)
-                        if field not in old_header]
-        novel_fields = [new_header[i] for i in novel_field_indices]
-        csv_writer.writerow([*old_header, *novel_fields])
+    #     # creates new header, skipping duplicate fields.
+    #     old_header = next(csv_reader)
+    #     new_header = next(second_dataset_iterator)
+    #     novel_field_indices = [i for i, field in enumerate(new_header)
+    #                     if field not in old_header]
+    #     novel_fields = [new_header[i] for i in novel_field_indices]
+    #     csv_writer.writerow([*old_header, *novel_fields])
 
-        # Writes data point.
-        for old_entry, new_entry in zip(csv_reader, second_dataset_iterator):
-            novel_entries = [new_entry[i] for i in novel_field_indices]
-            csv_writer.writerow([*old_entry, *novel_entries])
+    #     # Writes data point.
+    #     for old_entry, new_entry in zip(csv_reader, second_dataset_iterator):
+    #         novel_entries = [new_entry[i] for i in novel_field_indices]
+    #         csv_writer.writerow([*old_entry, *novel_entries])
 
-    shutil.move(temp_out.name, output_dataset_path)
+    # shutil.move(temp_out.name, output_dataset_path)
 
 
-def sliding_window():
+def sliding_window(thread_count: int = 1):
     """
-    Loads relevant command line arguments, uses 
+    Loads relevant command line arguments, uses
     those to generate a training dataset, and outputs
     it to an output file.
 
@@ -289,13 +289,15 @@ def sliding_window():
 
     start_time = datetime.now()
 
-    build_dataset(
-        input_pr_dataset_names,
-        input_issue_dataset_names,
-        output_dataset_path,
-        days
-    )
-
+    if thread_count == 1:
+        build_dataset(
+            input_pr_dataset_names,
+            input_issue_dataset_names,
+            output_dataset_path,
+            days
+        )
+    else:
+        raise NotImplementedError()
     end_time = datetime.now()
     delta_time = end_time - start_time
     print(f'Ran from {start_time} till {end_time} ({delta_time}).')

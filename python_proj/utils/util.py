@@ -140,9 +140,12 @@ class SafeDict(dict):
     Standard dictionary data structure that adds a default value to a key if it doesn't exist yet.
     """
 
-    def __init__(self, default_value, default_value_constructor_args: list[Any] = [],
-                 default_value_constructor_kwargs: dict[str, Any] = {},
-                 map: dict | None = None, *args, **kwargs):
+    def __init__(self, default_value, default_value_constructor_args: list[Any] | None = None,
+                 default_value_constructor_kwargs: dict[str,
+                                                        Any] | None = None,
+                 initial_mapping: dict | None = None,
+                 delete_when_default: bool = False,
+                 *args, **kwargs):
         """
         :param default_value: the default value for entries. 
         If this is a ``type``, it will call said type's constructor, and if it's callable, it will call it.
@@ -153,14 +156,20 @@ class SafeDict(dict):
         :param map: Can be set to come with a pre-filled mapping. 
         :param *args, **kwargs: Constructor arguments for the inner datastructure of the dictionary.
         These can be anything that can be passed to the constructor of a ``dict``.
+        :param delete_when_default: Deletes entries whenever they are equal to the default value to preserve memory.
+        Only use this when you don't intend to use the len() as this might be misleading. This is only set when the
+        default value is not a ``callable`` or a ``type``.
         """
 
-        if not map is None:
-            super().__init__(map)
+        if not initial_mapping is None:
+            super().__init__(initial_mapping)
 
         self.__default_value: Any = default_value
-        self.__default_value_constructor_args: list = default_value_constructor_args
-        self.__default_value_constructor_kwargs: dict = default_value_constructor_kwargs
+        self.__default_value_constructor_args: list = [] if default_value_constructor_args is None \
+            else default_value_constructor_args
+        self.__default_value_constructor_kwargs: dict = {} if default_value_constructor_kwargs is None \
+            else default_value_constructor_kwargs
+        self.__delete_when_default: bool = False
 
         if isinstance(default_value, type):
             self.__get_default_value = lambda: self.__default_value(
@@ -171,6 +180,7 @@ class SafeDict(dict):
                                                                     **self.__default_value_constructor_kwargs)
         else:
             self.__get_default_value = lambda: self.__default_value
+            self.__delete_when_default: bool = delete_when_default
 
         super().__init__(*args, **kwargs)
 
@@ -179,6 +189,12 @@ class SafeDict(dict):
             value = self.__get_default_value()
             super().__setitem__(__key, value)
         return super().__getitem__(__key)
+
+    def __setitem__(self, __key: Any, __value: Any) -> None:
+        if self.__delete_when_default and __value == self.__default_value:
+            super().__delitem__(__key)
+        else:
+            super().__setitem__(__key, __value)
 
 
 def safe_save_fig(output_path):
@@ -199,6 +215,7 @@ def subtract_dict(original: dict[Any, Number], subtracted: dict[Any, Number]) ->
 
 class Counter:
     """Simple tool for picking the next number in line."""
+
     def __init__(self, start_value: int = 42, increment: int = 1) -> None:
         self.__current_value = start_value
         self.__increment = increment

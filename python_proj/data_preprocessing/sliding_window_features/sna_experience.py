@@ -365,7 +365,7 @@ class WeightedMultiLayerFirstOrderDegreeCentrality(Feature, PostRunFeature):
         for neighbor_id in neighbor_ids:
             # Wrapped in a SafeDict for simplicity (ditto for the inner-loop).
             conn_edge_data = SafeDict(
-                map=G.get_edge_data(focal_id, neighbor_id),
+                initial_mapping=G.get_edge_data(focal_id, neighbor_id),
                 default_value=0)
 
             # Iterates through all edge types for the connection (loop l)
@@ -387,7 +387,7 @@ class WeightedMultiLayerFirstOrderDegreeCentrality(Feature, PostRunFeature):
                             continue
 
                         fo_edge_data = SafeDict(
-                            map=G.get_edge_data(neighbor_id, fo_neighbor_id),
+                            initial_mapping=G.get_edge_data(neighbor_id, fo_neighbor_id),
                             default_value=0)
 
                         if not self.__is_time_respecting(conn_edge_data, conn_edge_label,
