@@ -68,7 +68,7 @@ class SharedExperienceFeature(SlidingWindowFeature):
         source_id = entry['user_data']['id']
         integrator_key = get_integrator_key(entry)
         target_id = entry[integrator_key]['id']
-        return self.__nested_source_keys[source_id][target_id]
+        return self.__shared_experiences[source_id][target_id]
 
 # Pull request
 
