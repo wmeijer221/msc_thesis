@@ -58,8 +58,8 @@ class SNAFeature(SlidingWindowFeature):
 
     def _add_remove_edge(self,
                          u: int, v: int,
-                         activity_id: int,
-                         activity_timestamp: datetime,
+                        #  activity_id: int,
+                        #  activity_timestamp: datetime,
                          sign: int):
         """Adds a single edge, ignoring self-loops."""
         if u == v:
@@ -75,26 +75,26 @@ class SNAFeature(SlidingWindowFeature):
             edge_data[self._edge_label] = sign
 
         # Adds timestamped edge.
-        # TODO: This will not work at an "all time data" scale.
-        if TIMESTAMP_KEY not in edge_data:
-            edge_data[TIMESTAMP_KEY] = SafeDict(default_value=dict)
-        if sign > 0:
-            edge_data[TIMESTAMP_KEY][self._edge_label][activity_id] = activity_timestamp
-        else:
-            del edge_data[TIMESTAMP_KEY][self._edge_label][activity_id]
+        # TODO: This doesn't scale.
+        # if TIMESTAMP_KEY not in edge_data:
+        #     edge_data[TIMESTAMP_KEY] = SafeDict(default_value=dict)
+        # if sign > 0:
+        #     edge_data[TIMESTAMP_KEY][self._edge_label][activity_id] = activity_timestamp
+        # else:
+        #     del edge_data[TIMESTAMP_KEY][self._edge_label][activity_id]
 
-        # Updates edge.
-        G.add_edge(u, v, **edge_data)
-        EDGE_COUNT_PER_TYPE[self._edge_label] += sign
-        if sign > 0:
-            TOTAL_EDGE_COUNT_PER_TYPE[self._edge_label] += sign
-        self._recalculate_weight(u, v)
+        # # Updates edge.
+        # G.add_edge(u, v, **edge_data)
+        # EDGE_COUNT_PER_TYPE[self._edge_label] += sign
+        # if sign > 0:
+        #     TOTAL_EDGE_COUNT_PER_TYPE[self._edge_label] += sign
+        # self._recalculate_weight(u, v)
 
     def _add_remove_edges(self,
                           us: int | list[int],
                           vs: int | list[int],
-                          activity_id: int,
-                          activity_timestamp: datetime,
+                        #   activity_id: int,
+                        #   activity_timestamp: datetime,
                           sign: int):
         """Adds multiple edges, pairwise."""
         if isinstance(us, int):
@@ -106,7 +106,7 @@ class SNAFeature(SlidingWindowFeature):
             for v in vs:
                 self._add_remove_edge(
                     u, v,
-                    activity_id, activity_timestamp,
+                    # activity_id, activity_timestamp,
                     sign)
 
     def _recalculate_weight(self, u: int, v: int):
@@ -155,20 +155,20 @@ class SNAFeature(SlidingWindowFeature):
 
     def add_entry(self, entry: dict):
         us, vs = self._get_us_and_vs(entry)
-        activity_id = entry['id']
-        timestamp = datetime.datetime.strptime(
-            entry['closed_at'], "%Y-%m-%dT%H:%M:%SZ")
+        # activity_id = entry['id']
+        # timestamp = datetime.datetime.strptime(
+        #     entry['closed_at'], "%Y-%m-%dT%H:%M:%SZ")
         self._add_remove_edges(us, vs,
-                               activity_id, timestamp,
+                            #    activity_id, timestamp,
                                sign=1)
 
     def remove_entry(self, entry: dict):
         us, vs = self._get_us_and_vs(entry)
-        activity_id = entry['id']
-        timestamp = datetime.datetime.strptime(
-            entry['closed_at'], "%Y-%m-%dT%H:%M:%SZ")
+        # activity_id = entry['id']
+        # timestamp = datetime.datetime.strptime(
+        #     entry['closed_at'], "%Y-%m-%dT%H:%M:%SZ")
         self._add_remove_edges(us, vs,
-                               activity_id, timestamp,
+                            #    activity_id, timestamp,
                                sign=-1)
 
     def get_feature(self, entry: dict, ordered: bool = False) -> Any:

@@ -1,13 +1,25 @@
 
+class MyOtherClass:
+    def __init__(self) -> None:
+        self.some_cool_value = 0
 
 
-import tempfile
-import shutil
+class MyTestClass:
+    def __init__(self, other_value: MyOtherClass) -> None:
+        self.__other_val = other_value
 
-with tempfile.NamedTemporaryFile('w+', delete=False) as tmp:
-    tmp.write("hello world\n")
-    tmp.writelines([str(i) for i in range(10)])
+    def fun(self):
+        self.__other_val.some_cool_value += 1
 
 
-shutil.move(tmp.name, "./real_temp.dat")
+myclass_a = MyOtherClass()
 
+print(myclass_a.some_cool_value)
+a = MyTestClass(myclass_a)
+a.fun()
+b = MyTestClass(myclass_a)
+a.fun()
+c = MyTestClass(myclass_a)
+a.fun()
+
+print(myclass_a.some_cool_value)

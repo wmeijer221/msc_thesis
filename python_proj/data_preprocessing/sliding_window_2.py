@@ -7,10 +7,8 @@ parameters.
 
 import itertools
 import json
-import tempfile
-import shutil
 
-from csv import reader, writer
+from csv import writer
 from datetime import datetime, timedelta
 from typing import Generator, Callable, Tuple, TypeVar, Any
 
@@ -81,20 +79,19 @@ def __get_features():
     intra_pr_features = [
         *CONTROL_PR_FEATURES,
         *PR_FEATURES_OTHER,
-        # *SNA_PR_FEATURES,
     ]
     sliding_window_features_pr = [
         *CONTROL_PR_SW_FEATURES,
         *IP_PR_SW_FEATURES,
         *ECO_EXP_PR_SW_FEATURES,
-        *SNA_PR_SW_FEATURES,
+        *SE_PR_SW_FEATURES,
         *DECO_EXP_PR_SW_FEATURES,
         *IDECO_EXP_PR_SW_FEATURES,
     ]
     sliding_window_features_issue = [
         *ECO_EXP_ISSUE_SW_FEATURES,
         *IP_ISSUE_SW_FEATURES,
-        *SNA_ISSUE_SW_FEATURES,
+        *SE_PR_SW_FEATURES,
         *DECO_EXP_ISSUE_SW_FEATURES,
         *IDECO_EXP_ISSUE_SW_FEATURES,
     ]
@@ -102,20 +99,6 @@ def __get_features():
         len(sliding_window_features_pr) + len(sliding_window_features_issue)
     print(f'{feature_count=}')
     return intra_pr_features, sliding_window_features_pr, sliding_window_features_issue
-
-
-# def __get_second_run_features():
-#     post_pr_features = [
-#         *SNA_POST_PR_FEATURES
-#     ]
-#     sliding_window_features_pr = [
-#         *SNA_PR_SW_FEATURES,
-#     ]
-#     sliding_window_features_issue = [
-#         *SNA_ISSUE_SW_FEATURES,
-#     ]
-
-#     return post_pr_features, sliding_window_features_issue, sliding_window_features_pr
 
 
 def generate_dataset(pr_dataset_names: list[str],
@@ -218,42 +201,6 @@ def build_dataset(pr_dataset_names: list[str],
         csv_writer = writer(output_dataset)
         for datapoint in dataset_iterator:
             csv_writer.writerow(datapoint)
-
-    # # Second run.
-    # post_pr_features, sliding_window_features_issue, sliding_window_features_pr = __get_second_run_features()
-    # for entry in itertools.chain(post_pr_features, sliding_window_features_pr, sliding_window_features_issue):
-    #     if isinstance(entry, PostRunFeature):
-    #         entry.late_init()
-
-    # second_dataset_iterator = generate_dataset(
-    #     pr_dataset_names,
-    #     issue_dataset_names,
-    #     post_pr_features,
-    #     sliding_window_features_pr,
-    #     sliding_window_features_issue,
-    #     window_size
-    # )
-    # # Outputs dataset.
-    # temp_out = tempfile.NamedTemporaryFile('w+', delete=False)
-    # print(f'Storing temp data in "{temp_out.name}".')
-    # with open(output_dataset_path, 'r', encoding='utf-8') as input_dataset:
-    #     csv_writer = writer(temp_out)
-    #     csv_reader = reader(input_dataset)
-
-    #     # creates new header, skipping duplicate fields.
-    #     old_header = next(csv_reader)
-    #     new_header = next(second_dataset_iterator)
-    #     novel_field_indices = [i for i, field in enumerate(new_header)
-    #                     if field not in old_header]
-    #     novel_fields = [new_header[i] for i in novel_field_indices]
-    #     csv_writer.writerow([*old_header, *novel_fields])
-
-    #     # Writes data point.
-    #     for old_entry, new_entry in zip(csv_reader, second_dataset_iterator):
-    #         novel_entries = [new_entry[i] for i in novel_field_indices]
-    #         csv_writer.writerow([*old_entry, *novel_entries])
-
-    # shutil.move(temp_out.name, output_dataset_path)
 
 
 def sliding_window(thread_count: int = 1):
