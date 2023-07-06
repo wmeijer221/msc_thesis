@@ -91,7 +91,7 @@ def __get_features():
     sliding_window_features_issue = [
         *ECO_EXP_ISSUE_SW_FEATURES,
         *IP_ISSUE_SW_FEATURES,
-        *SE_PR_SW_FEATURES,
+        *SE_ISSUE_SW_FEATURES,
         *DECO_EXP_ISSUE_SW_FEATURES,
         *IDECO_EXP_ISSUE_SW_FEATURES,
     ]
