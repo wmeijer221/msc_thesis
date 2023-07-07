@@ -21,6 +21,8 @@ FILE_NAME_KEY = "-f"
 
 BASE_PATH = getenv("EXPERIMENT_BASE_PATH", default="./data/")
 
+DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
+
 # Default file paths.
 PROJECTS_WITH_REPO_PATH: str | partial[str] = \
     BASE_PATH + \

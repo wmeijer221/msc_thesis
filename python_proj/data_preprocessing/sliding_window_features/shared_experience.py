@@ -168,5 +168,3 @@ def build_se_features():
     ]
 
     return se_pr_sw_features, se_issue_sw_features
-
-SE_PR_SW_FEATURES, SE_ISSUE_SW_FEATURES = build_se_features()

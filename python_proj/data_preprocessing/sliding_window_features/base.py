@@ -15,6 +15,10 @@ class Feature:
 
     def is_valid_entry(self, entry: dict) -> bool:
         return True
+    
+    def is_output_feature(self) -> bool:
+        """Returns true if the feature should output something."""
+        return True
 
 
 class SlidingWindowFeature(Feature):

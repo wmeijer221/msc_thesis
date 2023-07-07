@@ -128,6 +128,3 @@ def build_intra_project_features():
         IntraProjectSubmitterPullRequestCommentCount()
     ]
     return ip_issue_sw_features, ip_pr_sw_features
-
-
-IP_ISSUE_SW_FEATURES, IP_PR_SW_FEATURES = build_intra_project_features()

@@ -246,13 +246,13 @@ def tuple_chain(
         yield current, None
 
 
-def intermediary_chain(
+def chain_with_intermediary_callback(
     generator: Generator[T, None, None],
-    on_yield: Callable[[T], None]
+    callback: Callable[[T], None]
 ) -> Generator[T, None, None]:
     """Calls the specified function before yielding the entry like normal."""
     for entry in generator:
-        on_yield(entry)
+        callback(entry)
         yield entry
 
 

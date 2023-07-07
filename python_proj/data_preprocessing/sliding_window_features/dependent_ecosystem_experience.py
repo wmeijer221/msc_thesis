@@ -424,6 +424,3 @@ def build_deco_features():
 
 
 DEPENDENCY_MAP, PROJECT_NAME_TO_ID = safe_load_dependency_map()
-
-DECO_EXP_PR_SW_FEATURES, DECO_EXP_ISSUE_SW_FEATURES, \
-    IDECO_EXP_PR_SW_FEATURES, IDECO_EXP_ISSUE_SW_FEATURES = build_deco_features()

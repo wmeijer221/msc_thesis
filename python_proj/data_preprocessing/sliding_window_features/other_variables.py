@@ -46,6 +46,3 @@ def build_other_features():
         SubmitterIsFirstTimeContributor(),
     ]
     return pr_features_other
-
-
-PR_FEATURES_OTHER = build_other_features()

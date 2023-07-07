@@ -175,6 +175,3 @@ def build_control_variables():
         ControlHasHashTagInDescription()               # hash_tag
     ]
     return sw_features, features
-
-
-CONTROL_PR_SW_FEATURES, CONTROL_PR_FEATURES = build_control_variables()

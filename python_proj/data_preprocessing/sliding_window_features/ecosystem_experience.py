@@ -226,6 +226,3 @@ def build_eco_experience():
         # SubmitterEcosystemExperienceIssueDiscussionParticipationCount(),
     ]
     return eco_exp_pr_sw_features, eco_exp_issue_sw_features
-
-
-ECO_EXP_PR_SW_FEATURES, ECO_EXP_ISSUE_SW_FEATURES = build_eco_experience()
