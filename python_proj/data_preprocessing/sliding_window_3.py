@@ -288,6 +288,7 @@ def __merge_chunk_results(
         for chunk_file in chunk_file_names:
             file_name = os.path.basename(chunk_file)
             chunk_output_path = chunk_output_base_path + file_name
+            print(f'Merging "{chunk_output_path}".')
             with open(chunk_output_path, "r", encoding='utf-8') as input_file:
                 output_file.writelines(input_file)
             os.remove(chunk_output_path)
