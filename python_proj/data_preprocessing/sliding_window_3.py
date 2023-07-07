@@ -67,7 +67,7 @@ def __create_data_chunk_stream(
     print(f'Finished creating last chunk "{current_chunk_name}".')
     current_chunk_name = current_chunk_file.name
     next_chunk_name = next_chunk_file.name
-    
+
     current_chunk_file.close()
     next_chunk_file.close()
 
@@ -223,6 +223,7 @@ def __handle_new_entry(
 def __handle_chunk(
     task: Tuple[str | None, str],
     time_window: timedelta,
+    task_id: int,
     base_path: str,
     feature_factory: Callable[[], Tuple[list[SlidingWindowFeature],
                                         list[SlidingWindowFeature],
@@ -231,14 +232,15 @@ def __handle_chunk(
 ):
 
     previous_chunk, current_chunk = task
-    print(f'Starting with chunks: {previous_chunk=}, {current_chunk=}')
+    print(
+        f'Task-{task_id}: Starting with chunks: {previous_chunk=}, {current_chunk=}')
 
     issue_sw_features, pr_sw_features, pr_features = feature_factory()
 
     # output path name.
     chunk_name = os.path.basename(current_chunk)
     output_path = base_path + chunk_name
-    print(f'Outputting in "{output_path}".')
+    print(f'Task-{task_id}: Outputting in "{output_path}".')
 
     # Selects output features
     output_features = [feature for feature in [*pr_features, *pr_sw_features]
@@ -248,7 +250,7 @@ def __handle_chunk(
     window, window_keys = __create_window_from_file(
         previous_chunk, issue_sw_features, pr_sw_features)
 
-    print(f'Loaded first half for chunks: {previous_chunk=}, {current_chunk=}')
+    print(f'Task-{task_id}: Loaded previous chunk: "{previous_chunk}".')
 
     # Iterates through the current chunks entries.
     with open(output_path, "w+", encoding='utf-8') as output_file:
@@ -274,7 +276,7 @@ def __handle_chunk(
                 )
 
     print(
-        f'Finished processing all chunks: {previous_chunk=}, {current_chunk=}')
+        f'Task-{task_id}: Finished processing all chunks: {previous_chunk=}, {current_chunk=}')
 
 
 def __merge_chunk_results(
@@ -292,6 +294,7 @@ def __merge_chunk_results(
             with open(chunk_output_path, "r", encoding='utf-8') as input_file:
                 output_file.writelines(input_file)
             os.remove(chunk_output_path)
+    print(f'Output path: "{output_path}".')
 
 
 def create_sliding_window_dataset(
@@ -351,6 +354,8 @@ def create_sliding_window_dataset(
         chunk_file_names,
         chunk_output_base_path
     )
+
+    print("Done!")
 
 
 def all_features_factory() -> Tuple[list[SlidingWindowFeature],
