@@ -14,7 +14,8 @@ from typing import Generator, Callable, Tuple, TypeVar, Any
 
 import python_proj.utils.exp_utils as exp_utils
 
-from python_proj.data_preprocessing.sliding_window_features import *
+import python_proj.data_preprocessing.sliding_window_features as swf
+from python_proj.data_preprocessing.sliding_window_features import Feature, SlidingWindowFeature
 from python_proj.utils.arg_utils import safe_get_argv, get_argv
 from python_proj.utils.util import *
 
@@ -76,29 +77,42 @@ def __get_preamble(entry: dict) -> list:
 
 
 def __get_features():
-    intra_pr_features = [
-        *CONTROL_PR_FEATURES,
-        *PR_FEATURES_OTHER,
+    other_pr = swf.build_other_features()
+    control_sw, control = swf.build_control_variables()
+    ip_issue, ip_pr = swf.build_intra_project_features()
+    se_pr, se_issue = swf.build_se_features()
+    eco_pr, eco_issue = swf.build_eco_experience()
+    deco_pr, deco_issue, ideco_pr, ideco_issue = swf.build_deco_features()
+    sna_pr_graph, sna_issue_graph, centrality_features = swf.build_centrality_features()
+
+    issue_sw_features = [
+        *ip_issue,
+        *se_issue,
+        *eco_issue,
+        *deco_issue,
+        *ideco_issue,
+        *sna_issue_graph,
     ]
-    sliding_window_features_pr = [
-        *CONTROL_PR_SW_FEATURES,
-        *IP_PR_SW_FEATURES,
-        *ECO_EXP_PR_SW_FEATURES,
-        *SE_PR_SW_FEATURES,
-        *DECO_EXP_PR_SW_FEATURES,
-        *IDECO_EXP_PR_SW_FEATURES,
+
+    pr_sw_features = [
+        *control_sw,
+        *ip_pr,
+        *se_pr,
+        *eco_pr,
+        *deco_pr,
+        *ideco_pr,
+        *sna_pr_graph,
     ]
-    sliding_window_features_issue = [
-        *ECO_EXP_ISSUE_SW_FEATURES,
-        *IP_ISSUE_SW_FEATURES,
-        *SE_ISSUE_SW_FEATURES,
-        *DECO_EXP_ISSUE_SW_FEATURES,
-        *IDECO_EXP_ISSUE_SW_FEATURES,
+
+    pr_features = [
+        *other_pr,
+        *control
     ]
-    feature_count = len(intra_pr_features) + \
-        len(sliding_window_features_pr) + len(sliding_window_features_issue)
+
+    feature_count = len(pr_features) + \
+        len(pr_sw_features) + len(issue_sw_features)
     print(f'{feature_count=}')
-    return intra_pr_features, sliding_window_features_pr, sliding_window_features_issue
+    return pr_features, pr_sw_features, issue_sw_features
 
 
 def generate_dataset(pr_dataset_names: list[str],
