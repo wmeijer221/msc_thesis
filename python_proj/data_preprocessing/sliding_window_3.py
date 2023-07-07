@@ -266,11 +266,6 @@ def __handle_chunk(
     # Iterates through the current chunks entries.
     with open(output_path, "w+", encoding='utf-8') as output_file:
         csv_writer = csv.writer(output_file)
-
-        # Writes header.
-        header = [feature.get_name() for feature in output_features]
-        csv_writer.writerow(header)
-
         with open(current_chunk, "r", encoding='utf-8') as input_file:
             # Iterates through all entries and handles those.
             for line in input_file:
