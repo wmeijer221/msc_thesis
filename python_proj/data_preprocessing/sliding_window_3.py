@@ -154,7 +154,7 @@ def __prune_entries(
         window_keys.appendleft(potential_pruned_key)
 
     # Prunes entries.
-    for pruned_entry in pruned_entries
+    for pruned_entry in pruned_entries:
         is_issue = pruned_entry['__data_type'] == 'issues'
         sw_features = issue_sw_features if is_issue else pr_sw_features
         for feature in sw_features:
