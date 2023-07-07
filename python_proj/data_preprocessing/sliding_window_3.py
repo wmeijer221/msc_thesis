@@ -372,7 +372,6 @@ def all_features_factory() -> Tuple[list[SlidingWindowFeature],
     ]
 
     pr_sw_features = [
-        *other_pr,
         *control_sw,
         *ip_pr,
         *se_pr,
@@ -383,6 +382,7 @@ def all_features_factory() -> Tuple[list[SlidingWindowFeature],
     ]
 
     pr_features = [
+        *other_pr,
         *control
     ]
 
