@@ -189,6 +189,15 @@ def __add_entry(
     window[new_entry_date].append(new_entry)
 
 
+def __get_preamble(entry: dict) -> list:
+    (owner, repo) = exp_utils.get_owner_and_repo_from_source_path(
+        entry['__source_path'])
+    project = f'{owner}/{repo}'
+    submitter_id = entry['user_data']['id']
+    closed_at = entry['closed_at']
+    return [entry['id'], project, submitter_id, entry['number'], closed_at]
+
+
 def __handle_new_entry(
         new_entry: dict,
         time_window: timedelta,
@@ -211,6 +220,8 @@ def __handle_new_entry(
         data_point = [None] * len(output_features)
         for index, feature in enumerate(output_features):
             data_point[index] = feature.get_feature(new_entry)
+        preamble = __get_preamble(new_entry)
+        data_point = [*preamble, *data_point]
         csv_writer.writerow(data_point)
 
     __add_entry(
