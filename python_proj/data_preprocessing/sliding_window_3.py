@@ -361,8 +361,8 @@ def create_sliding_window_dataset(
     )
 
     # Prunes all chunk data files.
-    for file in chunk_file_names:
-        os.remove(file)
+    # for file in chunk_file_names:
+    #     os.remove(file)
 
     # Selects output features.
     _, pr_sw_features, pr_features = feature_factory()
