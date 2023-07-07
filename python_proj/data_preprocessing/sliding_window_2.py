@@ -91,7 +91,7 @@ def __get_features():
         *eco_issue,
         *deco_issue,
         *ideco_issue,
-        *sna_issue_graph,
+        # *sna_issue_graph,
     ]
 
     pr_sw_features = [
@@ -101,7 +101,7 @@ def __get_features():
         *eco_pr,
         *deco_pr,
         *ideco_pr,
-        *sna_pr_graph,
+        # *sna_pr_graph,
     ]
 
     pr_features = [
