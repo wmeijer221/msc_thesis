@@ -102,6 +102,9 @@ class SNAFeature(SlidingWindowFeature):
         sources, targets = self._get_us_and_vs(entry)
         self._add_remove_edges(sources, targets, sign=-1)
 
+    def is_output_feature(self) -> bool:
+        return False
+
 
 class PRIntegratorToSubmitter(SNAFeature):
     def __init__(self, graph: nx.DiGraph) -> None:
