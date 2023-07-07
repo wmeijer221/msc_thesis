@@ -1,5 +1,6 @@
 """
-Version 3 of the sliding window algorithm. This time it's multithreaded.
+Version 3 of the sliding window algorithm. This time it's multithreaded
+as that's way faster and I don't want to wait three days for my results.
 
 Implements a sliding window algorithm used to generate training datasets
 consisting of various intra and ecosystem-wide PR merge predictors. See
@@ -31,12 +32,11 @@ def __create_data_chunk_stream(
 ) -> Generator[str, None, None]:
     chunk_counter = Counter(start_value=0)
 
-    def __make_chunk_next_file():
+    def __make_next_chunk_file():
         chunk_file_path = base_path + str(chunk_counter.get_next())
         return open(chunk_file_path, "w+", encoding='utf-8')
 
-    current_chunk_file = __make_chunk_next_file()
-    next_chunk_file = __make_chunk_next_file()
+    current_chunk_file = __make_next_chunk_file()
 
     data_iterator = exp_utils.iterate_through_multiple_chronological_issue_pr_datasets(
         issue_file_names, pr_file_names)
@@ -57,22 +57,17 @@ def __create_data_chunk_stream(
             current_chunk_name = current_chunk_file.name
             print(f'Finished creating chunk "{current_chunk_name}".')
             yield current_chunk_name
-            current_chunk_file = next_chunk_file
-            next_chunk_file = __make_chunk_next_file()
+            current_chunk_file = __make_next_chunk_file()
 
         line = f'{json.dumps(entry)}\n'
         current_chunk_file.write(line)
-        next_chunk_file.write(line)
 
     print(f'Finished creating last chunk "{current_chunk_name}".')
     current_chunk_name = current_chunk_file.name
-    next_chunk_name = next_chunk_file.name
 
     current_chunk_file.close()
-    next_chunk_file.close()
 
     yield current_chunk_name
-    yield next_chunk_name
 
 
 def __create_window_from_file(
