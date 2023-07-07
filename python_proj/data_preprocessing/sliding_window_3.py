@@ -243,7 +243,7 @@ def __handle_chunk(
     print(f'Task-{task_id}: Outputting in "{output_path}".')
 
     # Selects output features
-    output_features = [feature for feature in [*pr_features, *pr_sw_features]
+    output_features = [feature for feature in [*pr_sw_features, *pr_features]
                        if feature.is_output_feature()]
 
     # Creates initial window.
@@ -282,11 +282,20 @@ def __handle_chunk(
 def __merge_chunk_results(
     output_path: str,
     chunk_file_names: str,
-    chunk_output_base_path: str
+    chunk_output_base_path: str,
+    output_features: list[Feature]
 ):
     # Combines the output of each file to the final output file
     # and removes the chunk output file.
     with open(output_path, "w+", encoding='utf-8')as output_file:
+        # Create header
+        header = [feature.get_name() for feature in output_features]
+        header = ["ID", "Project Name", "Submitter ID",
+                  "PR Number", "Closed At", *header]
+        csv_writer = csv.writer(output_file)
+        csv_writer.writerow(header)
+
+        # Merge entries.
         for chunk_file in chunk_file_names:
             file_name = os.path.basename(chunk_file)
             chunk_output_path = chunk_output_base_path + file_name
@@ -349,10 +358,17 @@ def create_sliding_window_dataset(
     for file in chunk_file_names:
         os.remove(file)
 
+    # Selects output features.
+    _, pr_sw_features, pr_features = feature_factory()
+    output_features: list[Feature] = [*pr_sw_features, *pr_features]
+    output_features = [feature for feature in output_features
+                       if feature.is_output_feature()]
+
     __merge_chunk_results(
         output_path,
         chunk_file_names,
-        chunk_output_base_path
+        chunk_output_base_path,
+        output_features
     )
 
     print("Done!")
@@ -415,7 +431,6 @@ def cmd_create_sliding_window_dataset():
                                  if entry != '']
     output_file_name = get_argv(key='-o')
     output_path = exp_utils.TRAIN_DATASET_PATH(file_name=output_file_name)
-    print(f'Using output path "{output_path}".')
 
     days = safe_get_argv(key="-w", default=None, data_type=int)
     thread_count = safe_get_argv(key='-t', default=1, data_type=int)
