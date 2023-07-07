@@ -64,9 +64,14 @@ def __create_data_chunk_stream(
         current_chunk_file.write(line)
         next_chunk_file.write(line)
 
-    next_chunk_file.close()
-    next_chunk_name = next_chunk_file.name
     print(f'Finished creating last chunk "{current_chunk_name}".')
+    current_chunk_name = current_chunk_file.name
+    next_chunk_name = next_chunk_file.name
+    
+    current_chunk_file.close()
+    next_chunk_file.close()
+
+    yield current_chunk_name
     yield next_chunk_name
 
 
