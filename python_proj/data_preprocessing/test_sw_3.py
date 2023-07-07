@@ -10,6 +10,7 @@ import python_proj.data_preprocessing.sliding_window_3 as sw3
 output_sw2 = None
 output_sw3 = None
 
+
 def run_sw2():
     global output_sw2
     output_sw2 = sw2.sliding_window()
@@ -23,8 +24,13 @@ def run_sw3():
     output_sw3 = sw3.cmd_create_sliding_window_dataset()
 
 
+def run_task(task, *args, **kwargs):
+    print(task)
+    task()
+
+
 task = [run_sw2, run_sw3]
-parallelize_tasks(task, lambda task_runnable: task_runnable(), thread_count=2)
+parallelize_tasks(task, run_task, thread_count=2)
 
 with open(output_sw2, "r", encoding='utf-8') as sw2_file:
     sw2_reader = csv.reader(sw2_file)
