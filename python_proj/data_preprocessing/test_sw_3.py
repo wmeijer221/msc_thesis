@@ -7,6 +7,8 @@ from python_proj.utils.mt_utils import parallelize_tasks
 import python_proj.data_preprocessing.sliding_window_2 as sw2
 import python_proj.data_preprocessing.sliding_window_3 as sw3
 
+output_sw2 = None
+output_sw3 = None
 
 def run_sw2():
     global output_sw2
