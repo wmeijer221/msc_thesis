@@ -1,13 +1,17 @@
+from collections import deque
+
+q = deque()
 
 
-my_iter = [f's_{i}' for i in range(10)]
+
+for i in range(10):
+    q.append(i)
+
+print(q)
 
 
 
-for q in my_iter:
+for i in range(15):
+    q.append(i + 10)
+    q.popleft()
     print(q)
-    break
-
-
-for r in my_iter:
-    print(r)
