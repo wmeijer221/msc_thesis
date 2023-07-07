@@ -451,6 +451,8 @@ def cmd_create_sliding_window_dataset():
         thread_count
     )
 
+    return output_path
+
 
 if __name__ == '__main__':
     cmd_create_sliding_window_dataset()

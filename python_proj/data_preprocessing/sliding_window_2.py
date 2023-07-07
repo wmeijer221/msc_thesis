@@ -86,27 +86,27 @@ def __get_features():
     sna_pr_graph, sna_issue_graph, centrality_features = swf.build_centrality_features()
 
     issue_sw_features = [
-        # *ip_issue,
-        # *se_issue,
-        # *eco_issue,
-        # *deco_issue,
-        # *ideco_issue,
-        # *sna_issue_graph,
+        *ip_issue,
+        *se_issue,
+        *eco_issue,
+        *deco_issue,
+        *ideco_issue,
+        *sna_issue_graph,
     ]
 
     pr_sw_features = [
-        # *control_sw,
-        # *ip_pr,
-        # *se_pr,
-        # *eco_pr,
-        # *deco_pr,
-        # *ideco_pr,
-        # *sna_pr_graph,
+        *control_sw,
+        *ip_pr,
+        *se_pr,
+        *eco_pr,
+        *deco_pr,
+        *ideco_pr,
+        *sna_pr_graph,
     ]
 
     pr_features = [
         *other_pr,
-        # *control
+        *control
     ]
 
     feature_count = len(pr_features) + \
@@ -262,6 +262,7 @@ def sliding_window(thread_count: int = 1):
     end_time = datetime.now()
     delta_time = end_time - start_time
     print(f'Ran from {start_time} till {end_time} ({delta_time}).')
+    return output_dataset_path
 
 
 def remove_invalid_entries(input_pr_dataset_names: list[str],
