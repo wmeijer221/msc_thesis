@@ -187,15 +187,19 @@ def generate_dataset(pr_dataset_names: list[str],
 def build_dataset(pr_dataset_names: list[str],
                   issue_dataset_names: list[str],
                   output_dataset_path: str,
-                  window_size_in_days: int):
+                  window_size_in_days: int,
+                  feature_factory: Callable | None = None):
     """
     Writes all data entries to a training data file
     using all considered predictive features using
     data that lies within the given time window.
     """
 
+    if feature_factory is None:
+        feature_factory = __get_features
+
     # Selects relevant features.
-    intra_pr_features, sliding_window_features_pr, sliding_window_features_issue = __get_features()
+    intra_pr_features, sliding_window_features_pr, sliding_window_features_issue = feature_factory()
 
     # Creates iterator.
     window_size = None
