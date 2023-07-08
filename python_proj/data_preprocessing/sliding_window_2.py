@@ -78,12 +78,12 @@ def __get_preamble(entry: dict) -> list:
 
 def __get_features():
     other_pr = swf.build_other_features()
-    control_sw, control = swf.build_control_variables()
-    ip_issue, ip_pr = swf.build_intra_project_features()
-    se_pr, se_issue = swf.build_se_features()
-    eco_pr, eco_issue = swf.build_eco_experience()
-    deco_pr, deco_issue, ideco_pr, ideco_issue = swf.build_deco_features()
-    sna_pr_graph, sna_issue_graph, centrality_features = swf.build_centrality_features()
+    # control_sw, control = swf.build_control_variables()
+    # ip_issue, ip_pr = swf.build_intra_project_features()
+    # se_pr, se_issue = swf.build_se_features()
+    # eco_pr, eco_issue = swf.build_eco_experience()
+    # deco_pr, deco_issue, ideco_pr, ideco_issue = swf.build_deco_features()
+    # sna_pr_graph, sna_issue_graph, centrality_features = swf.build_centrality_features()
 
     issue_sw_features = [
         # *ip_issue,
