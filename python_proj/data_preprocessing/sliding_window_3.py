@@ -272,7 +272,7 @@ def __handle_chunk(
                 )
 
     print(
-        f'Task-{task_id}: Finished processing all chunks: {previous_chunk=}, {current_chunk=}')
+        f'Task-{task_id}: Finished processing chunk: {previous_chunk=}, {current_chunk=}')
 
 
 def __merge_chunk_results(
