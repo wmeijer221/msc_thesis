@@ -244,7 +244,7 @@ def __handle_chunk(
     print(f'Task-{task_id}: Outputting in "{output_path}".')
 
     # Selects output features
-    output_features = [feature for feature in [*pr_sw_features, *pr_features]
+    output_features = [feature for feature in [*pr_sw_features, *pr_features, *issue_sw_features]
                        if feature.is_output_feature()]
 
     # Creates initial window.
