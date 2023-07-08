@@ -1,26 +1,24 @@
 
 
+from python_proj.utils.mt_utils import parallelize_tasks
 
 
-from typing import Generator, Iterator
+MY_VARIALBE = None
 
 
+class SomeClass:
+    def __init__(self) -> None:
+        global MY_VARIALBE
+
+        if MY_VARIALBE is None:
+            print('it was none')
+            MY_VARIALBE = 1
 
 
-
-def bla() -> Generator[str, None, None]:
-    for i in range(15):
-        yield str(i)
+def do_task(*args, **kwargs):
+    SomeClass()
 
 
-def bla2() -> Iterator[str]:
-    for i in range(6):
-        yield str(i)
+tasks = list(range(32))
 
-for q in bla():
-    print(q)
-
-for r in bla2():
-    print(r)
-
-    
+parallelize_tasks(tasks, do_task, thread_count=3)
