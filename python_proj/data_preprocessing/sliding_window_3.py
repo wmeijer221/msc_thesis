@@ -91,22 +91,13 @@ def __create_window_from_file(
     with open(input_file_path, "r", encoding='utf-8') as input_file:
         for line in input_file:
             new_entry = json.loads(line)
-
-            # Handles timestamping
-            new_entry_date = datetime.strptime(
-                new_entry['closed_at'], exp_utils.DATETIME_FORMAT)
-
-            # Adds new entry to window.
-            if new_entry_date not in window:
-                window[new_entry_date] = []
-            window[new_entry_date].append(new_entry)
-            window_keys.append(new_entry_date)
-
-            # Updates model
-            is_issue = new_entry['__data_type'] == 'issues'
-            sw_features = issue_sw_features if is_issue else pr_sw_features
-            for feature in sw_features:
-                feature.add_entry(new_entry)
+            __add_entry(
+                new_entry,
+                window_keys,
+                window,
+                pr_sw_features,
+                issue_sw_features
+            )
 
     return window, window_keys
 
