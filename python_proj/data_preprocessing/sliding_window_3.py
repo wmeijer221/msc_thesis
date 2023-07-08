@@ -125,7 +125,7 @@ def __prune_entries(
     broke_loop = False
     while len(window_keys) > 0:
         potential_pruned_key = window_keys.popleft()
-        if potential_pruned_key >= new_window_start:
+        if potential_pruned_key > new_window_start:
             broke_loop = True
             break
 
