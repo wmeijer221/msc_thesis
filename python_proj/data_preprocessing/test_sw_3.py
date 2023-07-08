@@ -6,7 +6,7 @@ from typing import Any, Callable, Tuple
 
 import python_proj.utils.exp_utils as exp_utils
 from python_proj.data_preprocessing.sliding_window_features.base import SlidingWindowFeature
-from python_proj.utils.arg_utils import safe_get_argv
+from python_proj.utils.arg_utils import safe_get_argv, get_argv_flag
 
 import python_proj.data_preprocessing.sliding_window_2 as sw2
 import python_proj.data_preprocessing.sliding_window_3 as sw3
@@ -103,7 +103,7 @@ match mode:
     case _:
         pass
 
-if mode == "none":
+if get_argv_flag('--no-compare'):
     exit()
 
 with open(output_dataset_path_sw2, "r", encoding='utf-8') as sw2_file:
