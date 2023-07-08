@@ -434,6 +434,8 @@ def cmd_create_sliding_window_dataset():
     chunk_base_path = exp_utils.BASE_PATH + "/temp/sna_chunks/"
     chunk_output_base_path = exp_utils.BASE_PATH + "/temp/sna_output/"
 
+    start = datetime.now()
+
     create_sliding_window_dataset(
         output_path,
         chunk_base_path,
@@ -444,6 +446,9 @@ def cmd_create_sliding_window_dataset():
         days,
         thread_count
     )
+
+    deltatime = datetime.now() - start
+    print(f'Runtime: {deltatime}.')
 
     return output_path
 
