@@ -1,4 +1,3 @@
-import traceback
 from python_proj.utils.mt_utils import parallelize_tasks
 from sys import argv
 import csv
