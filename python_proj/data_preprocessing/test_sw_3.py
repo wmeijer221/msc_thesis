@@ -31,7 +31,7 @@ window_size_in_days = safe_get_argv(key="-w", default=None, data_type=int)
 thread_count = safe_get_argv(key='-t', default=3, data_type=int)
 
 
-def run_task(task: Tuple[Callable, dict]):
+def run_task(task: Tuple[Callable, dict], *args, **kwargs):
     task, kwargs = task
     task(**kwargs)
 
