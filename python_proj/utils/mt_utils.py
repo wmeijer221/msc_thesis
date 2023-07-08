@@ -36,7 +36,7 @@ class SimpleConsumer(multiprocessing.Process):
                                "worker_index": self._worker_index}
                 self._on_message_received(*self._args, **task_kwargs)
             except Exception as ex:
-                print(f"Failed with entry {task}: {ex}.")
+                print(f"{self._consumer_name}-{self._worker_index}: Failed with entry {task}: {ex}.")
                 raise
         print(f'{self._consumer_name}-{self._worker_index} stopped.')
 
