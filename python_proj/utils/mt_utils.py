@@ -13,14 +13,16 @@ class SimpleConsumer(multiprocessing.Process):
         """When received by the simple consumer, it terminates."""
 
     def __init__(self, on_message_received: Callable, task_list: multiprocessing.JoinableQueue,
-                 worker_index: int, *args, **kwargs) -> None:
+                 worker_index: int, consumer_name: str = "Consumer",
+                 *args, **kwargs) -> None:
         super().__init__()
         self._on_message_received = on_message_received
         self._task_list = task_list
         self._worker_index = worker_index
         self._args = args
         self._kwargs = kwargs
-        print(f"Consumer-{worker_index} started.")
+        self._consumer_name = consumer_name
+        print(f"{consumer_name}-{worker_index} started.")
 
     def run(self) -> None:
         is_running = True
@@ -36,7 +38,7 @@ class SimpleConsumer(multiprocessing.Process):
             except Exception as ex:
                 print(f"Failed with entry {task}: {ex}.")
                 raise
-        print(f'Consumer-{self._worker_index} stopped.')
+        print(f'{self._consumer_name}-{self._worker_index} stopped.')
 
 
 def parallelize_tasks(

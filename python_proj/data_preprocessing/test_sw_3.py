@@ -76,7 +76,7 @@ task_sw3 = (sw3.create_sliding_window_dataset, {'output_path': output_dataset_pa
                                                 'thread_count': thread_count})
 
 tasks = [task_sw2, task_sw3]
-parallelize_tasks(tasks, run_task, 2)
+parallelize_tasks(tasks, run_task, 2, consumer_name="TestConsumer")
 
 
 with open(output_dataset_path_sw2, "r", encoding='utf-8') as sw2_file:
