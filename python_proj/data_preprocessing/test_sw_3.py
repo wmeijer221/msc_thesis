@@ -103,6 +103,8 @@ match mode:
     case _:
         pass
 
+if mode == "none":
+    exit()
 
 with open(output_dataset_path_sw2, "r", encoding='utf-8') as sw2_file:
     sw2_reader = csv.reader(sw2_file)
