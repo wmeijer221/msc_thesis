@@ -159,6 +159,8 @@ def load_dependency_map() \
     and if that fails by loading the slow way.
     """
 
+    global DEPENDENCY_MAP, PROJECT_NAME_TO_ID
+
     exp_utils.load_paths_for_eco()
     start = datetime.datetime.now()
     ql_success, ql_dependency_path, dependency_map, project_name_to_id = __attempt_quick_load_dependency_map()
@@ -169,6 +171,9 @@ def load_dependency_map() \
     print(
         f'Loaded {len(project_name_to_id)} projects and {len(dependency_map)} projects with dependencies.')
     print(f'Loaded dependency data in {timedelta}.')
+
+    DEPENDENCY_MAP = dependency_map
+    PROJECT_NAME_TO_ID = project_name_to_id
 
     return dependency_map, project_name_to_id
 
@@ -421,6 +426,3 @@ def build_deco_features():
     ]
 
     return deco_pr, deco_issue, ideco_pr, ideco_issue
-
-
-DEPENDENCY_MAP, PROJECT_NAME_TO_ID = safe_load_dependency_map()
