@@ -13,7 +13,7 @@ import csv
 from datetime import datetime, timedelta
 import json
 import os
-from typing import Tuple, Generator, Callable
+from typing import Tuple, Iterator, Callable
 
 import python_proj.data_preprocessing.sliding_window_features as swf
 from python_proj.utils.arg_utils import safe_get_argv, get_argv
@@ -29,7 +29,7 @@ def __create_data_chunk_stream(
     pr_file_names: list[str],
     window_size: timedelta,
     base_path: str,
-) -> Generator[str, None, None]:
+) -> Iterator[str]:
     chunk_counter = Counter(start_value=0)
 
     def __make_next_chunk_file():
@@ -198,7 +198,8 @@ def __handle_new_entry(
     __prune_entries(
         new_entry, time_window,
         window_keys, window,
-        issue_sw_features, pr_sw_features
+        issue_sw_features, 
+        pr_sw_features
     )
 
     # Calculates features if it's a PR.
@@ -213,8 +214,10 @@ def __handle_new_entry(
 
     __add_entry(
         new_entry,
-        window_keys, window,
-        pr_sw_features, issue_sw_features
+        window_keys,
+        window,
+        pr_sw_features,
+        issue_sw_features
     )
 
 

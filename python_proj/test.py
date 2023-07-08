@@ -1,17 +1,26 @@
-from collections import deque
-
-q = deque()
 
 
 
-for i in range(10):
-    q.append(i)
 
-print(q)
+from typing import Generator, Iterator
 
 
 
-for i in range(15):
-    q.append(i + 10)
-    q.popleft()
+
+
+def bla() -> Generator[str, None, None]:
+    for i in range(15):
+        yield str(i)
+
+
+def bla2() -> Iterator[str]:
+    for i in range(6):
+        yield str(i)
+
+for q in bla():
     print(q)
+
+for r in bla2():
+    print(r)
+
+    
