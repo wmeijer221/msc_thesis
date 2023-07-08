@@ -13,7 +13,7 @@ class SimpleConsumer(multiprocessing.Process):
         """When received by the simple consumer, it terminates."""
 
     def __init__(self, on_message_received: Callable, task_list: multiprocessing.JoinableQueue,
-                 worker_index: int, consumer_name: str = "Consumer",
+                 worker_index: int, consumer_name: str = "SimpleConsumer",
                  *args, **kwargs) -> None:
         super().__init__()
         self._on_message_received = on_message_received

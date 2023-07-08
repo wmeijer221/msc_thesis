@@ -60,7 +60,7 @@ def my_feature_factory():
     return pr, pr_sw, is_sw
 
 
-task_sw2 = (sw2.generate_dataset, {'pr_dataset_names': input_pr_dataset_names,
+task_sw2 = (sw2.build_dataset, {'pr_dataset_names': input_pr_dataset_names,
                                    'issue_dataset_names': input_issue_dataset_names,
                                    'output_dataset_path': output_dataset_path_sw2,
                                    'window_size_in_days': window_size_in_days,
