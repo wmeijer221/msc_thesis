@@ -419,6 +419,7 @@ def all_features_factory() -> Tuple[list[SlidingWindowFeature],
     pr_features = [
         *other_pr,
         *control,
+        *centrality_features,
         *local_centrality_measures
     ]
 
