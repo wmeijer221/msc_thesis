@@ -198,7 +198,7 @@ def __handle_new_entry(
     __prune_entries(
         new_entry, time_window,
         window_keys, window,
-        issue_sw_features, 
+        issue_sw_features,
         pr_sw_features
     )
 
@@ -244,8 +244,12 @@ def __handle_chunk(
     print(f'Task-{task_id}: Outputting in "{output_path}".')
 
     # Selects output features
-    output_features = [feature for feature in [*pr_sw_features, *pr_features, *issue_sw_features]
+    all_features = [*pr_features, *pr_sw_features, *issue_sw_features]
+    output_features = [feature for feature in all_features
                        if feature.is_output_feature()]
+
+    print(
+        f'Task-{task_id} loaded {len(output_features)}/{len(all_features)} output features.')
 
     # Creates initial window.
     window, window_keys = __create_window_from_file(
