@@ -234,6 +234,7 @@ class FirstOrderDegreeCentrality(SNACentralityFeature):
         # Sets the used function to collect the correct experience degree.
         # i.e., in-degree or out-degree.
         self.__get_exp_edge_data = self._graph.in_edges if count_in_degree else self._graph.out_edges
+        self.__count_in_degree = count_in_degree
 
     def get_feature(self, entry: dict) -> Any:
         submitter_id = entry['user_data']['id']
@@ -262,7 +263,8 @@ class FirstOrderDegreeCentrality(SNACentralityFeature):
 
     def get_name(self) -> str:
         original_name = super().get_name()
-        return f'{original_name}({self.__connecting_edge_type}.{self.__experience_edge_type})'
+        is_in = "In" if self.__count_in_degree else "Put"
+        return f'{original_name}({self.__connecting_edge_type}.{self.__experience_edge_type}-{is_in})'
 
 
 class WeightedFirstOrderDegreeCentrality(SNACentralityFeature):
