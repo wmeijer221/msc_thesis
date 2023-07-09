@@ -33,30 +33,41 @@ class SNAFeature(SlidingWindowFeature):
 
     def _add_remove_edge(self,
                          source_node: int, target_node: int,
-                         sign: int):
+                         edge_timestamp: float,
+                         add_entry: bool):
         """Adds a single edge, ignoring self-loops."""
         if source_node == target_node:
             return
 
-        # Increments counter.
+        # Grabs all edge data.
         edge_data = self._graph.get_edge_data(
             source_node, target_node, default={})
-        if self.edge_label in edge_data:
-            edge_data[self.edge_label] += sign
-        else:
-            edge_data[self.edge_label] = sign
 
-        if edge_data[self.edge_label] == 0:
-            del edge_data[self.edge_label]
+        # Adds queue if not existing yet.
+        if self.edge_label not in edge_data:
+            edge_data[self.edge_label] = deque()
+
+        edge_timestamps: deque = edge_data[self.edge_label]
+        if add_entry:
+            edge_timestamps.append(edge_timestamp)
+        else:
+            if len(edge_timestamps) == 1:
+                # Deletes it to preserve some memory.
+                del edge_data[self.edge_label]
+            else:
+                # Entries are always removed chronologically,
+                # So if something has to be popped, it's always
+                # the right one.
+                edge_timestamps.popleft()
 
         if len(edge_data) > 0:
             # Updates edge.
             self._graph.add_edge(source_node, target_node, **edge_data)
         else:
-            # removes edge when it's dead.
+            # removes edge when it's dead to preserve some memory.
             self._graph.remove_edge(source_node, target_node)
 
-        # Removes singular nodes.
+        # Removes singular nodes to preserve some memory.
         if nx.is_isolate(self._graph, source_node):
             self._graph.remove_node(source_node)
         if nx.is_isolate(self._graph, target_node):
@@ -65,7 +76,8 @@ class SNAFeature(SlidingWindowFeature):
     def _add_remove_edges(self,
                           sources: int | list[int],
                           targets: int | list[int],
-                          sign: int):
+                          edge_timestamp: float,
+                          add_entries: bool):
         """Adds multiple edges, pairwise."""
         if isinstance(sources, int):
             sources = [sources]
@@ -74,7 +86,8 @@ class SNAFeature(SlidingWindowFeature):
         self._add_nodes(itertools.chain(sources, targets))
         for source in sources:
             for target in targets:
-                self._add_remove_edge(source, target, sign)
+                self._add_remove_edge(source, target,
+                                      edge_timestamp, add_entries)
 
     def _get_us_and_vs(self, entry: dict) -> Tuple[list[int], list[int]]:
         def __get_nodes(nested_key: list[str | Callable[[dict], str]]) -> list[int]:
@@ -99,33 +112,18 @@ class SNAFeature(SlidingWindowFeature):
 
     def add_entry(self, entry: dict):
         sources, targets = self._get_us_and_vs(entry)
-        self._add_remove_edges(sources, targets, sign=1)
+        edge_timestamp: dt.datetime = entry['__dt_closed_at']
+        self._add_remove_edges(sources, targets,
+                               edge_timestamp.timestamp(), True)
 
     def remove_entry(self, entry: dict):
         sources, targets = self._get_us_and_vs(entry)
-        self._add_remove_edges(sources, targets, sign=-1)
+        edge_timestamp: dt.datetime = entry['__dt_closed_at']
+        self._add_remove_edges(sources, targets,
+                               edge_timestamp.timestamp(), False)
 
     def is_output_feature(self) -> bool:
         return False
-
-    def get_time_respecting_degree(
-        self,
-        edges: Iterator[Tuple[int, int]],
-        edge_type: str,
-        end_time: dt.datetime
-    ) -> int:
-        end_timestamp = end_time.timestamp()
-        degree = 0
-        for (source, target) in edges:
-            edge_data = self._graph.get_edge_data(source, target, default={})
-            if edge_type not in edge_data:
-                continue
-            timestamped_edges: deque[float] = edge_type[edge_type]
-            for ts in timestamped_edges:
-                if ts >= end_timestamp:
-                    break
-                degree += 1
-        return degree
 
 
 class PRIntegratorToSubmitter(SNAFeature):
@@ -164,8 +162,36 @@ class IssueCommenterToCommenter(SNAFeature):
 
 
 class SNACentralityFeature(Feature):
+    """
+    Base class for centrality features.
+    """
+
     def __init__(self, graph: nx.DiGraph) -> None:
         self._graph = graph
+
+    def get_time_respecting_degree(
+        self,
+        edges: Iterator[Tuple[int, int]],
+        edge_type: str,
+        end_timestamp: float
+    ) -> int:
+        """
+        Calculates the time-respecting degree; i.e., the number of edges
+        that occurred prior to the ``end_time`` (exclusive).
+        """
+
+        degree = 0
+        for (source, target) in edges:
+            edge_data = self._graph.get_edge_data(source, target, default={})
+            if edge_type not in edge_data:
+                continue
+            timestamped_edges: deque[float] = edge_type[edge_type]
+            for timestamped_edge in timestamped_edges:
+                if timestamped_edge >= end_timestamp:
+                    break
+                degree += 1
+        return degree
+
 
 class HITSCentrality(SNACentralityFeature):
     def get_feature(self, entry: dict) -> str:
@@ -212,24 +238,27 @@ class FirstOrderDegreeCentrality(SNACentralityFeature):
     def get_feature(self, entry: dict) -> Any:
         submitter_id = entry['user_data']['id']
 
-        # Gets the relevant incoming edges.
-        connected_neighbors = []
-        for (neighbor_id, _) in self._graph.in_edges(nbunch=[submitter_id]):
+        total_degree = 0
+        in_edges = self._graph.in_edges(nbunch=[submitter_id])
+        for (neighbour_id, _) in in_edges:
             edge_data = self._graph.get_edge_data(
-                neighbor_id, submitter_id, default={})
+                neighbour_id, submitter_id, default={})
             if self.__connecting_edge_type not in edge_data:
                 continue
-            connected_neighbors.append(neighbor_id)
 
-        # Counts first-order degree.
-        degree = 0
-        for (source, target) in self.__get_exp_edge_data(nbunch=connected_neighbors):
-            edge_data = self._graph.get_edge_data(source, target, default={})
-            if self.__experience_edge_type not in edge_data:
-                continue
-            degree += edge_data[self.__experience_edge_type]
+            fo_edges = self.__get_exp_edge_data(nbunch=[neighbour_id])
+            # Removes all edges that connect with the focal node.
+            fo_edges = [(source, target) for (source, target) in timestamped_edges
+                        if source != submitter_id and target != submitter_id]
+            timestamped_edges: deque[float] = edge_data[self.__connecting_edge_type]
 
-        return degree
+            for edge_timestamp in timestamped_edges:
+                degree = self.get_time_respecting_degree(
+                    edges=fo_edges,
+                    edge_type=self.__experience_edge_type,
+                    end_timestamp=edge_timestamp
+                )
+                total_degree += degree
 
     def get_name(self) -> str:
         original_name = super().get_name()
@@ -264,7 +293,7 @@ def build_centrality_features():
 
     global_centrality_measures = [
         PageRankCentrality(graph),
-        # HITSCentrality(graph)
+        HITSCentrality(graph)
     ]
 
     edges = itertools.chain(pr_graph, issue_graph)

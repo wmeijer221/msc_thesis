@@ -202,6 +202,11 @@ def __handle_new_entry(
         pr_sw_features
     )
 
+    # Parses timestamp so that underlying systems don't have to do that separately.
+    # TODO: Use this in all of the SW features.
+    new_entry['__dt_closed_at'] = datetime.strptime(new_entry['closed_at'],
+                                                    exp_utils.DATETIME_FORMAT)
+
     # Calculates features if it's a PR.
     is_pr = new_entry["__data_type"] == "pull-requests"
     if is_pr:
@@ -419,8 +424,8 @@ def all_features_factory() -> Tuple[list[SlidingWindowFeature],
     pr_features = [
         *other_pr,
         *control,
-        *centrality_features,
         *local_centrality_measures
+        # *centrality_features,
     ]
 
     return issue_sw_features, pr_sw_features, pr_features

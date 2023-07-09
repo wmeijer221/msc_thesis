@@ -1,25 +1,19 @@
 
 
-from python_proj.utils.mt_utils import parallelize_tasks
+from collections import deque
+import datetime
+dt = datetime.datetime(2000, 3, 5, 12, 3, 35, 23)
+print(dt.timestamp())
 
 
-MY_VARIALBE = None
+q = deque(range(15))
+
+for e in q:
+    print(e)
+
+print(q)
 
 
-class SomeClass:
-    def __init__(self) -> None:
-        global MY_VARIALBE
-
-        if MY_VARIALBE is None:
-            print('it was none')
-            MY_VARIALBE = 1
-
-
-def do_task(*args, **kwargs):
-    SomeClass()
-
-
-tasks = list(range(32))
-
-MY_VARIALBE = 1
-parallelize_tasks(tasks, do_task, thread_count=3)
+q2 = deque()
+r = q2.popleft()
+print(r)
