@@ -169,6 +169,9 @@ def __add_entry(
     # Parses the entry's timestamp.
     new_entry_date = datetime.strptime(
         new_entry['closed_at'], exp_utils.DATETIME_FORMAT)
+    # Sets parsed timestamp so that underlying systems don't have to do that separately.
+    # TODO: Use this in all of the SW features.
+    new_entry['__dt_closed_at'] = new_entry_date
 
     window_keys.append(new_entry_date)
     if new_entry_date not in window:
@@ -201,11 +204,6 @@ def __handle_new_entry(
         issue_sw_features,
         pr_sw_features
     )
-
-    # Parses timestamp so that underlying systems don't have to do that separately.
-    # TODO: Use this in all of the SW features.
-    new_entry['__dt_closed_at'] = datetime.strptime(new_entry['closed_at'],
-                                                    exp_utils.DATETIME_FORMAT)
 
     # Calculates features if it's a PR.
     is_pr = new_entry["__data_type"] == "pull-requests"
