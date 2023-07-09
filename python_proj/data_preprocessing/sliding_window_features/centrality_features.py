@@ -185,7 +185,7 @@ class SNACentralityFeature(Feature):
             edge_data = self._graph.get_edge_data(source, target, default={})
             if edge_type not in edge_data:
                 continue
-            timestamped_edges: deque[float] = edge_type[edge_type]
+            timestamped_edges: deque[float] = edge_data[edge_type]
             for timestamped_edge in timestamped_edges:
                 if timestamped_edge >= end_timestamp:
                     break
