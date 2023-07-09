@@ -193,7 +193,7 @@ class FirstOrderDegreeCentrality(SNACentralityFeature):
 
         # Gets the relevant incoming edges.
         connected_neighbors = []
-        for (neighbor_id, _) in self._graph.in_edges(nbunch=submitter_id):
+        for (neighbor_id, _) in self._graph.in_edges(nbunch=[submitter_id]):
             edge_data = self._graph.get_edge_data(neighbor_id, submitter_id)
             if edge_data is None or self.__connecting_edge_type not in edge_data:
                 continue
