@@ -2,11 +2,11 @@
 
 import itertools
 
-from typing import Tuple, Callable
+from typing import Any, Tuple, Callable
 import networkx as nx
 
 import python_proj.utils.exp_utils as exp_utils
-from python_proj.data_preprocessing.sliding_window_features import SlidingWindowFeature
+from python_proj.data_preprocessing.sliding_window_features import SlidingWindowFeature, Feature
 from python_proj.utils.util import get_nested_many
 
 
@@ -20,7 +20,7 @@ class SNAFeature(SlidingWindowFeature):
         self.__nested_source_keys = nested_source_keys
         self.__nested_target_keys = nested_target_keys
 
-        self.__edge_label = self.__class__.__name__
+        self.edge_label = self.__class__.__name__
 
     def _add_nodes(self, nodes: int | list[int]):
         if isinstance(nodes, int):
@@ -38,13 +38,13 @@ class SNAFeature(SlidingWindowFeature):
 
         # Increments counter.
         edge_data = self._graph.get_edge_data(u, v, default={})
-        if self.__edge_label in edge_data:
-            edge_data[self.__edge_label] += sign
+        if self.edge_label in edge_data:
+            edge_data[self.edge_label] += sign
         else:
-            edge_data[self.__edge_label] = sign
+            edge_data[self.edge_label] = sign
 
-        if edge_data[self.__edge_label] == 0:
-            del edge_data[self.__edge_label]
+        if edge_data[self.edge_label] == 0:
+            del edge_data[self.edge_label]
 
         if len(edge_data) > 0:
             # Updates edge.
@@ -141,10 +141,12 @@ class IssueCommenterToCommenter(SNAFeature):
                          ['comments_data', 'id'])
 
 
-class HITSCentrality(SNAFeature):
+class SNACentralityFeature(Feature):
     def __init__(self, graph: nx.DiGraph) -> None:
-        super().__init__(graph, None, None)
+        self._graph = graph
 
+
+class HITSCentrality(SNACentralityFeature):
     def get_feature(self, entry: dict) -> str:
         submitter_id = entry['user_data']['id']
         if not self._graph.has_node(submitter_id):
@@ -160,10 +162,7 @@ class HITSCentrality(SNAFeature):
         return hub_name, auth_name
 
 
-class PageRankCentrality(SNAFeature):
-    def __init__(self, graph: nx.DiGraph) -> None:
-        super().__init__(graph, None, None)
-
+class PageRankCentrality(SNACentralityFeature):
     def get_feature(self, entry: dict) -> str:
         submitter_id = entry['user_data']['id']
         if not self._graph.has_node(submitter_id):
@@ -171,6 +170,58 @@ class PageRankCentrality(SNAFeature):
 
         pagreank = nx.pagerank(self._graph)
         return pagreank[submitter_id]
+
+
+class FirstOrderDegreeCentrality(SNACentralityFeature):
+    """
+    Calculates the first-order degree centrality of a given connecting + experience edge.
+    """
+
+    def __init__(self, graph: nx.DiGraph,
+                 connecting_edge_type: SNAFeature,
+                 experience_edge_type: SNAFeature,
+                 count_in_degree: bool) -> None:
+        super().__init__(graph)
+        self.__connecting_edge_type = connecting_edge_type.edge_label
+        self.__experience_edge_type = experience_edge_type.edge_label
+        # Sets the used function to collect the correct experience degree.
+        # i.e., in-degree or out-degree.
+        self.__get_exp_edge_data = self._graph.in_edges if count_in_degree else self._graph.out_edges
+
+    def get_feature(self, entry: dict) -> Any:
+        submitter_id = entry['user_data']['id']
+
+        # Gets the relevant incoming edges.
+        connected_neighbors = []
+        for (neighbor_id, _) in self._graph.in_edges(nbunch=submitter_id):
+            edge_data = self._graph.get_edge_data(neighbor_id, submitter_id)
+            if edge_data is None or self.__connecting_edge_type not in edge_data:
+                continue
+            connected_neighbors.append(neighbor_id)
+
+        # Counts first-order degree.
+        degree = 0
+        for (source, target) in self.__get_exp_edge_data(nbunch=connected_neighbors):
+            edge_data = self._graph.get_edge_data(source, target)
+            if edge_data is None or self.__connecting_edge_type not in edge_data:
+                continue
+            degree += edge_data[self.__experience_edge_type]
+
+        return degree
+
+    def get_name(self) -> str:
+        original_name = super().get_name()
+        return f'{original_name}({self.__connecting_edge_type}.{self.__experience_edge_type})'
+
+
+class WeightedFirstOrderDegreeCentrality(SNACentralityFeature):
+    def __init__(
+        self, graph: nx.DiGraph,
+            edges: list[type],
+            weights: list[int],
+            count_in_degree: bool
+    ) -> None:
+        super().__init__(graph)
 
 
 def build_centrality_features():
@@ -189,9 +240,19 @@ def build_centrality_features():
         IssueCommenterToSubmitter(graph)
     ]
 
-    centrality_measures = [
+    global_centrality_measures = [
         PageRankCentrality(graph),
         HITSCentrality(graph)
     ]
 
-    return pr_graph, issue_graph, centrality_measures
+    edges = itertools.chain(pr_graph, issue_graph)
+    local_centrality_measures = [FirstOrderDegreeCentrality(graph, t1, t2, is_in)
+                                 for t1 in edges for t2 in edges for is_in in [True, False]]
+    # local_centrality_measures.extend([
+    #     WeightedFirstOrderDegreeCentrality(
+    #         graph, edges, [1] * len(edges), True),
+    #     WeightedFirstOrderDegreeCentrality(
+    #         graph, edges, [1] * len(edges), False)
+    # ])
+
+    return pr_graph, issue_graph, global_centrality_measures, local_centrality_measures

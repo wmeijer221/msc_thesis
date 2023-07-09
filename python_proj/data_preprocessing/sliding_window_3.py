@@ -254,7 +254,7 @@ def __handle_chunk(
     print(f'Task-{task_id}: Outputting in "{output_path}".')
 
     # Selects output features
-    output_features, all_features = __get_output_features(
+    output_features, _ = __get_output_features(
         pr_features, pr_sw_features, issue_sw_features)
 
     # Creates initial window.
@@ -395,7 +395,7 @@ def all_features_factory() -> Tuple[list[SlidingWindowFeature],
     se_pr, se_issue = swf.build_se_features()
     eco_pr, eco_issue = swf.build_eco_experience()
     deco_pr, deco_issue, ideco_pr, ideco_issue = swf.build_deco_features()
-    sna_pr_graph, sna_issue_graph, centrality_features = swf.build_centrality_features()
+    sna_pr_graph, sna_issue_graph, centrality_features, local_centrality_measures = swf.build_centrality_features()
 
     issue_sw_features = [
         *ip_issue,
@@ -418,7 +418,8 @@ def all_features_factory() -> Tuple[list[SlidingWindowFeature],
 
     pr_features = [
         *other_pr,
-        *control
+        *control,
+        *local_centrality_measures
     ]
 
     return issue_sw_features, pr_sw_features, pr_features
@@ -440,7 +441,7 @@ def cmd_create_sliding_window_dataset():
     output_file_name = get_argv(key='-o')
     output_path = exp_utils.TRAIN_DATASET_PATH(file_name=output_file_name)
 
-    days = safe_get_argv(key="-w", default=None, data_type=int)
+    window_size_in_days = safe_get_argv(key="-w", default=None, data_type=int)
     thread_count = safe_get_argv(key='-t', default=1, data_type=int)
 
     chunk_base_path = exp_utils.BASE_PATH + "/temp/sna_chunks/"
@@ -455,7 +456,7 @@ def cmd_create_sliding_window_dataset():
         input_issue_dataset_names,
         input_pr_dataset_names,
         all_features_factory,
-        days,
+        window_size_in_days,
         thread_count
     )
 
