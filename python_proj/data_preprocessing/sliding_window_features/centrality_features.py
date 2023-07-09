@@ -203,7 +203,7 @@ class FirstOrderDegreeCentrality(SNACentralityFeature):
         degree = 0
         for (source, target) in self.__get_exp_edge_data(nbunch=connected_neighbors):
             edge_data = self._graph.get_edge_data(source, target)
-            if edge_data is None or self.__connecting_edge_type not in edge_data:
+            if edge_data is None or self.__experience_edge_type not in edge_data:
                 continue
             degree += edge_data[self.__experience_edge_type]
 
