@@ -296,9 +296,14 @@ def build_centrality_features():
         HITSCentrality(graph)
     ]
 
-    edges = itertools.chain(pr_graph, issue_graph)
-    local_centrality_measures = [FirstOrderDegreeCentrality(graph, t1, t2, is_in)
-                                 for t1 in edges for t2 in edges for is_in in [True, False]]
+    edges = list(itertools.chain(pr_graph, issue_graph))
+    local_centrality_measures = []
+    for t1 in edges:
+        for t2 in edges:
+            for is_in in [True, False]:
+                local_centrality_measures.append(
+                    FirstOrderDegreeCentrality(graph, t1, t2, is_in))
+
     # local_centrality_measures.extend([
     #     WeightedFirstOrderDegreeCentrality(
     #         graph, edges, [1] * len(edges), True),
