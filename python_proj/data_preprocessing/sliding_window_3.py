@@ -249,7 +249,7 @@ def __handle_chunk(
                        if feature.is_output_feature()]
 
     print(
-        f'Task-{task_id} loaded {len(output_features)}/{len(all_features)} output features.')
+        f'Task-{task_id}: Loaded {len(output_features)}/{len(all_features)} output features.')
 
     # Creates initial window.
     window, window_keys = __create_window_from_file(
