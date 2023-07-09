@@ -248,7 +248,7 @@ class FirstOrderDegreeCentrality(SNACentralityFeature):
 
             fo_edges = self.__get_exp_edge_data(nbunch=[neighbour_id])
             # Removes all edges that connect with the focal node.
-            fo_edges = [(source, target) for (source, target) in timestamped_edges
+            fo_edges = [(source, target) for (source, target) in fo_edges
                         if source != submitter_id and target != submitter_id]
             timestamped_edges: deque[float] = edge_data[self.__connecting_edge_type]
 
