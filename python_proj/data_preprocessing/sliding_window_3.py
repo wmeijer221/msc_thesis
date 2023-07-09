@@ -257,9 +257,6 @@ def __handle_chunk(
     output_features, all_features = __get_output_features(
         pr_features, pr_sw_features, issue_sw_features)
 
-    print(
-        f'Task-{task_id}: Loaded {len(output_features)}/{len(all_features)} output features.')
-
     # Creates initial window.
     window, window_keys = __create_window_from_file(
         previous_chunk, issue_sw_features, pr_sw_features)
@@ -356,8 +353,9 @@ def create_sliding_window_dataset(
     # NOTE: they're loaded before the parallelization so that the
     # threads don't have to load the global vars separately.
     issue_sw_features, pr_sw_features, pr_features = feature_factory()
-    output_features, _ = __get_output_features(
+    output_features, all_features = __get_output_features(
         pr_features, pr_sw_features, issue_sw_features)
+    print(f'Loaded {len(output_features)}/{len(all_features)} output features.')
 
     # Runs all tasks.
     parallelize_tasks(
