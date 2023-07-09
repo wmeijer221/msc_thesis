@@ -159,19 +159,18 @@ def __add_entry(
     pr_sw_features: list[SlidingWindowFeature],
     issue_sw_features: list[SlidingWindowFeature]
 ):
-
-    # Adds new entry.
-    is_pr = new_entry["__data_type"] == "pull-requests"
-    sw_features = pr_sw_features if is_pr else issue_sw_features
-    for feature in sw_features:
-        feature.add_entry(new_entry)
-
     # Parses the entry's timestamp.
     new_entry_date = datetime.strptime(
         new_entry['closed_at'], exp_utils.DATETIME_FORMAT)
     # Sets parsed timestamp so that underlying systems don't have to do that separately.
     # TODO: Use this in all of the SW features.
     new_entry['__dt_closed_at'] = new_entry_date
+
+    # Adds new entry.
+    is_pr = new_entry["__data_type"] == "pull-requests"
+    sw_features = pr_sw_features if is_pr else issue_sw_features
+    for feature in sw_features:
+        feature.add_entry(new_entry)
 
     window_keys.append(new_entry_date)
     if new_entry_date not in window:
