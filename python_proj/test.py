@@ -21,4 +21,5 @@ def do_task(*args, **kwargs):
 
 tasks = list(range(32))
 
+MY_VARIALBE = 1
 parallelize_tasks(tasks, do_task, thread_count=3)

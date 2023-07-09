@@ -221,6 +221,16 @@ def __handle_new_entry(
     )
 
 
+def __get_output_features(pr_features: list[Feature],
+                          pr_sw_features: list[SlidingWindowFeature],
+                          issue_sw_features: list[SlidingWindowFeature]) -> list[Feature]:
+    all_features: list[Feature] = [
+        *pr_features, *pr_sw_features, *issue_sw_features]
+    output_features = [
+        feature for feature in all_features if feature.is_output_feature()]
+    return list(output_features), all_features
+
+
 def __handle_chunk(
     task: Tuple[str | None, str],
     time_window: timedelta,
@@ -244,9 +254,8 @@ def __handle_chunk(
     print(f'Task-{task_id}: Outputting in "{output_path}".')
 
     # Selects output features
-    all_features = [*pr_features, *pr_sw_features, *issue_sw_features]
-    output_features = [feature for feature in all_features
-                       if feature.is_output_feature()]
+    output_features, all_features = __get_output_features(
+        pr_features, pr_sw_features, issue_sw_features)
 
     print(
         f'Task-{task_id}: Loaded {len(output_features)}/{len(all_features)} output features.')
@@ -343,6 +352,13 @@ def create_sliding_window_dataset(
         chunk_generator, chunk_file_names.append)
     chunk_generator = tuple_chain(chunk_generator, yield_first=True)
 
+    # Selects output features
+    # NOTE: they're loaded before the parallelization so that the
+    # threads don't have to load the global vars separately.
+    issue_sw_features, pr_sw_features, pr_features = feature_factory()
+    output_features, _ = __get_output_features(
+        pr_features, pr_sw_features, issue_sw_features)
+
     # Runs all tasks.
     parallelize_tasks(
         chunk_generator,
@@ -357,12 +373,6 @@ def create_sliding_window_dataset(
     # Prunes all chunk data files.
     for file in chunk_file_names:
         os.remove(file)
-
-    # Selects output features.
-    _, pr_sw_features, pr_features = feature_factory()
-    output_features: list[Feature] = [*pr_sw_features, *pr_features]
-    output_features = [feature for feature in output_features
-                       if feature.is_output_feature()]
 
     __merge_chunk_results(
         output_path,
