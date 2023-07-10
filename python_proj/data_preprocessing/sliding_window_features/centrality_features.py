@@ -133,6 +133,16 @@ class PRCommenterToSubmitter(SNAFeature):
                          ['comments_data', 'user_data', 'id'],
                          ['user_data', 'id'])
 
+    def add_entry(self, entry: dict):
+        if entry['comments'] == 0:
+            return
+        super().add_entry(entry)
+
+    def remove_entry(self, entry: dict):
+        if entry['comments'] == 0:
+            return
+        super().remove_entry(entry)
+
 
 class PRCommenterToCommenter(SNAFeature):
     def __init__(self, graph: nx.DiGraph) -> None:
@@ -140,19 +150,23 @@ class PRCommenterToCommenter(SNAFeature):
                          ['comments_data', 'user_data', 'id'],
                          ['comments_data', 'user_data', 'id'])
 
+    def add_entry(self, entry: dict):
+        if entry['comments'] == 0:
+            return
+        super().add_entry(entry)
 
-class IssueCommenterToSubmitter(SNAFeature):
-    def __init__(self, graph: nx.DiGraph) -> None:
-        super().__init__(graph,
-                         ['comments_data', 'user_data', 'id'],
-                         ['user_data', 'id'])
+    def remove_entry(self, entry: dict):
+        if entry['comments'] == 0:
+            return
+        super().remove_entry(entry)
 
 
-class IssueCommenterToCommenter(SNAFeature):
-    def __init__(self, graph: nx.DiGraph) -> None:
-        super().__init__(graph,
-                         ['comments_data', 'user_data', 'id'],
-                         ['comments_data', 'user_data', 'id'])
+class IssueCommenterToSubmitter(PRCommenterToSubmitter):
+    """Only here for the name."""
+
+
+class IssueCommenterToCommenter(PRCommenterToCommenter):
+    """Only here for the name."""
 
 
 class SNACentralityFeature(Feature):
