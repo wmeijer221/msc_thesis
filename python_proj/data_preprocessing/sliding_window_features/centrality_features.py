@@ -236,7 +236,7 @@ class FirstOrderDegreeCentrality(SNACentralityFeature):
         self.__get_exp_edge_data = self._graph.in_edges if count_in_degree else self._graph.out_edges
         self.__count_in_degree = count_in_degree
 
-    def get_feature(self, entry: dict) -> Any:
+    def get_feature(self, entry: dict) -> int:
         submitter_id = entry['user_data']['id']
 
         total_degree = 0
@@ -260,6 +260,8 @@ class FirstOrderDegreeCentrality(SNACentralityFeature):
                     end_timestamp=edge_timestamp
                 )
                 total_degree += degree
+
+        return total_degree
 
     def get_name(self) -> str:
         original_name = super().get_name()
