@@ -41,6 +41,9 @@ class PostRunFeature:
         """called to do a late init."""
         raise NotImplementedError()
 
+class Closes:
+    def close(self):
+        raise NotImplementedError()
 
 @dataclass
 class PullRequestSuccess:

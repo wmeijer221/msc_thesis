@@ -1,4 +1,4 @@
-from python_proj.data_preprocessing.sliding_window_features.base import Feature, SlidingWindowFeature, PostRunFeature
+from python_proj.data_preprocessing.sliding_window_features.base import Feature, SlidingWindowFeature, PostRunFeature, Closes
 
 from python_proj.data_preprocessing.sliding_window_features.control_variables import build_control_variables
 from python_proj.data_preprocessing.sliding_window_features.ecosystem_experience import build_eco_experience

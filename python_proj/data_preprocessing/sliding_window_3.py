@@ -18,7 +18,7 @@ from typing import Tuple, Iterator, Callable
 import python_proj.data_preprocessing.sliding_window_features as swf
 from python_proj.utils.arg_utils import safe_get_argv, get_argv
 import python_proj.utils.exp_utils as exp_utils
-from python_proj.data_preprocessing.sliding_window_features import SlidingWindowFeature, Feature
+from python_proj.data_preprocessing.sliding_window_features import SlidingWindowFeature, Feature, Closes
 from python_proj.utils.mt_utils import parallelize_tasks
 from python_proj.utils.util import Counter, tuple_chain,\
     chain_with_intermediary_callback, safe_makedirs
@@ -256,7 +256,7 @@ def __handle_chunk(
     print(f'Task-{task_id}: Outputting in "{output_path}".')
 
     # Selects output features
-    output_features, _ = __get_output_features(
+    output_features, all_features = __get_output_features(
         pr_features, pr_sw_features, issue_sw_features)
 
     # Creates initial window.
@@ -282,6 +282,11 @@ def __handle_chunk(
                     output_features,
                     csv_writer
                 )
+
+    # Calls the features' close function if there is one.
+    for feature in all_features:
+        if isinstance(feature, Closes):
+            feature.close()
 
     print(
         f'Task-{task_id}: Finished processing chunk: {previous_chunk=}, {current_chunk=}')
