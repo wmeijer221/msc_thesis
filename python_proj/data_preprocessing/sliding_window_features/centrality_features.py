@@ -265,7 +265,7 @@ class FirstOrderDegreeCentrality(SNACentralityFeature):
 
     def get_name(self) -> str:
         original_name = super().get_name()
-        is_in = "In" if self.__count_in_degree else "Put"
+        is_in = "In" if self.__count_in_degree else "Out"
         return f'{original_name}({self.__connecting_edge_type}.{self.__experience_edge_type}-{is_in})'
 
 
