@@ -219,8 +219,8 @@ class EcosystemExperienceDecorator(SlidingWindowFeature):
 
     def _project_is_ignored_for_cumulative_experience(
             self,
-            current_project_key,
-            other_project_key
+            current_project_name,
+            other_project_name
     ) -> bool:
         """
         Returns true if the project should be ignored. It does so when the two 
@@ -230,14 +230,8 @@ class EcosystemExperienceDecorator(SlidingWindowFeature):
         """
 
         # Ignores intra-project experience; you can't have a self-dependency anyways.
-        if current_project_key == other_project_key:
+        if current_project_name == other_project_name:
             return True
-
-        # Translates source file data to project IDs.
-        current_project_name = "/".join(exp_utils.get_owner_and_repo_from_source_path(
-            current_project_key)).lower()
-        other_project_name = "/".join(exp_utils.get_owner_and_repo_from_source_path(
-            other_project_key)).lower()
 
         # Sets the order of parameters if inverse dependencies are used.
         # With dependency A --(depends on)--> B, you have that DEP(A) = [B]

@@ -51,7 +51,8 @@ class ControlIntraProjectPullRequestExperienceOfIntegrator(SlidingWindowFeature)
                      default_value_constructor_kwargs={'default_value': 0})
 
     def handle(self, entry: dict, sign: int):
-        project = entry["__source_path"]
+        owner, repo = get_owner_and_repo_from_source_path(entry["__source_path"])
+        project = f'{owner}/{repo}'
         integrator_key = get_integrator_key(entry)
         self.__projects_to_integrator_experience[project][integrator_key] += sign
 
@@ -62,7 +63,8 @@ class ControlIntraProjectPullRequestExperienceOfIntegrator(SlidingWindowFeature)
         self.handle(entry, sign=-1)
 
     def get_feature(self, entry: dict) -> int:
-        project = entry["__source_path"]
+        owner, repo = get_owner_and_repo_from_source_path(entry["__source_path"])
+        project = f'{owner}/{repo}'
         integrator_key = get_integrator_key(entry)
         return self.__projects_to_integrator_experience[project][integrator_key]
 

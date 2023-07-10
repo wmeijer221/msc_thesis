@@ -2,6 +2,7 @@ from typing import Any
 
 from python_proj.data_preprocessing.sliding_window_features.base import Feature
 from python_proj.utils.util import SafeDict, has_keys
+from python_proj.utils.exp_utils import get_owner_and_repo_from_source_path
 
 
 class PullRequestIsMerged(Feature):
@@ -28,7 +29,8 @@ class SubmitterIsFirstTimeContributor(Feature):
         self.__submitters_per_project = SafeDict(default_value=set)
 
     def get_feature(self, entry: dict) -> Any:
-        project = entry['__source_path']
+        owner, repo = get_owner_and_repo_from_source_path(entry["__source_path"])
+        project = f'{owner}/{repo}'
         submitter_id = entry['user_data']['id']
         is_first_time_contributor = submitter_id \
             not in self.__submitters_per_project[project]

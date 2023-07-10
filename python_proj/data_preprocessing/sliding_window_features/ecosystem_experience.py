@@ -4,8 +4,10 @@ i.e., the experience they acquired through submitting PRs, issues, and comments.
 """
 
 from typing import Any
+
 from python_proj.data_preprocessing.sliding_window_features.base import SlidingWindowFeature, PullRequestSuccess
 from python_proj.utils.util import has_keys, SafeDict
+from python_proj.utils.exp_utils import get_owner_and_repo_from_source_path
 
 
 class EcosystemExperience(SlidingWindowFeature):
@@ -33,7 +35,8 @@ class EcosystemExperienceSubmitterPullRequestSuccessRate(EcosystemExperience):
     def __handle(self, entry: dict, sign: int):
         # New user.
         user_id = entry["user_data"]["id"]
-        project = entry["__source_path"]
+        owner, repo = get_owner_and_repo_from_source_path(entry["__source_path"])
+        project = f'{owner}/{repo}'
         if entry["merged"]:
             self._user_to_project_success_rate[user_id][project].merged += sign
         else:
@@ -55,7 +58,8 @@ class EcosystemExperienceSubmitterPullRequestSuccessRate(EcosystemExperience):
         cumulative_success_rate = PullRequestSuccess()
 
         user_id = entry["user_data"]["id"]
-        current_project = entry["__source_path"]
+        owner, repo = get_owner_and_repo_from_source_path(entry["__source_path"])
+        current_project = f'{owner}/{repo}'
         for other_project_key, success_rate in self._user_to_project_success_rate[user_id].items():
             # Ignores intra-project experience.
             if self.project_is_ignored_for_cumulative_experience(current_project, other_project_key):
@@ -98,7 +102,8 @@ class EcosystemExperienceSubmitterPullRequestCommentCount(EcosystemExperience):
     def _handle(self, entry: dict, sign: int):
         if entry["comments"] == 0:
             return
-        project = entry["__source_path"]
+        owner, repo = get_owner_and_repo_from_source_path(entry["__source_path"])
+        project = f'{owner}/{repo}'
         for comment in entry["comments_data"]:
             commenter_id = comment["user_data"]["id"]
             self._user_to_project_pr_comment_count[commenter_id][project] += sign
@@ -111,7 +116,8 @@ class EcosystemExperienceSubmitterPullRequestCommentCount(EcosystemExperience):
 
     def get_feature(self, entry: dict) -> int:
         user_id = entry["user_data"]["id"]
-        current_project = entry["__source_path"]
+        owner, repo = get_owner_and_repo_from_source_path(entry["__source_path"])
+        current_project = f'{owner}/{repo}'
         total_experience = 0
         for other_project, experience in self._user_to_project_pr_comment_count[user_id].items():
             # Ignores intra-project experience.
@@ -145,7 +151,8 @@ class EcosystemExperienceSubmitterPullRequestDiscussionParticipationCount(Ecosys
     def _handle(self, entry: dict, sign: int):
         if entry["comments"] == 0:
             return
-        project = entry["__source_path"]
+        owner, repo = get_owner_and_repo_from_source_path(entry["__source_path"])
+        project = f'{owner}/{repo}'
         unique_commmenters = {comment['user_data']['id']
                               for comment in entry['comments_data']}
         for commenter_id in unique_commmenters:
@@ -169,7 +176,8 @@ class EcosystemExperienceSubmitterIssueSubmissionCount(EcosystemExperience):
 
     def _handle(self, entry: dict, sign: int):
         user_id = entry["user_data"]["id"]
-        project = entry["__source_path"]
+        owner, repo = get_owner_and_repo_from_source_path(entry["__source_path"])
+        project = f'{owner}/{repo}'
         self._user_to_project_success_rate[user_id][project] += sign
 
     def add_entry(self, entry: dict):
@@ -180,7 +188,8 @@ class EcosystemExperienceSubmitterIssueSubmissionCount(EcosystemExperience):
 
     def get_feature(self, entry: dict) -> int:
         user_id = entry["user_data"]["id"]
-        current_project = entry["__source_path"]
+        owner, repo = get_owner_and_repo_from_source_path(entry["__source_path"])
+        current_project = f'{owner}/{repo}'
         total_experience = 0
         for project, experience in self._user_to_project_success_rate[user_id].items():
             # Ignores intra-project experience.
