@@ -1,19 +1,36 @@
+from python_proj.utils.mt_utils import parallelize_tasks
 
 
-from collections import deque
-import datetime
-dt = datetime.datetime(2000, 3, 5, 12, 3, 35, 23)
-print(dt.timestamp())
+import random
+
+from threading import Lock
 
 
-q = deque(range(15))
+my_base_dict = {
+    "a": 451619,
+    "b": 342,
+    "c": 4747,
+    "d": 24368,
+}
 
-for e in q:
-    print(e)
 
-print(q)
+def proc_task(task: str, *args, **kwargs):
+    task = task
+
+    other = {
+        "a": int(task),
+        "b": int(task) * 2,
+        "c": int(task) ** 2,
+        "d": int(task) / 5,
+    }
+
+    res = {}
+
+    for field in other.keys():
+        res[field] = my_base_dict[field] - other[field]
+
+    print(res)
 
 
-q2 = deque()
-r = q2.popleft()
-print(r)
+tasks = [str(i) for i in range(15)]
+parallelize_tasks(tasks, proc_task, 4)

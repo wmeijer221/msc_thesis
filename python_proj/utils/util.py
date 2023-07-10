@@ -49,6 +49,7 @@ def get_nested(obj: dict, key: list[str]) -> Any | None:
 
 def get_nested_many(obj: dict, key: list[str]) -> list[Any] | Any | None:
     """Same idea as ``get_nested``, however, when a variable is a list it iterates through all of them."""
+    print("Depricated: ``get_nested_many`` should be replaced with ``better_get_nested_many``.")
     current = obj
     for key_index, key_element in enumerate(key):
         if isinstance(current, list):
@@ -60,21 +61,24 @@ def get_nested_many(obj: dict, key: list[str]) -> list[Any] | Any | None:
     return current
 
 
-def better_get_nested_many(obj: dict, key: list[str]) -> list[Any]:
+def better_get_nested_many(obj: dict, key: list[str], raise_on_missing_key: bool = True) -> list[Any]:
     """
     Same thing as ``get_nested_many`` but always returns a list.
     """
-    
+
     current = obj
     for key_index, key_element in enumerate(key):
         if isinstance(current, list):
-            all_inner = [better_get_nested_many(element, key[key_index:])
+            all_inner = [better_get_nested_many(element, key[key_index:], raise_on_missing_key)
                          for element in current]
             combined = []
             for inner in all_inner:
                 combined.extend(inner)
             return combined
         elif not key_element in current:
+            if raise_on_missing_key:
+                raise KeyError(
+                    f"Missing key {key_element} in object {current}.")
             return []
         else:
             current = current[key_element]

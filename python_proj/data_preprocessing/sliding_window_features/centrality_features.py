@@ -4,12 +4,12 @@ import itertools
 
 from collections import deque
 import datetime as dt
-from typing import Any, Tuple, Callable, Iterator
+from typing import Tuple, Callable, Iterator
 import networkx as nx
 
 import python_proj.utils.exp_utils as exp_utils
 from python_proj.data_preprocessing.sliding_window_features import SlidingWindowFeature, Feature
-from python_proj.utils.util import get_nested_many
+from python_proj.utils.util import better_get_nested_many, resolve_callables_in_list
 
 
 class SNAFeature(SlidingWindowFeature):
@@ -91,18 +91,9 @@ class SNAFeature(SlidingWindowFeature):
 
     def _get_us_and_vs(self, entry: dict) -> Tuple[list[int], list[int]]:
         def __get_nodes(nested_key: list[str | Callable[[dict], str]]) -> list[int]:
-            # It resolves the callables in the nested key.
-            r_nested_key = []
-            for key in nested_key:
-                if isinstance(key, Callable):
-                    key = key(entry)
-                r_nested_key.append(key)
-            # Gets all nodes.
-            new_nodes = get_nested_many(entry, r_nested_key)
-            if new_nodes is None:
-                return []
-            elif not isinstance(new_nodes, list):
-                new_nodes = [new_nodes]
+            # It resolves the callables in the nested key and gets related nodes.
+            real_nested_key = resolve_callables_in_list(nested_key, entry)
+            new_nodes = better_get_nested_many(entry, list(real_nested_key))
             return new_nodes
 
         sources = __get_nodes(self.__nested_source_keys)
@@ -136,29 +127,29 @@ class PRIntegratorToSubmitter(SNAFeature):
 class PRCommenterToSubmitter(SNAFeature):
     def __init__(self, graph: nx.DiGraph) -> None:
         super().__init__(graph,
-                         ['comments_data', 'id'],
+                         ['comments_data', 'user_data', 'id'],
                          ['user_data', 'id'])
 
 
 class PRCommenterToCommenter(SNAFeature):
     def __init__(self, graph: nx.DiGraph) -> None:
         super().__init__(graph,
-                         ['comments_data', 'id'],
-                         ['comments_data', 'id'])
+                         ['comments_data', 'user_data', 'id'],
+                         ['comments_data', 'user_data', 'id'])
 
 
 class IssueCommenterToSubmitter(SNAFeature):
     def __init__(self, graph: nx.DiGraph) -> None:
         super().__init__(graph,
-                         ['comments_data', 'id'],
+                         ['comments_data', 'user_data', 'id'],
                          ['user_data', 'id'])
 
 
 class IssueCommenterToCommenter(SNAFeature):
     def __init__(self, graph: nx.DiGraph) -> None:
         super().__init__(graph,
-                         ['comments_data', 'id'],
-                         ['comments_data', 'id'])
+                         ['comments_data', 'user_data', 'id'],
+                         ['comments_data', 'user_data', 'id'])
 
 
 class SNACentralityFeature(Feature):
