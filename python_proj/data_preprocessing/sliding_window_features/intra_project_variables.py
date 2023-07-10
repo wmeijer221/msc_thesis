@@ -2,6 +2,8 @@ from typing import Any
 from python_proj.data_preprocessing.sliding_window_features.base import SlidingWindowFeature, PullRequestSuccess
 from python_proj.utils.util import SafeDict, has_keys
 
+from python_proj.utils.exp_utils import get_owner_and_repo_from_source_path
+
 
 class IntraProjectSubmitterPullRequestSubmissionCount(SlidingWindowFeature):
     """Intra PR submitted."""
@@ -14,7 +16,8 @@ class IntraProjectSubmitterPullRequestSubmissionCount(SlidingWindowFeature):
 
     def __handle(self, entry: dict, sign: int):
         submitter_id = entry["user_data"]["id"]
-        project = entry["__source_path"]
+        owner, repo = get_owner_and_repo_from_source_path(entry["__source_path"])
+        project = f'{owner}/{repo}'
         self.pr_counts_per_user_per_project[submitter_id][project] += sign
 
     def add_entry(self, entry: dict):
@@ -28,7 +31,8 @@ class IntraProjectSubmitterPullRequestSubmissionCount(SlidingWindowFeature):
 
     def get_feature(self, entry: dict) -> Any:
         submitter_id = entry["user_data"]["id"]
-        project = entry["__source_path"]
+        owner, repo = get_owner_and_repo_from_source_path(entry["__source_path"])
+        project = f'{owner}/{repo}'
         return self.pr_counts_per_user_per_project[submitter_id][project]
 
 
@@ -49,7 +53,8 @@ class IntraProjectSubmitterPullRequestSuccessRate(SlidingWindowFeature):
                        default_value_constructor_kwargs={"default_value": PullRequestSuccess})
 
     def handle(self, entry: dict, sign: int):
-        project = entry["__source_path"]
+        owner, repo = get_owner_and_repo_from_source_path(entry["__source_path"])
+        project = f'{owner}/{repo}'
         submitter_id = entry["user_data"]["id"]
         if entry["merged"]:
             self.__projects_to_integrator_experience[project][submitter_id].merged += sign
@@ -63,7 +68,8 @@ class IntraProjectSubmitterPullRequestSuccessRate(SlidingWindowFeature):
         self.handle(entry, sign=-1)
 
     def get_feature(self, entry: dict) -> float:
-        project = entry["__source_path"]
+        owner, repo = get_owner_and_repo_from_source_path(entry["__source_path"])
+        project = f'{owner}/{repo}'
         submitter = entry["user_data"]["id"]
         dev_success_rate = self.__projects_to_integrator_experience[project][submitter]
         return dev_success_rate.get_success_rate()
@@ -84,7 +90,8 @@ class IntraProjectSubmitterPullRequestCommentCount(SlidingWindowFeature):
     def __handle(self, entry: dict, sign: int):
         if entry['comments'] == 0:
             return
-        project = entry['__source_path']
+        owner, repo = get_owner_and_repo_from_source_path(entry["__source_path"])
+        project = f'{owner}/{repo}'
         for comment in entry['comments_data']:
             commenter_id = comment['user_data']["id"]
             self.comment_counts_per_user_per_project[commenter_id][project] += sign
@@ -104,7 +111,8 @@ class IntraProjectSubmitterPullRequestCommentCount(SlidingWindowFeature):
 
     def get_feature(self, entry: dict) -> Any:
         submitter_id = entry['user_data']["id"]
-        project = entry["__source_path"]
+        owner, repo = get_owner_and_repo_from_source_path(entry["__source_path"])
+        project = f'{owner}/{repo}'
         return self.comment_counts_per_user_per_project[submitter_id][project]
 
 

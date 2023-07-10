@@ -2,7 +2,7 @@
 Implements general utility functions.
 """
 
-from typing import Any, Tuple, TypeVar, Generator, Callable
+from typing import Any, Tuple, TypeVar, Generator, Callable, Iterator
 from numbers import Number
 import io
 import numpy
@@ -58,6 +58,37 @@ def get_nested_many(obj: dict, key: list[str]) -> list[Any] | Any | None:
             return None
         current = current[key_element]
     return current
+
+
+def better_get_nested_many(obj: dict, key: list[str]) -> list[Any]:
+    """
+    Same thing as ``get_nested_many`` but always returns a list.
+    """
+    
+    current = obj
+    for key_index, key_element in enumerate(key):
+        if isinstance(current, list):
+            all_inner = [better_get_nested_many(element, key[key_index:])
+                         for element in current]
+            combined = []
+            for inner in all_inner:
+                combined.extend(inner)
+            return combined
+        elif not key_element in current:
+            return []
+        else:
+            current = current[key_element]
+    if isinstance(current, list):
+        return current
+    else:
+        return [current]
+
+
+def resolve_callables_in_list(coll: Iterator[Any | Callable], *args, **kwargs) -> Iterator[Any]:
+    for entry in coll:
+        if isinstance(entry, Callable):
+            entry = entry(*args, **kwargs)
+        yield entry
 
 
 def safe_index(list: list, entry: object) -> int:
