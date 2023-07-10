@@ -4,7 +4,7 @@ import itertools
 
 from collections import deque
 import datetime as dt
-from typing import Tuple, Callable, Iterator
+from typing import Any, Tuple, Callable, Iterator
 import networkx as nx
 
 import python_proj.utils.exp_utils as exp_utils
@@ -116,6 +116,9 @@ class SNAFeature(SlidingWindowFeature):
     def is_output_feature(self) -> bool:
         return False
 
+    def get_feature(self, entry: dict) -> None:
+        return
+
 
 class PRIntegratorToSubmitter(SNAFeature):
     def __init__(self, graph: nx.DiGraph) -> None:
@@ -160,6 +163,9 @@ class SNACentralityFeature(Feature):
     def __init__(self, graph: nx.DiGraph) -> None:
         self._graph = graph
 
+    def get_feature(self, entry: dict) -> Any:
+        raise NotImplementedError()
+
     def get_time_respecting_degree(
         self,
         edges: Iterator[Tuple[int, int]],
@@ -172,13 +178,22 @@ class SNACentralityFeature(Feature):
         """
 
         degree = 0
+        # Iterates through all edges.
         for (source, target) in edges:
             edge_data = self._graph.get_edge_data(source, target, default={})
+
+            # The type not being in there is equivalent to the edge not existing.
             if edge_type not in edge_data:
                 continue
+
             timestamped_edges: deque[float] = edge_data[edge_type]
             for timestamped_edge in timestamped_edges:
+                # If the timestamp is after, it happened in the future.
+                # It's an >= instead of a > as the current even shouldn't
+                # accidentally be included either.
                 if timestamped_edge >= end_timestamp:
+                    # It breaks as all entries in the edge list are
+                    # chronological, so the following will be after as well.
                     break
                 degree += 1
         return degree
@@ -215,36 +230,56 @@ class FirstOrderDegreeCentrality(SNACentralityFeature):
     Calculates the first-order degree centrality of a given connecting + experience edge.
     """
 
-    def __init__(self, graph: nx.DiGraph,
-                 connecting_edge_type: SNAFeature,
-                 experience_edge_type: SNAFeature,
-                 count_in_degree: bool) -> None:
+    def __init__(
+        self,
+        graph: nx.DiGraph,
+        connecting_edge_type: SNAFeature,
+        experience_edge_type: SNAFeature,
+        count_in_degree: bool
+    ) -> None:
         super().__init__(graph)
+
+        # Sets the labels interested in.
         self.__connecting_edge_type = connecting_edge_type.edge_label
         self.__experience_edge_type = experience_edge_type.edge_label
+
         # Sets the used function to collect the correct experience degree.
         # i.e., in-degree or out-degree.
-        self.__get_exp_edge_data = self._graph.in_edges if count_in_degree else self._graph.out_edges
         self.__count_in_degree = count_in_degree
+        self.__get_exp_edge_data = self._graph.in_edges if count_in_degree \
+            else self._graph.out_edges
 
     def get_feature(self, entry: dict) -> int:
         submitter_id = entry['user_data']['id']
 
         total_degree = 0
+        # Iterates through all incoming edges of the focal node.
         in_edges = self._graph.in_edges(nbunch=[submitter_id])
+
+        # The target id is ignored as that's the ``submitter_id``.
         for (neighbour_id, _) in in_edges:
             edge_data = self._graph.get_edge_data(
                 neighbour_id, submitter_id, default={})
+            # If the connecting edge type is not in there it means the
+            # edge does not exist.
             if self.__connecting_edge_type not in edge_data:
                 continue
 
+            # fo = first-order
+
+            # Gets the incoming/outgoing edges of the neighbor node.
             fo_edges = self.__get_exp_edge_data(nbunch=[neighbour_id])
+
             # Removes all edges that connect with the focal node.
             fo_edges = [(source, target) for (source, target) in fo_edges
                         if source != submitter_id and target != submitter_id]
-            timestamped_edges: deque[float] = edge_data[self.__connecting_edge_type]
 
+            # Iterates through all time stamped edges as it considers
+            # each of these separately.
+            timestamped_edges: deque[float] = edge_data[self.__connecting_edge_type]
             for edge_timestamp in timestamped_edges:
+
+                # Calculates the time-respecting degree and updates the total.
                 degree = self.get_time_respecting_degree(
                     edges=fo_edges,
                     edge_type=self.__experience_edge_type,
@@ -261,6 +296,9 @@ class FirstOrderDegreeCentrality(SNACentralityFeature):
 
 
 class WeightedFirstOrderDegreeCentrality(SNACentralityFeature):
+    """Calculates the weighted first-order degree centrality."""
+
+    # TODO: Implement this.
     def __init__(
         self, graph: nx.DiGraph,
             edges: list[type],
@@ -268,6 +306,9 @@ class WeightedFirstOrderDegreeCentrality(SNACentralityFeature):
             count_in_degree: bool
     ) -> None:
         super().__init__(graph)
+
+    def get_feature(self, entry: dict) -> Any:
+        raise NotImplementedError()
 
 
 def build_centrality_features():
@@ -293,11 +334,11 @@ def build_centrality_features():
 
     edges = list(itertools.chain(pr_graph, issue_graph))
     local_centrality_measures = []
-    for t1 in edges:
-        for t2 in edges:
-            for is_in in [True, False]:
+    for connecting_edge_type in edges:
+        for experience_edge_type in edges:
+            for count_in_degree in [True, False]:
                 local_centrality_measures.append(
-                    FirstOrderDegreeCentrality(graph, t1, t2, is_in))
+                    FirstOrderDegreeCentrality(graph, connecting_edge_type, experience_edge_type, count_in_degree))
 
     # local_centrality_measures.extend([
     #     WeightedFirstOrderDegreeCentrality(
