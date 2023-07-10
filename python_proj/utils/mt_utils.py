@@ -29,6 +29,7 @@ class SimpleConsumer(multiprocessing.Process):
         while is_running:
             task = self._task_list.get()
             if isinstance(task, SimpleConsumer.TerminateTask):
+                print(f'{self._consumer_name}-{self._worker_index}: Received termination task.')
                 is_running = False
                 break
             try:
@@ -38,7 +39,7 @@ class SimpleConsumer(multiprocessing.Process):
             except Exception as ex:
                 print(f"{self._consumer_name}-{self._worker_index}: Failed with entry {task}: {ex}.")
                 raise
-        print(f'{self._consumer_name}-{self._worker_index} stopped.')
+        print(f'{self._consumer_name}-{self._worker_index}: Stopped.')
 
 
 def parallelize_tasks(

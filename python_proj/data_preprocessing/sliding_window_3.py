@@ -427,6 +427,8 @@ def all_features_factory() -> Tuple[list[SlidingWindowFeature],
         *other_pr,
         *control,
         *local_centrality_measures
+        # NOTE: Centrality features are ignored as
+        # they take too long to compute.
         # *centrality_features,
     ]
 
