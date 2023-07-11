@@ -334,18 +334,7 @@ def build_centrality_features():
         HITSCentrality(graph)
     ]
 
-    edges = list(itertools.chain(pr_graph, issue_graph))
-    local_centrality_measures = []
-    for connecting_edge_type in edges:
-        for experience_edge_type in edges:
-            for count_in_degree in [True, False]:
-                local_centrality_measures.append(
-                    FirstOrderDegreeCentrality(graph,
-                                               connecting_edge_type,
-                                               experience_edge_type,
-                                               count_in_degree))
-
-    local_centrality_measures_2 = [
+    local_centrality_measures = [
         FirstOrderDegreeCentralityV2(graph, itertools.chain(
             pr_graph, issue_graph), count_in_degree=True),
         FirstOrderDegreeCentralityV2(graph, itertools.chain(
@@ -359,4 +348,4 @@ def build_centrality_features():
     #         graph, edges, [1] * len(edges), False)
     # ])
 
-    return pr_graph, issue_graph, global_centrality_measures, local_centrality_measures, local_centrality_measures_2
+    return pr_graph, issue_graph, global_centrality_measures, local_centrality_measures
