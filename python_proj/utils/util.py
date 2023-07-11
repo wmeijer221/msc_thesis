@@ -2,7 +2,7 @@
 Implements general utility functions.
 """
 
-from typing import Any, Tuple, TypeVar, Generator, Callable, Iterator
+from typing import Any, Tuple, TypeVar, Generator, Callable, Iterator, Sequence
 from numbers import Number
 import io
 import numpy
@@ -294,3 +294,27 @@ def chain_with_intermediary_callback(
 def safe_makedirs(dirname: str):
     if not os.path.exists(dirname):
         os.makedirs(dirname)
+
+
+def stepped_enumerate(
+    collection: Iterator[T],
+    start: Number = 0,
+    step: Number = 1
+) -> Iterator[Tuple[Number, T]]:
+    current = start
+    for entry in collection:
+        yield (current, entry)
+        current += step
+
+
+def flatten(iterator: Iterator[Iterator | Any]) -> Iterator[Any]:
+    """
+    Flattens Iterator with nested Iterators.
+    """
+
+    for element in iterator:
+        if isinstance(element, Iterator | Sequence):
+            for inner_element in flatten(element):
+                yield inner_element
+        else:
+            yield element

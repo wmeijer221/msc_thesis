@@ -12,9 +12,15 @@ class SimpleConsumer(multiprocessing.Process):
     class TerminateTask:
         """When received by the simple consumer, it terminates."""
 
-    def __init__(self, on_message_received: Callable, task_list: multiprocessing.JoinableQueue,
-                 worker_index: int, consumer_name: str = "SimpleConsumer",
-                 *args, **kwargs) -> None:
+    def __init__(
+        self,
+        on_message_received: Callable,
+        task_list: multiprocessing.JoinableQueue,
+        worker_index: int, 
+        consumer_name: str = "SimpleConsumer",
+        print_lifetime_events: bool = True,
+        *args, **kwargs
+    ) -> None:
         super().__init__()
         self._on_message_received = on_message_received
         self._task_list = task_list
@@ -22,14 +28,18 @@ class SimpleConsumer(multiprocessing.Process):
         self._args = args
         self._kwargs = kwargs
         self._consumer_name = consumer_name
-        print(f"{consumer_name}-{worker_index} started.")
+        self._print_lifetime_events = print_lifetime_events
+        if print_lifetime_events:
+            print(f"{consumer_name}-{worker_index} started.")
 
     def run(self) -> None:
         is_running = True
         while is_running:
             task = self._task_list.get()
             if isinstance(task, SimpleConsumer.TerminateTask):
-                print(f'{self._consumer_name}-{self._worker_index}: Received termination task.')
+                if self._print_lifetime_events:
+                    print(
+                        f'{self._consumer_name}-{self._worker_index}: Received termination task.')
                 is_running = False
                 break
             try:
@@ -37,9 +47,12 @@ class SimpleConsumer(multiprocessing.Process):
                                "worker_index": self._worker_index}
                 self._on_message_received(*self._args, **task_kwargs)
             except Exception as ex:
-                print(f"{self._consumer_name}-{self._worker_index}: Failed with entry {task}: {ex}.")
+                print(
+                    f"{self._consumer_name}-{self._worker_index}: Failed with entry {task}: {ex}.")
                 raise
-        print(f'{self._consumer_name}-{self._worker_index}: Stopped.')
+
+        if self._print_lifetime_events:
+            print(f'{self._consumer_name}-{self._worker_index}: Stopped.')
 
 
 def parallelize_tasks(

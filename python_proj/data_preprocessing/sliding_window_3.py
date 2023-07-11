@@ -11,6 +11,7 @@ parameters.
 from collections import deque
 import csv
 from datetime import datetime, timedelta
+import itertools
 import json
 import os
 from typing import Tuple, Iterator, Callable
@@ -21,7 +22,7 @@ import python_proj.utils.exp_utils as exp_utils
 from python_proj.data_preprocessing.sliding_window_features import SlidingWindowFeature, Feature, Closes
 from python_proj.utils.mt_utils import parallelize_tasks
 from python_proj.utils.util import Counter, tuple_chain,\
-    chain_with_intermediary_callback, safe_makedirs
+    chain_with_intermediary_callback, safe_makedirs, flatten
 
 
 def __create_data_chunk_stream(
@@ -187,6 +188,19 @@ def __get_preamble(entry: dict) -> list:
     return [entry['id'], project, submitter_id, entry['number'], closed_at]
 
 
+def __output_row(new_entry: dict, csv_writer: csv.writer, output_features: list[Feature]):
+    """
+    Outputs row to the csv writer.
+    """
+
+    meta_data = __get_preamble(new_entry)
+    predictors = [feature.get_feature(new_entry)
+                  for feature in output_features]
+    predictors = flatten(predictors)
+    data_point = itertools.chain(meta_data, predictors)
+    csv_writer.writerow(data_point)
+
+
 def __handle_new_entry(
         new_entry: dict,
         time_window: timedelta,
@@ -204,15 +218,10 @@ def __handle_new_entry(
         pr_sw_features
     )
 
-    # Calculates features if it's a PR.
+    # Outputs feature data if its a PR.
     is_pr = new_entry["__data_type"] == "pull-requests"
     if is_pr:
-        data_point = [None] * len(output_features)
-        for index, feature in enumerate(output_features):
-            data_point[index] = feature.get_feature(new_entry)
-        preamble = __get_preamble(new_entry)
-        data_point = [*preamble, *data_point]
-        csv_writer.writerow(data_point)
+        __output_row(new_entry, csv_writer, output_features)
 
     __add_entry(
         new_entry,
@@ -243,6 +252,7 @@ def __handle_chunk(
                                         list[Feature]]],
     *_, **__
 ):
+    start_time = datetime.now()
 
     previous_chunk, current_chunk = task
     print(
@@ -288,8 +298,24 @@ def __handle_chunk(
         if isinstance(feature, Closes):
             feature.close()
 
+    delta_time = datetime.now() - start_time
     print(
-        f'Task-{task_id}: Finished processing chunk: {previous_chunk=}, {current_chunk=}')
+        f'Task-{task_id}: Finished processing chunk in {delta_time}: {previous_chunk=}, {current_chunk=}')
+
+
+def __create_header(features: list[Feature]) -> Iterator[str]:
+    """
+    Creates headers for output datasets.
+    It iterates through all features, and flattens their names whenever 
+    necessary (in case one feature implementation) yields multiple results).
+    """
+
+    meta_header = ["ID", "Project Name", "Submitter ID",
+                   "PR Number", "Closed At"]
+    feature_header = [feature.get_name() for feature in features]
+    feature_header = flatten(feature_header)
+    header = itertools.chain(meta_header, feature_header)
+    return header
 
 
 def __merge_chunk_results(
@@ -301,11 +327,8 @@ def __merge_chunk_results(
     # Combines the output of each file to the final output file
     # and removes the chunk output file.
     with open(output_path, "w+", encoding='utf-8')as output_file:
-        # Create header
-        header = [feature.get_name() for feature in output_features]
-        header = ["ID", "Project Name", "Submitter ID",
-                  "PR Number", "Closed At", *header]
         csv_writer = csv.writer(output_file)
+        header = __create_header(output_features)
         csv_writer.writerow(header)
 
         # Merge entries.
@@ -454,8 +477,9 @@ def cmd_create_sliding_window_dataset():
     window_size_in_days = safe_get_argv(key="-w", default=None, data_type=int)
     thread_count = safe_get_argv(key='-t', default=1, data_type=int)
 
-    chunk_base_path = exp_utils.BASE_PATH + "/temp/sna_chunks/"
-    chunk_output_base_path = exp_utils.BASE_PATH + "/temp/sna_output/"
+    chunk_tempfile_modifier = safe_get_argv('--temp-mod', default="")
+    chunk_base_path = exp_utils.BASE_PATH + "/temp/sna_chunks/" + chunk_tempfile_modifier
+    chunk_output_base_path = exp_utils.BASE_PATH + "/temp/sna_output/" + chunk_tempfile_modifier
 
     start = datetime.now()
 
