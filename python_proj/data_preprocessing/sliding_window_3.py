@@ -506,7 +506,7 @@ def cmd_merge_output_datasets():
 
 
     exp_utils.load_paths_for_eco()
-    base_output_path = "/data/s4509412/dat40a/data//temp/sna_output/"
+    base_output_path = "/data/s4509412/data/data//temp/sna_output/"
 
     output_file_name = get_argv(key='-o')
     output_path = exp_utils.TRAIN_DATASET_PATH(file_name=output_file_name)
