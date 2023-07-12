@@ -480,8 +480,10 @@ def cmd_create_sliding_window_dataset():
     thread_count = safe_get_argv(key='-t', default=1, data_type=int)
 
     chunk_tempfile_modifier = safe_get_argv('--temp-mod', default="")
-    chunk_base_path = exp_utils.BASE_PATH + "/temp/sna_chunks/" + chunk_tempfile_modifier
-    chunk_output_base_path = exp_utils.BASE_PATH + "/temp/sna_output/" + chunk_tempfile_modifier
+    chunk_base_path = exp_utils.BASE_PATH + \
+        "/temp/sna_chunks/" + chunk_tempfile_modifier
+    chunk_output_base_path = exp_utils.BASE_PATH + \
+        "/temp/sna_output/" + chunk_tempfile_modifier
 
     start = datetime.now()
 
@@ -501,33 +503,6 @@ def cmd_create_sliding_window_dataset():
 
     return output_path
 
-def cmd_merge_output_datasets():
-    print("DOING THE QUICK MERGE THINGY")
-
-
-    exp_utils.load_paths_for_eco()
-    base_output_path = "/data/s4509412/data/data//temp/sna_output/"
-
-    output_file_name = get_argv(key='-o')
-    output_path = exp_utils.TRAIN_DATASET_PATH(file_name=output_file_name)
-
-    print(f'Using output path "{output_path}".')
-
-    issue_sw_features, pr_sw_features, pr_features = all_features_factory()
-    output_features, all_features = __get_output_features(
-        pr_features, pr_sw_features, issue_sw_features)
-
-    chunk_file_names = [f'/data/{i}' for i in range(1, 45)]
-
-    __merge_chunk_results(
-        output_path,
-        chunk_file_names,
-        base_output_path,
-        output_features,
-        delete_chunk=False
-    )
-
 
 if __name__ == '__main__':
-    # cmd_create_sliding_window_dataset()
-    cmd_merge_output_datasets()
+    cmd_create_sliding_window_dataset()
