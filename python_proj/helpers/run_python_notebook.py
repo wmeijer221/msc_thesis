@@ -40,13 +40,23 @@ def run_notebook(python_path: str):
 
     args = ['python3', python_path]
     popen = subprocess.Popen(
-        args, stdout=subprocess.PIPE, universal_newlines=True)
+        args,
+        stdout=subprocess.PIPE,
+        universal_newlines=True
+    )
     output_path = __get_file_name_without_extension(python_path) + ".out"
+
+    print(f'\nRunning "{python_path}".')
     print(f'Storing output at "{output_path}".')
+    print(("#" * 10) + " [ LOGS START ] " + ("#" * 10))
+
     with open(output_path, "w+", encoding='utf-8') as output_file:
         for stdout_line in iter(popen.stdout.readline, ""):
             print(stdout_line, end="")
             output_file.write(stdout_line)
+            
+    print(("#" * 10) + " [  LOGS END  ] " + ("#" * 10) + "\n")
+
     popen.wait()
     if popen.returncode != 0:
         raise RuntimeError(
@@ -77,10 +87,7 @@ def execute_notebooks(notebook_paths: list[str] | str):
     # Runs files.
     try:
         for python_path in python_paths:
-            print(f"\n\nRunning '{python_path}'")
-            print(("#" * 10) + " [ LOGS START ] " + ("#" * 10))
             run_notebook(python_path)
-            print(("#" * 10) + " [  LOGS END  ] " + ("#" * 10) + "\n")
     finally:
         for python_path in python_paths:
             os.remove(python_path)
