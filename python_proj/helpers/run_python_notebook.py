@@ -47,6 +47,9 @@ def run_notebook(python_path: str):
         for stdout_line in iter(popen.stdout.readline, ""):
             print(stdout_line, end="")
             output_file.write(stdout_line)
+    if popen.returncode != 0:
+        raise RuntimeError(
+            f'Subprocess completed with non-zero return code: {popen.returncode}')
 
 
 def execute_notebooks(notebook_paths: list[str] | str):
