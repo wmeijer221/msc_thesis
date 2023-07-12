@@ -77,7 +77,10 @@ def execute_notebooks(notebook_paths: list[str] | str):
     # Runs files.
     try:
         for python_path in python_paths:
+            print(f"\n\nRunning '{python_path}'")
+            print(("#" * 10) + " [ LOGS START ] " + ("#" * 10))
             run_notebook(python_path)
+            print(("#" * 10) + " [  LOGS END  ] " + ("#" * 10) + "\n")
     finally:
         for python_path in python_paths:
             os.remove(python_path)
