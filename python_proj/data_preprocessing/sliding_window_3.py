@@ -502,6 +502,9 @@ def cmd_create_sliding_window_dataset():
     return output_path
 
 def cmd_merge_output_datasets():
+    print("DOING THE QUICK MERGE THINGY")
+
+
     exp_utils.load_paths_for_eco()
     base_output_path = "/data/s4509412/dat40a/data//temp/sna_chunks/{chunk_id}"
 
