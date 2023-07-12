@@ -513,8 +513,9 @@ def cmd_merge_output_datasets():
 
     print(f'Using output path "{output_path}".')
 
-    pr_feature, pr_sw_features, issue_sw_features = all_features_factory()
-    output_features = __get_output_features(pr_feature,pr_sw_features,issue_sw_features)
+    issue_sw_features, pr_sw_features, pr_features = all_features_factory()
+    output_features, all_features = __get_output_features(
+        pr_features, pr_sw_features, issue_sw_features)
 
     chunk_file_names = [f'/data/{i}' for i in range(1, 45)]
 
