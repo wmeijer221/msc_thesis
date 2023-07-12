@@ -313,7 +313,8 @@ def flatten(iterator: Iterator[Iterator | Any]) -> Iterator[Any]:
     """
 
     for element in iterator:
-        if isinstance(element, Iterator | Sequence):
+        if isinstance(element, Iterator | Sequence) \
+                and not isinstance(element, str):
             for inner_element in flatten(element):
                 yield inner_element
         else:
