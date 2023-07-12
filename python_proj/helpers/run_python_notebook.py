@@ -33,33 +33,52 @@ def transpile_notebook_to_python(notebook_path: str) -> str:
     return python_path
 
 
-def execute_notebook(notebook_path: str):
+def run_notebook(python_path: str):
     """
-    Transpiles jupyter notebook file to a 
-    temporary python script and executes it.
-
-    :param notebook_path: The path to the notebook file that's executed.
+    Runs a python script.
     """
 
-    if not os.path.exists(notebook_path):
-        raise FileNotFoundError(
-            f"Notebook file doesn't exist: '{notebook_path}'.")
+    args = ['python3', python_path]
+    popen = subprocess.Popen(
+        args, stdout=subprocess.PIPE, universal_newlines=True)
+    output_path = __get_file_name_without_extension(python_path) + ".out"
+    print(f'Storing output at "{output_path}".')
+    with open(output_path, "w+", encoding='utf-8') as output_file:
+        for stdout_line in iter(popen.stdout.readline, ""):
+            print(stdout_line, end="")
+            output_file.write(stdout_line)
 
+
+def execute_notebooks(notebook_paths: list[str] | str):
+    """
+    Transpiles jupyter notebook files to a 
+    temporary python script and executes them.
+
+    :param notebook_paths: The path(s) to the notebook file(s) that is (are) executed.
+    """
+
+    if isinstance(notebook_paths, str):
+        notebook_paths = [notebook_paths]
+
+    for notebook_path in notebook_paths:
+        if not os.path.exists(notebook_path):
+            raise FileNotFoundError(
+                f"Notebook file doesn't exist: '{notebook_path}'.")
+
+    # Transpiles files.
+    python_paths = [transpile_notebook_to_python(notebook_path)
+                    for notebook_path in notebook_paths]
+    python_paths = list(python_paths)
+
+    # Runs files.
     try:
-        # Creates python
-        python_path = transpile_notebook_to_python(notebook_path)
-        args = ['python3', python_path]
-        popen = subprocess.Popen(args,stdout=subprocess.PIPE, universal_newlines=True)
-        output_path = __get_file_name_without_extension(notebook_path) + ".out"
-        print(f'Storing output at "{output_path}".')
-        with open(output_path, "w+", encoding='utf-8') as output_file:
-            for stdout_line in iter(popen.stdout.readline, ""):
-                print(stdout_line, end="")
-                output_file.write(stdout_line)
+        for python_path in python_paths:
+            run_notebook(python_path)
     finally:
-        os.remove(python_path)
+        for python_path in python_paths:
+            os.remove(python_path)
 
 
 if __name__ == "__main__":
-    NB_PATH = sys.argv[-1].strip()
-    execute_notebook(NB_PATH)
+    __notebook_paths = sys.argv[1:]
+    execute_notebooks(__notebook_paths)
