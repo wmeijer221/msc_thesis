@@ -322,7 +322,8 @@ def __merge_chunk_results(
     output_path: str,
     chunk_file_names: str,
     chunk_output_base_path: str,
-    output_features: list[Feature]
+    output_features: list[Feature],
+    delete_chunk: bool = True
 ):
     # Combines the output of each file to the final output file
     # and removes the chunk output file.
@@ -338,7 +339,8 @@ def __merge_chunk_results(
             print(f'Merging "{chunk_output_path}".')
             with open(chunk_output_path, "r", encoding='utf-8') as input_file:
                 output_file.writelines(input_file)
-            os.remove(chunk_output_path)
+            if delete_chunk:
+                os.remove(chunk_output_path)
     print(f'Output path: "{output_path}".')
 
 
@@ -499,6 +501,29 @@ def cmd_create_sliding_window_dataset():
 
     return output_path
 
+def cmd_merge_output_datasets():
+    exp_utils.load_paths_for_eco()
+    base_output_path = "/data/s4509412/dat40a/data//temp/sna_chunks/{chunk_id}"
+
+    output_file_name = get_argv(key='-o')
+    output_path = exp_utils.TRAIN_DATASET_PATH(file_name=output_file_name)
+
+    print(f'Using output path "{output_path}".')
+
+    pr_feature, pr_sw_features, issue_sw_features = all_features_factory()
+    output_features = __get_output_features(pr_feature,pr_sw_features,issue_sw_features)
+
+    chunk_file_names = [f'/data/{i}' for i in range(1, 45)]
+
+    __merge_chunk_results(
+        output_path,
+        chunk_file_names,
+        base_output_path,
+        output_features,
+        delete_chunk=False
+    )
+
 
 if __name__ == '__main__':
-    cmd_create_sliding_window_dataset()
+    # cmd_create_sliding_window_dataset()
+    cmd_merge_output_datasets()
