@@ -24,6 +24,9 @@ class SNAFeature(SlidingWindowFeature):
 
         self.edge_label = self.__class__.__name__
 
+        # Bookkeeping variable.
+        self.total_edge_count = 0
+
     def _add_nodes(self, nodes: int | list[int]):
         if isinstance(nodes, int):
             nodes = [nodes]
@@ -50,6 +53,7 @@ class SNAFeature(SlidingWindowFeature):
         edge_timestamps: deque = edge_data[self.edge_label]
         if add_entry:
             edge_timestamps.append(edge_timestamp)
+            self.total_edge_count += 1
         else:
             if len(edge_timestamps) == 1:
                 # Deletes it to preserve some memory.
@@ -300,17 +304,6 @@ class FirstOrderDegreeCentralityV2(SNACentralityFeature):
                         total_degree[output_index] = degree
 
         return total_degree
-
-
-class WeightedFirstOrderDegreeCentrality(FirstOrderDegreeCentralityV2):
-    """Calculates the weighted first-order degree centrality."""
-
-    def get_name(self) -> Iterator[str]:
-        base_name = super().get_name()
-        return itertools.chain(base_name, [self.__class__.__name__])
-
-    def get_feature(self, entry: dict) -> list[int | float]:
-        degree_centrality = super().get_feature(entry)
 
 
 def build_centrality_features():

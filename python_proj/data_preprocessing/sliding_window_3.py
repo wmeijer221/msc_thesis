@@ -20,6 +20,7 @@ import python_proj.data_preprocessing.sliding_window_features as swf
 from python_proj.utils.arg_utils import safe_get_argv, get_argv
 import python_proj.utils.exp_utils as exp_utils
 from python_proj.data_preprocessing.sliding_window_features import SlidingWindowFeature, Feature, Closes
+from python_proj.data_preprocessing.sliding_window_features.centrality_features import SNAFeature
 from python_proj.utils.mt_utils import parallelize_tasks
 from python_proj.utils.util import Counter, tuple_chain,\
     chain_with_intermediary_callback, safe_makedirs, flatten
@@ -411,6 +412,11 @@ def create_sliding_window_dataset(
         output_features
     )
 
+    print("Total edge count:")
+    for feature in all_features:
+        if isinstance(feature, SNAFeature):
+            print(f'{feature.get_name()}: {feature.total_edge_count} edges')
+
     print("Done!")
 
 
@@ -460,6 +466,22 @@ def all_features_factory() -> Tuple[list[SlidingWindowFeature],
     return issue_sw_features, pr_sw_features, pr_features
 
 
+def sna_centrality_feature_count_features() -> Tuple[list[SlidingWindowFeature],
+                                                     list[SlidingWindowFeature],
+                                                     list[Feature]]:
+    """
+    Only yields the SNA non-output features.
+    """
+
+    sna_pr_graph, sna_issue_graph, _, _ = swf.build_centrality_features()
+
+    issue_sw_features = [*sna_issue_graph]
+    pr_sw_features = [*sna_pr_graph]
+    pr_features = []
+
+    return issue_sw_features, pr_sw_features, pr_features
+
+
 def cmd_create_sliding_window_dataset():
     """
     Wrapper method for ``create_sliding_window_dataset``.
@@ -485,6 +507,16 @@ def cmd_create_sliding_window_dataset():
     chunk_output_base_path = exp_utils.BASE_PATH + \
         "/temp/sna_output/" + chunk_tempfile_modifier
 
+    mode = safe_get_argv(key='-m', default="all")
+    print(f'Starting in mode "{mode}".')
+    match mode:
+        case "all":
+            feature_factory = all_features_factory
+        case "sna_count":
+            feature_factory = sna_centrality_feature_count_features
+        case _:
+            raise ValueError(f"Invalid mode '{mode}'.")
+
     start = datetime.now()
 
     create_sliding_window_dataset(
@@ -493,7 +525,7 @@ def cmd_create_sliding_window_dataset():
         chunk_output_base_path,
         input_issue_dataset_names,
         input_pr_dataset_names,
-        all_features_factory,
+        feature_factory,
         window_size_in_days,
         thread_count
     )
