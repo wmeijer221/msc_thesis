@@ -16,6 +16,7 @@ import python_proj.utils.exp_utils as exp_utils
 
 import python_proj.data_preprocessing.sliding_window_features as swf
 from python_proj.data_preprocessing.sliding_window_features import Feature, SlidingWindowFeature
+from python_proj.data_preprocessing.sliding_window_features.centrality_features import SNAFeature
 from python_proj.utils.arg_utils import safe_get_argv, get_argv
 from python_proj.utils.util import *
 
@@ -83,7 +84,7 @@ def __get_features():
     # se_pr, se_issue = swf.build_se_features()
     # eco_pr, eco_issue = swf.build_eco_experience()
     # deco_pr, deco_issue, ideco_pr, ideco_issue = swf.build_deco_features()
-    # sna_pr_graph, sna_issue_graph, centrality_features = swf.build_centrality_features()
+    sna_pr_graph, sna_issue_graph, _, _ = swf.build_centrality_features()
 
     issue_sw_features = [
         # *ip_issue,
@@ -91,7 +92,7 @@ def __get_features():
         # *eco_issue,
         # *deco_issue,
         # *ideco_issue,
-        # *sna_issue_graph,
+        *sna_issue_graph,
     ]
 
     pr_sw_features = [
@@ -101,7 +102,7 @@ def __get_features():
         # *eco_pr,
         # *deco_pr,
         # *ideco_pr,
-        # *sna_pr_graph,
+        *sna_pr_graph,
     ]
 
     pr_features = [
@@ -182,6 +183,11 @@ def generate_dataset(pr_dataset_names: list[str],
             # print(f'{json.dumps(new_entry)=}')
             # print(f'{json.dumps(pruned_entries)=}')
             raise
+
+    print("Total edge count:")
+    for feature in all_features:
+        if isinstance(feature, SNAFeature):
+            print(f'{feature.get_name()}: {feature.total_edge_count} edges')
 
 
 def build_dataset(pr_dataset_names: list[str],
