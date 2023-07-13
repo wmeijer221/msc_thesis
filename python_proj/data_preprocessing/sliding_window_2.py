@@ -35,6 +35,7 @@ def slide_through_window(iterator: Generator[T, None, None],
     window: dict[datetime, list[T]] = {}
 
     for new_entry in iterator:
+        new_entry['__dt_closed_at'] = datetime.strptime(new_entry['closed_at'], exp_utils.DATETIME_FORMAT)
         # If window size is undefined, we don't need
         # to keep track of the window and can just
         # return the newest entry.
