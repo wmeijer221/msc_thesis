@@ -71,7 +71,9 @@ def _iterate_and_split(filter_path: str,
 
 def _parallel_sort(ymds: set[str],
                    temp_storage_path: str,
+                   datetime_key: list[str],
                    thread_count: int):
+    
     def _sort_key(entry: dict):
         return utils.get_nested(entry, datetime_key)
 
@@ -119,7 +121,7 @@ def sort_data(filter_path: str,
 
     print("Starting parallel bucket sort.")
     _parallel_sort(ymds, temp_storage_path,
-                   thread_count)
+                   datetime_key, thread_count)
 
     print("Merging buckets.")
     _write_sorted_buckets(ymds, output_path,
