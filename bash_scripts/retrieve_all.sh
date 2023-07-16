@@ -32,5 +32,5 @@ do
         --chron_in_pr $SORTED_FILTER \
         --chron_in_issue $SORTED_FILTER \
         --tag periphery_2 \
-        --window all
+        --windows all
 done
