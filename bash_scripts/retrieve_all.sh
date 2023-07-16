@@ -31,5 +31,6 @@ do
     python3 ./python_proj/data_filters/post_sort_filter_everything.py \
         --chron_in_pr $SORTED_FILTER \
         --chron_in_issue $SORTED_FILTER \
-        --tag periphery_2
+        --tag periphery_2 \
+        --window all
 done
