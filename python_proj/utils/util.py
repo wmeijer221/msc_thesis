@@ -261,18 +261,21 @@ class Counter:
 
 
 def tuple_chain(
-    generator: Generator[T, None, None],
+    iterator: Iterator[T],
     yield_first: bool = False,
     yield_last: bool = False
-) -> Generator[Tuple[T | None, T | None], None, None]:
+) -> Iterator[Tuple[T | None, T | None]]:
     """Returns tuples of entries. Given [a, b, c, d], it outputs [(a,b), (b,c), (c,d)]"""
+    if not isinstance(iterator, Iterator): 
+        iterator = iter(iterator)
+    
     previous = None
-    current = next(generator)
+    current = next(iterator)
 
     if yield_first:
         yield previous, current
 
-    for entry in generator:
+    for entry in iterator:
         previous = current
         current = entry
         yield previous, current
@@ -319,3 +322,7 @@ def flatten(iterator: Iterator[Iterator | Any]) -> Iterator[Any]:
                 yield inner_element
         else:
             yield element
+
+
+def lies_between(x, start, end) -> bool:
+    return x >= start and x <= end

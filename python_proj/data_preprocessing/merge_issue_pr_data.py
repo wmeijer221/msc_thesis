@@ -97,7 +97,7 @@ def do_the_merge(filter_type: str, delete_old: bool = False, write_new: bool = F
                                                      ext="--with-issue-data")
             with open(pr_output_path, "w+") as output_file:
                 if write_new:
-                    output_file.write(json.dumps(new_prs, indent=2))
+                    output_file.write(json.dumps(new_prs))
 
             # Filters out issues that are also PRs.
             for pr in prs:
@@ -113,7 +113,7 @@ def do_the_merge(filter_type: str, delete_old: bool = False, write_new: bool = F
                                                         ext="--no-prs")
             with open(issue_output_path, "w+") as issue_output_file:
                 data = list(issues_mapping.values())
-                issue_output_file.write(json.dumps(data, indent=2))
+                issue_output_file.write(json.dumps(data))
 
         issue_file.close()
         pull_request_file.close()
@@ -129,7 +129,14 @@ def do_the_merge(filter_type: str, delete_old: bool = False, write_new: bool = F
         f'Skipped {len(missing_issue_projects)} projects: {missing_issue_projects}.')
 
 
-if __name__ == "__main__":
+def cm_merge_issue_pr_data():
+    """
+    cmd params: 
+    -w: flag, turns on write mode to overwrite the PR data.
+    -d: flag, turns on delete mode to overwrite the issue data.
+    -f: file name reference for the filter file.
+    """
+    
     exp_utils.load_paths_for_eco()
     filter_file_name = exp_utils.get_file_name()
     write_new = get_argv_flag("-w")
@@ -139,3 +146,7 @@ if __name__ == "__main__":
         print("You're deleting the old stuff without writing the new stuff... Are you insane?!")
     else:
         do_the_merge(filter_file_name, delete_old, write_new)
+
+
+if __name__ == "__main__":
+    cm_merge_issue_pr_data()

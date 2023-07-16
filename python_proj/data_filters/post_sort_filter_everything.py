@@ -203,11 +203,11 @@ def apply_post_sort_all(
     __stage_remove_duplicates(output_name_final_datasets, 
                               output_name_final_datasets_no_dupes)
 
-    __stage_create_sliding_window_dataset(
-        windows,
-        output_path_flag,
-        output_name_final_datasets_no_dupes
-    )
+    # __stage_create_sliding_window_dataset(
+    #     windows,
+    #     output_path_flag,
+    #     output_name_final_datasets_no_dupes
+    # )
 
     print("Done!")
 

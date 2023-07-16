@@ -39,7 +39,7 @@ def _iterate_and_split(filter_path: str,
                 except json.JSONDecodeError:
                     print(f'Json decode error with: {entries_path}')
                     raise
-                
+
                 # Iterates through pulls/issues in the input file.
                 for entry in j_data:
                     try:
@@ -48,7 +48,7 @@ def _iterate_and_split(filter_path: str,
                             print(
                                 f'Skipping entry without key "{datetime_key}" {repo_split}.')
                             continue
-                        
+
                         # HACK: Preserves original file path so you can filter
                         # data to its owner/repo tuple.
                         entry['__source_path'] = entries_path
@@ -128,7 +128,18 @@ def sort_data(filter_path: str,
     print("Done!")
 
 
-if __name__ == "__main__":
+def cmd_data_sorter():
+    """
+    Cmd params:
+    -x: extension of the entered raw data files.
+    -n: output file name.
+    -q: filter file name.
+    -k: date time key.
+    -t: thread_count
+    -d: data source type
+    -e: ecosystem
+    """
+    
     # Does partial exp_utils init.
     exp_utils.load_paths_for_eco()
     exp_utils.load_paths_for_data_path()
@@ -162,3 +173,7 @@ if __name__ == "__main__":
     # Runs the whole thing!
     sort_data(filter_path, entries_path, datetime_key,
               chrono_path, temp_storage_path, thread_count)
+
+
+if __name__ == "__main__":
+    cmd_data_sorter()
