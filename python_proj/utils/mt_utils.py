@@ -2,7 +2,7 @@
 Contains utility scripts for multithreading related tasks.
 """
 
-from typing import Callable, Generator
+from typing import Callable, Iterator
 import multiprocessing
 
 
@@ -56,7 +56,7 @@ class SimpleConsumer(multiprocessing.Process):
 
 
 def parallelize_tasks(
-    tasks: list | Generator,
+    tasks: list | Iterator,
     on_message_received: Callable,
     thread_count: int,
     *args, **kwargs

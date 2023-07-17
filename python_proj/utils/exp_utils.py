@@ -6,7 +6,7 @@ from functools import partial
 from datetime import datetime
 from os import getenv
 import json
-from typing import Generator
+from typing import Iterator
 from numbers import Number
 import math
 
@@ -219,7 +219,7 @@ def iterate_through_multiple_chronological_datasets(dataset_names: list[str],
                                                     dataset_types: list[str] | None = None,
                                                     data_sources: list[str] | None = None,
                                                     print_progress_interval: int = 50000) \
-        -> Generator[dict, None, None]:
+        -> Iterator[dict]:
     "Assumes partial paths have been loaded up to the specific dataset names."
 
     if dataset_types is None:
@@ -237,7 +237,7 @@ def iterate_through_multiple_chronological_datasets(dataset_names: list[str],
         dt_closed_at = datetime.strptime(closed_at, dt_format)
         return dt_closed_at.timestamp()
 
-    def __file_iterator(file) -> Generator[dict, None, None]:
+    def __file_iterator(file) -> Iterator[dict]:
         for line in file:
             try:
                 stripped_line = line.strip()

@@ -2,7 +2,7 @@
 Implements general utility functions.
 """
 
-from typing import Any, Tuple, TypeVar, Generator, Callable, Iterator, Sequence
+from typing import Any, Tuple, TypeVar, Callable, Iterator, Sequence
 from numbers import Number
 import io
 import numpy
@@ -140,9 +140,9 @@ class OpenMany:
 T = TypeVar("T")
 
 
-def ordered_chain(iterables: list[Generator[T, None, None]],
+def ordered_chain(iterables: list[Iterator[T]],
                   key: Callable[[T, T], Number]) \
-        -> Generator[Tuple[int, T], None, None]:
+        -> Iterator[Tuple[int, T]]:
     """
     Iterates through multiple generators in a chained fashion,
     iterating through them in an ordered fashion. Assumes the
@@ -285,9 +285,9 @@ def tuple_chain(
 
 
 def chain_with_intermediary_callback(
-    generator: Generator[T, None, None],
+    generator: Iterator[T],
     callback: Callable[[T], None]
-) -> Generator[T, None, None]:
+) -> Iterator[T]:
     """Calls the specified function before yielding the entry like normal."""
     for entry in generator:
         callback(entry)
