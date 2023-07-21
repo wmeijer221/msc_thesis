@@ -2,6 +2,7 @@
 Contains utility scripts for multithreading related tasks.
 """
 
+from numbers import Number
 from typing import Callable, Iterator
 import multiprocessing
 
@@ -16,7 +17,8 @@ class SimpleConsumer(multiprocessing.Process):
         self,
         on_message_received: Callable,
         task_list: multiprocessing.JoinableQueue,
-        worker_index: int, 
+        worker_index: int,
+        result_queue: multiprocessing.Queue,
         consumer_name: str = "SimpleConsumer",
         print_lifetime_events: bool = True,
         *args, **kwargs
@@ -25,6 +27,7 @@ class SimpleConsumer(multiprocessing.Process):
         self._on_message_received = on_message_received
         self._task_list = task_list
         self._worker_index = worker_index
+        self._result_queue = result_queue
         self._args = args
         self._kwargs = kwargs
         self._consumer_name = consumer_name
@@ -43,9 +46,13 @@ class SimpleConsumer(multiprocessing.Process):
                 is_running = False
                 break
             try:
-                task_kwargs = {**self._kwargs, **task,
-                               "worker_index": self._worker_index}
-                self._on_message_received(*self._args, **task_kwargs)
+                task_kwargs = {
+                    **self._kwargs, **task,
+                    "worker_index": self._worker_index
+                }
+                result = self._on_message_received(*self._args, **task_kwargs)
+                if not result is None:
+                    self._result_queue.put(result)
             except Exception as ex:
                 print(
                     f"{self._consumer_name}-{self._worker_index}: Failed with entry {task}: {ex}.")
@@ -59,8 +66,9 @@ def parallelize_tasks(
     tasks: list | Iterator,
     on_message_received: Callable,
     thread_count: int,
+    return_results: bool = False,
     *args, **kwargs
-):
+) -> list | None:
     """
     Starts a bunch of simple consumer threads that work away on the given tasks. 
     The tasks are passed through ``task`` parameter; i.e., if it's a dict is not unpacked.
@@ -69,10 +77,14 @@ def parallelize_tasks(
     worklist = multiprocessing.JoinableQueue()
     workers: list[SimpleConsumer] = [None] * thread_count
 
+    result_queue = multiprocessing.Queue() if return_results else None
+
     # Creates workers.
     for index in range(thread_count):
         worker = SimpleConsumer(on_message_received,
-                                worklist, index, *args, **kwargs)
+                                worklist, index,
+                                result_queue,
+                                *args, **kwargs)
         worker.start()
         workers[index] = worker
 
@@ -93,3 +105,11 @@ def parallelize_tasks(
     # Waits until workers terminate.
     for worker in workers:
         worker.join()
+
+    # Returns the results if necessary.
+    if not return_results:
+        return
+    results = []
+    while not result_queue.empty():
+        results.append(result_queue.get())
+    return results
