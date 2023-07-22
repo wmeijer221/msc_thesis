@@ -2,7 +2,6 @@
 Contains utility scripts for multithreading related tasks.
 """
 
-from numbers import Number
 from typing import Callable, Iterator
 import multiprocessing
 
@@ -113,3 +112,98 @@ def parallelize_tasks(
     while not result_queue.empty():
         results.append(result_queue.get())
     return results
+
+
+def parallelize_tasks_2(
+    tasks: Iterator,
+    on_message_received: Callable,
+    thread_count: int = 1,
+    return_results: bool = False,
+    *args, **kwargs
+):
+    executor = ExecutorService(thread_count, return_results, *args, **kwargs)
+    executor.start()
+    total_tasks = len(tasks) if isinstance(tasks, list) else "unknown"
+    for task_id, task in enumerate(tasks, start=1):
+        executor.submit(
+            task_callable=on_message_received,
+            task=task,
+            task_id=task_id,
+            total_tasks=total_tasks
+        )
+    executor.stop()
+    results = executor.get_results()
+    return results
+
+
+class ExecutorService:
+    def __init__(
+        self,
+        thread_count: int = 1,
+        return_results: bool = False,
+        print_lifetime_events: bool = True,
+        *args, **kwargs
+    ):
+        if thread_count < 1:
+            raise ValueError("There's a minimum of 1 thread.")
+
+        self._thread_count = thread_count
+        self._return_results = return_results
+        self._print_lifetime_events = print_lifetime_events
+        self._args = args
+        self._kwargs = kwargs
+
+        self._worklist = multiprocessing.JoinableQueue()
+        self._workers: list[SimpleConsumer] = [None] * thread_count
+        self._result_queue = multiprocessing.Queue() if return_results else None
+
+    def do_task(self, task_callable, targs, tkwargs, *args, **kwargs):
+        return task_callable(task_callable, *targs, *args, **tkwargs, **kwargs)
+
+    def start(self):
+        if self._print_lifetime_events:
+            print("Executor Starting!")
+        # Creates workers.
+        for index in range(self._thread_count):
+            worker = SimpleConsumer(
+                self.do_task,
+                self._worklist, index,
+                result_queue=self._result_queue,
+                print_lifetime_events=self._print_lifetime_events,
+                *self._args, **self._kwargs
+            )
+            worker.start()
+            self._workers[index] = worker
+
+        if self._print_lifetime_events:
+            print("Executor Started!")
+
+    def submit(self, task_callable: Callable, *targs, **tkwargs):
+        task_wrapper = {
+            'task_callable': task_callable,
+            'targs': targs,
+            'tkwargs': tkwargs
+        }
+        self._worklist.put(task_wrapper)
+
+    def stop(self):
+        if self._print_lifetime_events:
+            print("Executor Stopping!")
+        # Kills workers.
+        for _ in range(self._thread_count):
+            self._worklist.put(SimpleConsumer.TerminateTask())
+        # Waits until workers terminate.
+        for worker in self._workers:
+            worker.join()
+            print(self._workers)
+        if self._print_lifetime_events:
+            print("Executor Stopped!")
+
+    def get_results(self) -> list | None:
+        # Returns the results if necessary.
+        if not self._return_results:
+            return
+        results = []
+        while not self._result_queue.empty():
+            results.append(self._result_queue.get())
+        return results

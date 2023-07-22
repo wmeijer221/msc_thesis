@@ -2,6 +2,7 @@
 Implements general utility functions.
 """
 
+import regex as re
 from typing import Any, Tuple, TypeVar, Callable, Iterator, Sequence
 from numbers import Number
 import io
@@ -266,9 +267,9 @@ def tuple_chain(
     yield_last: bool = False
 ) -> Iterator[Tuple[T | None, T | None]]:
     """Returns tuples of entries. Given [a, b, c, d], it outputs [(a,b), (b,c), (c,d)]"""
-    if not isinstance(iterator, Iterator): 
+    if not isinstance(iterator, Iterator):
         iterator = iter(iterator)
-    
+
     previous = None
     current = next(iterator)
 
@@ -326,3 +327,10 @@ def flatten(iterator: Iterator[Iterator | Any]) -> Iterator[Any]:
 
 def lies_between(x, start, end) -> bool:
     return x >= start and x <= end
+
+
+def get_matching(collection: Iterator[str], expr: str) -> Iterator[str]:
+    """Returns all entries that match the expression"""
+    for entry in collection:
+        if re.match(expr, entry):
+            yield entry
