@@ -10,16 +10,16 @@ from python_proj.utils.exp_utils import get_file_name
 
 
 def get_all(filter_type: str):
-    # print(f'Starting with PRs for: {filter_type}.')
-    # pr_argv = ["python3", "./python_proj/data_retrieval/retrieve_pull_requests.py",
-    #            "-m", "s",
-    #            "-t", "3",
-    #            "-f", filter_type]
-    # try:
-    #     Popen(pr_argv).wait()
-    # except:
-    #     print("FAILED")
-    #     return 
+    print(f'Starting with PRs for: {filter_type}.')
+    pr_argv = ["python3", "./python_proj/data_retrieval/retrieve_pull_requests.py",
+               "-m", "s",
+               "-t", "3",
+               "-f", filter_type]
+    try:
+        Popen(pr_argv).wait()
+    except:
+        print("FAILED")
+        return 
     
     print(f'Starting with issues for: {filter_type}.')
     iss_argv = ["python3", "./python_proj/data_retrieval/retrieve_issues.py",
