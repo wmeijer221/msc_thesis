@@ -55,6 +55,5 @@ del dependency_mapping
 print(f'{len(outgoing_dependencies)=}, {len(incoming_dependencies)=}.')
 
 with open("./tmp_incoming_dependencies.txt", "w+", encoding='utf-8') as output_file:
-    lines = [project_id_to_name[project_id] for project_id in incoming_dependencies]
+    lines = [f'{project_id_to_name[project_id]}\n' for project_id in incoming_dependencies]
     output_file.writelines(lines)
-    
