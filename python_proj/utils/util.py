@@ -3,7 +3,7 @@ Implements general utility functions.
 """
 
 import regex as re
-from typing import Any, Tuple, TypeVar, Callable, Iterator, Sequence
+from typing import Any, Tuple, TypeVar, Callable, Iterator, Sequence, Generic
 from numbers import Number
 import io
 import numpy
@@ -170,8 +170,10 @@ def ordered_chain(iterables: list[Iterator[T]],
             stop_iterations += 1
             current_elements[current_idx] = None
 
+_KT = TypeVar("_KT")
+_VT = TypeVar("_VT")
 
-class SafeDict(dict):
+class SafeDict(dict, Generic[_KT, _VT]):
     """
     Standard dictionary data structure that adds a default value to a key if it doesn't exist yet.
     """
@@ -179,7 +181,7 @@ class SafeDict(dict):
     def __init__(self, default_value, default_value_constructor_args: list[Any] | None = None,
                  default_value_constructor_kwargs: dict[str,
                                                         Any] | None = None,
-                 initial_mapping: dict | None = None,
+                 initial_mapping: dict[_KT, _VT] | None = None,
                  delete_when_default: bool = False,
                  *args, **kwargs):
         """
@@ -220,13 +222,13 @@ class SafeDict(dict):
 
         super().__init__(*args, **kwargs)
 
-    def __getitem__(self, __key) -> None:
+    def __getitem__(self, __key: _KT) -> None:
         if not __key in self:
             value = self.__get_default_value()
             super().__setitem__(__key, value)
         return super().__getitem__(__key)
 
-    def __setitem__(self, __key: Any, __value: Any) -> None:
+    def __setitem__(self, __key: _KT, __value: _VT) -> None:
         if self.__delete_when_default and __value == self.__default_value:
             super().__delitem__(__key)
         else:

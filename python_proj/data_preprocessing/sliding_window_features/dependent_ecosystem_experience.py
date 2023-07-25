@@ -10,14 +10,14 @@ from python_proj.data_preprocessing.sliding_window_features.ecosystem_experience
 import python_proj.utils.exp_utils as exp_utils
 
 
-DEPENDENCY_MAP: SafeDict[str, set[str]] = None
-PROJECT_NAME_TO_ID: dict[int, str] = None
+DEPENDENCY_MAP: SafeDict[int, set[int]] = None
+PROJECT_NAME_TO_ID: dict[str, int] = None
 
 
-def __attempt_quick_load_dependency_map() -> Tuple[bool, str,
-                                                   SafeDict[str,
-                                                            set[str]] | None,
-                                                   dict[str, int] | None]:
+def __attempt_quick_load_dependency_map(
+) -> Tuple[bool, str,
+           SafeDict[int, set[int]] | None,
+           dict[str, int] | None]:
     """
     Attempts to load the file in which the summarized dependency data is stored.
     Using this file is much, much faster than loading the libraries.io datasets
@@ -55,7 +55,7 @@ def __attempt_quick_load_dependency_map() -> Tuple[bool, str,
 
 
 def __slow_load_dependency_map(output_path: str) \
-    -> Tuple[SafeDict[str, set[str]],
+    -> Tuple[SafeDict[int, set[int]],
              dict[str, int]]:
     """
     Loads all depedency data from the libraries.io dataset.
@@ -152,7 +152,7 @@ def __slow_load_dependency_map(output_path: str) \
 
 
 def load_dependency_map() \
-    -> Tuple[SafeDict[str, set[str]],
+    -> Tuple[SafeDict[int, set[int]],
              dict[str, int]]:
     """
     Loads the dependency map by first attempting the quick way,
@@ -179,7 +179,7 @@ def load_dependency_map() \
 
 
 def safe_load_dependency_map() \
-    -> Tuple[SafeDict[str, set[str]],
+    -> Tuple[SafeDict[int, set[int]],
              dict[str, int]]:
     """
     Returns the dependency map that in mamory and
@@ -420,4 +420,3 @@ def build_deco_features():
     ]
 
     return deco_pr, deco_issue, ideco_pr, ideco_issue
-
