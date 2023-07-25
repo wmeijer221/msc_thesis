@@ -29,6 +29,8 @@ dependency_mapping, project_name_to_id = safe_load_dependency_map()
 unique_projects = set()
 for entry in csv_reader:
     project_name = entry[proj_idx].lower()
+    if not project_name in project_name_to_id:
+        continue
     proj_id = project_name_to_id[project_name]
 del project_name_to_id
 
