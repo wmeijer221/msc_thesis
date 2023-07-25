@@ -9,6 +9,7 @@ import csv
 
 from python_proj.data_preprocessing.sliding_window_features.dependent_ecosystem_experience import safe_load_dependency_map
 
+from python_proj.utils.util import invert_dict
 from python_proj.utils.arg_utils import get_argv
 import python_proj.utils.exp_utils as exp_utils
 
@@ -33,6 +34,7 @@ for entry in csv_reader:
         continue
     proj_id = project_name_to_id[project_name]
     unique_projects.add(proj_id)
+project_id_to_name = invert_dict(project_name_to_id)
 del project_name_to_id
 
 incoming_dependencies = set()
@@ -48,6 +50,11 @@ for project_id in unique_projects:
             incoming_dependencies.add(dependency_id)
             outgoing_dependencies.add(project_id)
             break
-
+del dependency_mapping
 
 print(f'{len(outgoing_dependencies)=}, {len(incoming_dependencies)=}.')
+
+with open("./tmp_incoming_dependencies.txt", "w+", encoding='utf-8') as output_file:
+    lines = [project_id_to_name[project_id] for project_id in incoming_dependencies]
+    output_file.writelines(lines)
+    

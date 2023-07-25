@@ -170,8 +170,10 @@ def ordered_chain(iterables: list[Iterator[T]],
             stop_iterations += 1
             current_elements[current_idx] = None
 
+
 _KT = TypeVar("_KT")
 _VT = TypeVar("_VT")
+
 
 class SafeDict(dict, Generic[_KT, _VT]):
     """
@@ -336,3 +338,7 @@ def get_matching(collection: Iterator[str], expr: str) -> Iterator[str]:
     for entry in collection:
         if re.match(expr, entry):
             yield entry
+
+
+def invert_dict(d: dict) -> dict:
+    return {value: key for key, value in d.items()}
