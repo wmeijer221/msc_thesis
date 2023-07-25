@@ -32,6 +32,7 @@ for entry in csv_reader:
     if not project_name in project_name_to_id:
         continue
     proj_id = project_name_to_id[project_name]
+    unique_projects.add(proj_id)
 del project_name_to_id
 
 incoming_dependencies = set()
