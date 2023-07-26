@@ -49,9 +49,6 @@ class SharedExperienceFeature(SlidingWindowFeature):
         return source_ids, target_ids
 
     def _handle(self, entry: dict, sign: Number):
-        if entry['comments'] == 0:
-            return
-
         source_ids, target_ids = self._get_us_and_vs(entry)
 
         for source_id in source_ids:
@@ -108,13 +105,9 @@ class SharedExperiencePullRequestSubmittedBySubmitterCommentedOnByIntegrator(Sha
             is_inversed
         )
 
-    def add_entry(self, entry: dict):
+    def _handle(self, entry: dict, sign: Number):
         if entry['comments'] > 0:
-            super().add_entry(entry)
-
-    def remove_entry(self, entry: dict):
-        if entry['comments'] > 0:
-            super().remove_entry(entry)
+            super()._handle(entry, sign)
 
 
 class SharedExperiencePullRequestSubmittedByIntegratorCommentedOnBySubmitter(SharedExperiencePullRequestSubmittedBySubmitterCommentedOnByIntegrator):
@@ -135,6 +128,10 @@ class SharedExperiencePullRequestDiscussionParticipationByIntegratorAndSubmitter
             ["comments_data", "user_data", "id"],
             is_inversed
         )
+
+    def _handle(self, entry: dict, sign: Number):
+        if entry['comments'] > 0:
+            super()._handle(entry, sign)
 
 # Issues
 

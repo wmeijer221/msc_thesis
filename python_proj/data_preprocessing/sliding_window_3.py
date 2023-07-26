@@ -17,13 +17,14 @@ import os
 from typing import Tuple, Iterator, Callable
 
 import python_proj.data_preprocessing.sliding_window_features as swf
-from python_proj.utils.arg_utils import safe_get_argv, get_argv
+from python_proj.utils.arg_utils import safe_get_argv, get_argv, get_argv_flag
 import python_proj.utils.exp_utils as exp_utils
 from python_proj.data_preprocessing.sliding_window_features import SlidingWindowFeature, Feature, Closes
 from python_proj.data_preprocessing.sliding_window_features.centrality_features import SNAFeature
 from python_proj.utils.mt_utils import parallelize_tasks
 from python_proj.utils.util import Counter, tuple_chain,\
     chain_with_intermediary_callback, safe_makedirs, flatten
+from functools import partial
 
 
 def __create_data_chunk_stream(
@@ -415,9 +416,9 @@ def create_sliding_window_dataset(
     print("Done!")
 
 
-def all_features_factory() -> Tuple[list[SlidingWindowFeature],
-                                    list[SlidingWindowFeature],
-                                    list[Feature]]:
+def all_features_factory(use_sna: bool) -> Tuple[list[SlidingWindowFeature],
+                                                 list[SlidingWindowFeature],
+                                                 list[Feature]]:
     """
     Standard factory method for all features.
     """
@@ -428,7 +429,10 @@ def all_features_factory() -> Tuple[list[SlidingWindowFeature],
     se_pr, se_issue = swf.build_se_features()
     eco_pr, eco_issue = swf.build_eco_experience()
     deco_pr, deco_issue, ideco_pr, ideco_issue = swf.build_deco_features()
-    sna_pr_graph, sna_issue_graph, centrality_features, local_centrality_measures = swf.build_centrality_features()
+    if use_sna:
+        sna_pr_graph, sna_issue_graph, centrality_features, local_centrality_measures = swf.build_centrality_features()
+    else:
+        sna_pr_graph, sna_issue_graph, centrality_features, local_centrality_measures = [], [], [], []
 
     issue_sw_features = [
         *ip_issue,
@@ -488,13 +492,15 @@ def cmd_create_sliding_window_dataset():
 
     start = datetime.now()
 
+    use_sna = not get_argv_flag('--no-sna')
+
     create_sliding_window_dataset(
         output_path,
         chunk_base_path,
         chunk_output_base_path,
         input_issue_dataset_names,
         input_pr_dataset_names,
-        all_features_factory,
+        partial(all_features_factory, use_sna=use_sna),
         window_size_in_days,
         thread_count
     )
