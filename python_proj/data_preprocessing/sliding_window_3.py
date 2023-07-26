@@ -432,6 +432,7 @@ def all_features_factory(use_sna: bool) -> Tuple[list[SlidingWindowFeature],
     if use_sna:
         sna_pr_graph, sna_issue_graph, centrality_features, local_centrality_measures = swf.build_centrality_features()
     else:
+        print(f'Skipping SNA features.')
         sna_pr_graph, sna_issue_graph, centrality_features, local_centrality_measures = [], [], [], []
 
     issue_sw_features = [
