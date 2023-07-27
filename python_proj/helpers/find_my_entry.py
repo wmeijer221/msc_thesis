@@ -5,8 +5,10 @@ import python_proj.utils.exp_utils as exp_utils
 
 
 def load(file: str):
-    return {entry: ['id'] for entry in exp_utils.iterate_through_chronological_data(data_type="pull-requests", file_name=file)}
-
+    data = {}
+    for entry in exp_utils.iterate_through_chronological_data(data_type="pull-requests", file_name=file):
+        data[entry['id']] = entry
+    return data
 
 def find_in(file: str, id: int):
     for entry in exp_utils.iterate_through_chronological_data(data_type="pull-requests", file_name=file):
