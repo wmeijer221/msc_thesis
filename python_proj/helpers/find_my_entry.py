@@ -10,6 +10,7 @@ def load(file: str):
         data[entry['id']] = entry
     return data
 
+
 def find_in(file: str, id: int):
     for entry in exp_utils.iterate_through_chronological_data(data_type="pull-requests", file_name=file):
         if entry['id'] == id:
@@ -25,9 +26,14 @@ if __name__ == "__main__":
     data = load(file)
 
     while True:
-        id = input('fill in PR id:')
-        id = int(id)
-        if id in data:
-            print(json.dumps(data[id], indent=4))
-        else:
-            print('doesnt exist')
+        try:
+            id = input('fill in PR id:')
+            id = int(id)
+            if id in data:
+                print(json.dumps(data[id], indent=4))
+            else:
+                print('doesnt exist')
+        except KeyboardInterrupt:
+            raise
+        finally:
+            continue
