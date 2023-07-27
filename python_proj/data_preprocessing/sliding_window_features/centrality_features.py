@@ -309,6 +309,7 @@ class FirstOrderDegreeCentralityV2(SNACentralityFeature):
 def build_centrality_features():
     """Factory method for centrality features."""
 
+    # TODO: replace this with a ``MultiDiGraph``
     graph = nx.DiGraph()
 
     pr_graph = [
