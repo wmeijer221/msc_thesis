@@ -1,3 +1,4 @@
+from python_proj.data_filters.post_sort_filters import filter_bots_dey_2020, filter_bots_golzadeh_2021, filter_for_blacklist
 from datetime import datetime
 
 from python_proj.data_preprocessing.sliding_window_features.base import *
@@ -51,7 +52,8 @@ class ControlIntraProjectPullRequestExperienceOfIntegrator(SlidingWindowFeature)
                      default_value_constructor_kwargs={'default_value': 0})
 
     def handle(self, entry: dict, sign: int):
-        owner, repo = get_owner_and_repo_from_source_path(entry["__source_path"])
+        owner, repo = get_owner_and_repo_from_source_path(
+            entry["__source_path"])
         project = f'{owner}/{repo}'
         integrator_key = get_integrator_key(entry)
         self.__projects_to_integrator_experience[project][integrator_key] += sign
@@ -63,7 +65,8 @@ class ControlIntraProjectPullRequestExperienceOfIntegrator(SlidingWindowFeature)
         self.handle(entry, sign=-1)
 
     def get_feature(self, entry: dict) -> int:
-        owner, repo = get_owner_and_repo_from_source_path(entry["__source_path"])
+        owner, repo = get_owner_and_repo_from_source_path(
+            entry["__source_path"])
         project = f'{owner}/{repo}'
         integrator_key = get_integrator_key(entry)
         return self.__projects_to_integrator_experience[project][integrator_key]
@@ -102,6 +105,14 @@ class ControlPullRequestHasCommentByExternalUser(Feature):
     def __init__(self) -> None:
         self._contributors_per_project = SafeDict(default_value=set)
 
+    @staticmethod
+    def __is_bot(comment: dict) -> bool:
+        is_kept = (filter_bots_golzadeh_2021(comment) or
+                      filter_bots_dey_2020(comment) or
+                      filter_for_blacklist(comment))
+
+        return not is_kept
+
     def __add_submitter(self, entry: dict):
         if not entry['merged']:
             return
@@ -127,7 +138,8 @@ class ControlPullRequestHasCommentByExternalUser(Feature):
             commenter_id = comment["user_data"]["id"]
             if (commenter_id != submitter_id
                     and commenter_id != integrator_id
-                    and commenter_id not in project_contributors):
+                    and commenter_id not in project_contributors
+                    and not self.__is_bot(comment)):
                 return True
 
         return False
