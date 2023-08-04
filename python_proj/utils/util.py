@@ -242,7 +242,7 @@ def safe_save_fig(output_path):
     dir_name = os.path.dirname(output_path)
     if not os.path.exists(dir_name):
         os.makedirs(dir_name)
-    plt.savefig(output_path)
+    plt.savefig(output_path, dpi=400)
 
 
 def subtract_dict(original: dict[Any, Number], subtracted: dict[Any, Number]) -> dict[Any, Number]:

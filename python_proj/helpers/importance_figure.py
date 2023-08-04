@@ -1,4 +1,5 @@
 
+from python_proj.utils.util import safe_save_fig
 from typing import Iterator, Any
 import numpy as np
 import matplotlib.pyplot as plt
@@ -129,19 +130,13 @@ sorted_non_ftc_importances = [non_ftc_importances[k] if k in non_ftc_importances
 sorted_full_importances_keys = sorted_full_importances.keys()
 sorted_full_importances = sorted_full_importances.values()
 
-print(sorted_full_importances)
-print(sorted_ftc_importances)
-print(sorted_non_ftc_importances)
-
-
 def inverse(series: list[Any]) -> list[Any]:
     new_list = []
     series = list(series)
     length = len(series)
     for i in range(length - 1, -1, -1):
-        new_list.append(series[i]) 
+        new_list.append(series[i])
     return new_list
-
 
 
 predictor_labels = [
@@ -160,7 +155,7 @@ predictor_labels = inverse(predictor_labels)
 
 
 # Increased width to provide more space for the left side
-plt.figure(figsize=(3.75, 3))
+plt.figure(figsize=(5.35, 3))
 
 # Plot each data series
 plt.plot(inverse(sorted_full_importances), predictor_labels,
@@ -171,7 +166,7 @@ plt.plot(inverse(sorted_non_ftc_importances), predictor_labels,
          'D', fillstyle='none', markersize=6, label='Non-FTC')
 
 # Add labels and title
-plt.xlabel('Mean Decrease in Impurity')
+plt.xlabel('Mean Decrease in Gini')
 plt.ylabel('Predictors')
 plt.subplots_adjust(left=0.45)
 
@@ -182,5 +177,8 @@ plt.legend()
 plt.tight_layout()
 # plt.show()
 
-plt.savefig('./data/figures/importance_figure.png')
+
+output_path = './data/figures/importance_figure.png'
+safe_save_fig(output_path)
+
 # plt.show()
