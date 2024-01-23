@@ -342,3 +342,10 @@ def get_matching(collection: Iterator[str], expr: str) -> Iterator[str]:
 
 def invert_dict(d: dict) -> dict:
     return {value: key for key, value in d.items()}
+
+
+def flip_dict(A: dict) -> dict:
+    new_dict = dict()
+    for key, value in A.items():
+        new_dict[value] = key
+    return new_dict
