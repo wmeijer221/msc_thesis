@@ -228,6 +228,8 @@ class EcosystemExperienceDecorator(SlidingWindowFeature):
         current project has no dependency on the other project, or when inversed 
         dependencies are used and the other project has no dependency on the current project.
         """
+        
+        # TODO: This method renames its parameters to "name" instead of "id". I don't think thats's quite right.
 
         # Ignores intra-project experience; you can't have a self-dependency anyways.
         if current_project_name == other_project_name:
