@@ -1,4 +1,6 @@
 
+# TODO: This code probably does not work anymore. Should it be kept?
+
 """
 When observing the data collection process, it becomes apparent that
 periphery projects are sampled from a list of projects that is filtered
@@ -17,7 +19,7 @@ from python_proj.utils.arg_utils import get_argv
 import python_proj.utils.exp_utils as exp_utils
 from python_proj.utils.util import OpenMany
 
-from python_proj.data_preprocessing.sliding_window_features.dependent_ecosystem_experience import safe_load_dependency_map
+from python_proj.data_preprocessing.sliding_window_features.dependency_ecosystem_experience import safe_load_dependency_map
 
 
 def calculate_periphery_to_core_dependencies(

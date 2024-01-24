@@ -7,7 +7,7 @@ of projects that have a dependency within the dataset.
 
 import csv
 
-from python_proj.data_preprocessing.sliding_window_features.dependent_ecosystem_experience import safe_load_dependency_map
+from python_proj.data_preprocessing.sliding_window_features.dependency_ecosystem_experience import safe_load_dependency_map
 
 from python_proj.utils.util import invert_dict
 from python_proj.utils.arg_utils import get_argv
