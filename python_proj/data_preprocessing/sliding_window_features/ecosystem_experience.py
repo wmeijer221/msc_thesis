@@ -136,6 +136,7 @@ class EcosystemExperienceSubmitterPullRequestCommentCount(EcosystemExperience):
         return True
 
 
+# TODO: This field can be removed from the repository as it's obsolete; it's essentially the same feature as comment count. This is also for the issue variant.
 class EcosystemExperienceSubmitterPullRequestDiscussionParticipationCount(EcosystemExperienceSubmitterPullRequestCommentCount):
     """
     Counts the number of times a person has commented on a pull request, at an
