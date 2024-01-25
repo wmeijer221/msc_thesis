@@ -85,7 +85,7 @@ def __get_features():
     # se_pr, se_issue = swf.build_se_features()
     # eco_pr, eco_issue = swf.build_eco_experience()
     # deco_pr, deco_issue, ideco_pr, ideco_issue = swf.build_deco_features()
-    sna_pr_graph, sna_issue_graph, _, _ = swf.build_centrality_features()
+    # sna_pr_graph, sna_issue_graph, _, _ = swf.build_centrality_features()
 
     issue_sw_features = [
         # *ip_issue,
@@ -93,7 +93,7 @@ def __get_features():
         # *eco_issue,
         # *deco_issue,
         # *ideco_issue,
-        *sna_issue_graph,
+        # *sna_issue_graph,
     ]
 
     pr_sw_features = [
@@ -103,7 +103,7 @@ def __get_features():
         # *eco_pr,
         # *deco_pr,
         # *ideco_pr,
-        *sna_pr_graph,
+        # *sna_pr_graph,
     ]
 
     pr_features = [
