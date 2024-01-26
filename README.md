@@ -4,6 +4,7 @@ This repository contains all of the code used to produce the master's thesis wor
 
 This repository acts as a _replication package_ to this study, providing little to no explicit information regarding design decisions.
 For that type of information and any other unclarities, refer to the paper; specifically the data collection / methodology section.
+Figure 1 in the thesis provides a high-level overview of the data collection process, which might help contextualize the different replication steps / scripts in this repository.
 
 ## Contents
 
@@ -33,6 +34,7 @@ For that type of information and any other unclarities, refer to the paper; spec
 
 The following steps are necessary to replicate this study.
 You can skip steps in case you have access to raw or processed data.
+
 
 Some of the steps use multithreaded solutions and allow you to specify the number of used threads. 
 This can most commonly be done using the `-t` commandline parameter, such that `-t 4` runs the process with four threads. 
@@ -85,13 +87,13 @@ The output of this will be two data files, both called `sorted_filtered_min_5_pr
 ### Dataset Generation
 
 - Run `sliding_window_2.py -m s -pd sorted_filtered_min_5_prs_no_dupes_no_invalid -id sorted_filtered_min_5_prs_no_dupes_no_invalid -o ftc_data -w 90` which generates a dataset that only contains the independent variable "is first time contributor". This is done separately as `sliding_window_3` is multithreaded and can't calculate this correctly. It stores the output at `ftc_data.csv`.
-- Run `sliding_window_3.py -pd sorted_filtered_min_5_prs_no_dupes_no_invalid -id sorted_filtered_min_5_prs_no_dupes_no_invalid -o non_ftc_data -w 90 -t 8` which generates the rest of the features multithreadedly (this is quite memory intensive, so you can't 'just' max out the number of threads). The generated dataset is stored at `non_ftc_data.csv`.
+- Run `sliding_window_3.py -pd sorted_filtered_min_5_prs_no_dupes_no_invalid -id sorted_filtered_min_5_prs_no_dupes_no_invalid -o non_ftc_data -w 90 -t 8` which generates the rest of the features multithreadedly (this is quite memory intensive, so you probably can't just max out the number of threads). The generated dataset is stored at `non_ftc_data.csv`.
 
-The output of this is two datasets `ftc_data.csv` and `non_ftc_data.csv`.
+The output of this is two datasets `ftc_data.csv` and `non_ftc_data.csv`, which are input for the data modelling / inference process.
 
 ### Modelling
 
-
+...
 
 ## Repository Contents
 
@@ -129,7 +131,7 @@ The rest is used after data collection.
 - [`data_sorter`](./python_proj/data_preprocessing/data_sorter.py): Using a project name list as input file, specified using `-q`, it merges the `.json` pull request / issue data of all projects into one file containing all the activities in chronological order. Processing a file as a whole instead of many separate files is substantially faster. In addition, sorting the data makes it possible to make some assumptions in the later analyses phases. Specify the output file name using `-n`, specify the used sorting key with `-k` (we used `closed_at`), and specify the number of used threads using `-t` as it's multiprocessed. It does not handle issue and pull request data simultaneously, so specify this with `-d` to either `issues` or `pull-requests`.
 - [`merge_issue_pr_data`](./python_proj/data_preprocessing/merge_issue_pr_data.py): Adds issue data to pull requests. This is necessary as in GitHub, the pull request data structure inherits the issue datastructure (e.g., the submission message, comments, etc. are all issue components, whereas the changes etc. are PR data). As-is the PR data does not contain any of the issue information, for which it must be added. As input, it uses a list of projects, which can be specified using `-f`. The updated pull requests are written to a file with the extention `--with-issue-data` and that the filtered issues are written to a file with the extention `--no-prs`. Because this script is a little scary, because it writes new data files and deletes old issue and pr data, it makes overwriting and deleting the data optional using the `-w` and `-d` flags, respectively, allowing you to do a dry run. (Such that if you add these flags when executing the code, will overwrite and delete entries.)
 - [`sliding_window_3`](./python_proj/data_preprocessing/sliding_window_3.py): Version 3 of the sliding window algorithm. The first one grew obsolete, the second worked well but was single-threaded, and the third a multithreaded one to speed up the dataset generation process substantially (it speeds up from multiple days to a couple of hours). You can specify the input issue and PR datasets using `-pd` and `-id`, respectively. Specify the output file name using `-o`, and the window size with `-w`. You can specify the used threads with `-t`, however, don't set this too high as it's a memory bound process and the process will fail if it runs out of memory. You could use the `--no-sna` flag if you want to disable calculating the social network analysis variables. This will reduce the memory footprint substantially.
-- [`sliding_window_2`](./python_proj/data_preprocessing/sliding_window_2.py): The old version of `sliding_window_3`, and does exactly the same job as the upgraded version. It's largely obsolete, but still used to calculate the "is first time contributor" field. The `-pd`, `-id`, `-o`, and `-w` parameters work exactly the same. All of the variables that can be calculated with `sliding_window_3` have been disabled.
+- [`sliding_window_2`](./python_proj/data_preprocessing/sliding_window_2.py): The old version of `sliding_window_3`, and does exactly the same job as the upgraded version. It's largely obsolete, but still used to calculate the "is first time contributor" field. The `-pd`, `-id`, `-o`, and `-w` parameters work exactly the same. All of the variables that can be calculated with `sliding_window_3` have been disabled in this script.
 
 
 ### Modelling
