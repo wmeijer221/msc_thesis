@@ -18,6 +18,7 @@ class Feature:
 
     def is_output_feature(self) -> bool:
         """Returns true if the feature should output something."""
+        # TODO: This should be deprecated since macro-scale SNA isn't used.
         return True
 
 

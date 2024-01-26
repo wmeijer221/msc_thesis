@@ -29,6 +29,13 @@ Figure 1 in the thesis provides a high-level overview of the data collection pro
 ...
 
 - If you want to store persistent data in a different location than `./data/` (i.e., in the repostory root folder), the environment variable `EXPERIMENT_BASE_PATH` should be set.
+- Usually, when pulling the repository, the `PYTHONPATH` variable isn't set properly. Make sure to update this by installing the project in a container and setting it on startup (like we did), by configuring your venv, or simply by overwriting the variable on your machine (though, this will probably break other projects).
+
+- Download [Katz dataset](https://doi.org/10.5281/zenodo.3626071) and extract it into the `./data/libraries/` folder.
+- Download the [Golzadeh bot dataset](https://zenodo.org/records/4000388) and extract it at `./data/bot_data/`, s.t. the folder contains the `.csv` file.
+- Download the [Dey bot dataset](https://zenodo.org/records/3694401) and extract it at `./data/bot_data/`.
+- Run `./helpers/filter_dey_2019_botlist.py` which extracts the bot IDs from Dey's dataset into a much smaller `.json` file.
+- Run `libraries_filter.py` and delete all non-NPM data.
 
 ## Replication Steps
 
@@ -55,8 +62,6 @@ The compute node used a 32 core CPU and +-230 GB RAM.
 
 ### Raw Data Retrieval
 
-- Download [Katz dataset](https://doi.org/10.5281/zenodo.3626071) and extract it into the `./data/libraries/` folder.
-- Run `libraries_filter.py` and delete all non-NPM data.
 - Run `pre_sort_filters_mt.py -m r -t 8 -j` which filters projects using downloads.
 - Run `retrieve_pull_requests.py -f dl -t 3 -a 3` which collects pull request data of the popular projects.
 - Run `pre_sort_filters.py -m p -pr 5` which generates a list of projects with sufficient pull requests.
@@ -148,3 +153,20 @@ Of these, [`exp_utils`](./python_proj/utils/exp_utils.py) is the most relevant, 
 
 The code makes all kinds of assumptions about the used data folder.
 By default its root folder is `./data/`, however, this can be changed by setting the `EXPERIMENT_BASE_PATH` environment variable.
+
+When downloading the Katz dataset, it should be stored inside the `./data/libraries/` folder, such that all the `.csv` files are stored at `./data/libraries/libraries-1.6.0-2020-01-12/.`
+
+When downloading the bot datasets of Dey and Golzadeh, they should be stored at `./data/bot_data/`.
+
+All of the experimental data is stored in the subfolder `libraries/npm-libraries-1.6.0-2020-01-12/`.
+This folder is automatically generated after running `libraries_filter.py`.
+For the majority of the code to work, this script must be ran as Katz' data is used throughout the experiment.
+
+This folder will get a number of subfolders throughout the experiment: `issues` and `pull-requests`, containing all issue and pull request data.
+This contains the raw `json` files as well as the merged / chronological files that are generated throughout the process.
+The subfolder `predictors` has a misleading name as it does not contain predictors of any kind.
+Instead, it's used to store the lists of included projects in the experiment.
+
+Some scripts use the `temp` folder located at the root data folder.
+The files in here should be cleaned up automatically (unless processes are interrupted somehow).
+This folder is mostly used by the multithreaded scripts to store their intermediary results.

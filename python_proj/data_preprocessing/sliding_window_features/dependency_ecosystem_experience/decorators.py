@@ -50,6 +50,7 @@ class EcosystemExperienceDecorator(SlidingWindowFeature):
 
     def _has_dependency_on(self, focal_project: str, other_project: str) -> bool:
         """Returns true if `focal_project` has an outgoing dependency on `other_project`."""
+        # TODO: This method is generic enough to not be part of a class.
         # Returns false if they aren't identifiable.
         if (
             not focal_project in self._project_name_to_id
