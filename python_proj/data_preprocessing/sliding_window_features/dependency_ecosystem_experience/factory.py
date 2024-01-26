@@ -24,7 +24,7 @@ def build_deco_features():
         # TODO: I merged non-dependency ecosystem experience with the dependency experience return value. This is incorrect, but these factories are messy to begin with.
         NonDependencyEcosystemExperienceSubmitterPullRequestSubmissionCount(),
         NonDependencyEcosystemExperienceSubmitterPullRequestSuccessRate(),
-        NonDependencyEcosystemExperienceSubmitterPullRequestCommentCount,
+        NonDependencyEcosystemExperienceSubmitterPullRequestCommentCount(),
     ]
     deco_issue = [
         DependencyEcosystemExperienceSubmitterIssueSubmissionCount(),
