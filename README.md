@@ -11,13 +11,15 @@ For that type of information and any other unclarities, refer to the paper; spec
   - [Contents](#contents)
   - [Installation and set-up](#installation-and-set-up)
   - [Replication Steps](#replication-steps)
-    - [Raw data retrieval](#raw-data-retrieval)
-    - [Raw data parsing](#raw-data-parsing)
+    - [Raw Data Retrieval](#raw-data-retrieval)
+    - [Data Parsing](#data-parsing)
+    - [Dataset Generation](#dataset-generation)
+    - [Modelling](#modelling)
   - [Repository Contents](#repository-contents)
     - [Data Retrieval](#data-retrieval)
     - [Data Filters](#data-filters)
     - [Data Preprocessing](#data-preprocessing)
-    - [Modelling](#modelling)
+    - [Modelling](#modelling-1)
     - [Other Code](#other-code)
     - [The data folder](#the-data-folder)
 
@@ -36,12 +38,20 @@ Some of the steps use multithreaded solutions and allow you to specify the numbe
 This can most commonly be done using the `-t` commandline parameter, such that `-t 4` runs the process with four threads. 
 Different scripts make different assumptions about thread usage (specifically `retrieve_pull_requests`  and `retrieve_issues`), so refer to [Repository Contents](#repository-contents) for reference.
 
-Note that collecting issue and pull request data are long-running processes. It took us multiple months to collect the data for our study. Related to that, the data collection process was much less structured than the following steps suggest and each of the scripts was updated through the entire period. Consequently, there is a possibiblity that the itinerary does not perfectly reflect the process. However, we feel confident that the steps approximate it closely enough to be representative for our work.
+Note that collecting issue and pull request data are long-running processes.
+It took us multiple months to collect the data for our study.
+Related to that, the data collection process was much less structured than the following steps suggest and each of the scripts was updated through the entire period.
+Consequently, there is a possibiblity that the itinerary does not perfectly reflect the process.
+However, we feel confident that the steps approximate it closely enough to be representative for our work.
 
-Make sure you have a sufficient amount of storage available as the raw data and the Katz dataset, commbined use a substantial amount of storage. Anything over 300GB should work, but we recommend more. If you want to preserve storage, make sure to delete the Katz dataset after you have extracted all of the NPM data with `libraries_filter.py`. For reference, we initially used a 100GB drive, which didn't work, and then swapped to a 4TB drive, which did. The compute node used a 32 core CPU and +-230 GB RAM.
+Make sure you have a sufficient amount of storage available as the raw data and the Katz dataset, commbined use a substantial amount of storage.
+Anything over 300GB should work, but we recommend more.
+If you want to preserve storage, make sure to delete the Katz dataset after you have extracted all of the NPM data with `libraries_filter.py`.
+For reference, we initially used a 100GB drive, which didn't work, and then swapped to a 4TB drive, which did.
+The compute node used a 32 core CPU and +-230 GB RAM.
 
 
-### Raw data retrieval
+### Raw Data Retrieval
 
 - Download [Katz dataset](https://doi.org/10.5281/zenodo.3626071) and extract it into the `./data/libraries/` folder.
 - Run `libraries_filter.py` and delete all non-NPM data.
@@ -56,31 +66,42 @@ Make sure you have a sufficient amount of storage available as the raw data and 
 - Run `retrieve_pull_requests.py -f other_to_focal_without_core_subsampled -t 3 -a 3` which collects pull request data of the incoming dependency projects. (note, you could filter the output of this again based on PRs like was done in the first data collection step, however, collecting this data is substantially faster, for which we deemed it unnecessary.)
 - Run `retrieve_issues.py -f other_to_focal_without_core_subsampled -t 3 -a 3` which collects issue data of the incoming dependency projects.
 - Run `retrieve_pull_requests.py -f focal_to_other_without_core -t 3 -a 3` which collects pull request data of the outgoing dependency projects.
-- Run `retrieve_issues.py -f focal_to_other_without_core -t 3 -a 3` which collects issue data of the outgoing dependency projects.
-
-TODO: Somewhere here we have to add `merge_issue_pr_data.py`
+- Run `retrieve_issues.py -f focal_to_other_without_core -t 3 -a 3` which collects issue data of the outgoing dependency projects. 
 
 The output of this process will be a database of over 20K GitHub projects (we had data for over 40K projects, many of which did not pass inclusion criteria), each of which has two respective `.json` files somewhere in the `./data/` folder storing the issues and pull request data.
 
-### Raw data parsing
+### Data Parsing
 
 - Run `pre_sort_filters.py -m mc pr other_to_focal_without_core_subsampled temp` to merge inclusion lists.
 - Run `pre_sort_filters.py -m mc focal_to_other_without_core temp merged` to merge inclusion lists a little more.
-- Run `data_sorter.py -t 16 -q merged -d issues -k closed_at` to sort all of the pull request data into one file sorted by closing date.
-- Run `data_sorter.py -t 16 -q merged -d pull-requests -k closed_at` to sort all of the issue data into one file sorted by closing date.
-- Run `post_sort_filter_everything --chron_in_pr sorted --chron_in_issue sorted --filter_mode pcuadgbn --min_prs 5 --tag filtered`: to apply the final few inclusion criteria onto the collected data. The data is outputted into a (still chronological) file `sorted_filtered_min_5_prs_no_dupes`.
-- Run `merge`
+- Run `merge_issue_pr_data.py -d -w -f merged` which adds issue data to pull requests, and removes these issues to prevent double counting them during the analysis. This creates new data files and removes old ones. If you don't want old data to be removed, don't use the `-d` flag.
+- Run `data_sorter.py -t 16 -q merged -d pull-requests -k closed_at -x --with-issue-data`to sort all of the pull request data into one file sorted by closing date.
+- Run `data_sorter.py -t 16 -q merged -d issues -k closed_at -x --no-prs` to sort all of the issue data into one file sorted by closing date.
+- Run `post_sort_filter_everything.py --chron_in_pr sorted --chron_in_issue sorted --filter_mode pcuadgbn --min_prs 5 --tag filtered`: to apply the final few inclusion criteria onto the collected data. The data is outputted into a (still chronological) file `sorted_filtered_min_5_prs_no_dupes`.
 - Run `sliding_window_2.py -m r -pd sorted_filtered_min_5_prs_no_dupes -id sorted_filtered_min_5_prs_no_dupes` which removes invalid entries from the datasets, outputting them in separate `sorted_filtered_min_5_prs_no_dupes_no_invalid` files.
+
+The output of this will be two data files, both called `sorted_filtered_min_5_prs_no_dupes_no_invalid.csv` in the `pull-requests` and `issues` folders, containing all of the data that is used for inference.
+
+### Dataset Generation
+
 - Run `sliding_window_2.py -m s -pd sorted_filtered_min_5_prs_no_dupes_no_invalid -id sorted_filtered_min_5_prs_no_dupes_no_invalid -o ftc_data -w 90` which generates a dataset that only contains the independent variable "is first time contributor". This is done separately as `sliding_window_3` is multithreaded and can't calculate this correctly. It stores the output at `ftc_data.csv`.
 - Run `sliding_window_3.py -pd sorted_filtered_min_5_prs_no_dupes_no_invalid -id sorted_filtered_min_5_prs_no_dupes_no_invalid -o non_ftc_data -w 90 -t 8` which generates the rest of the features multithreadedly (this is quite memory intensive, so you can't 'just' max out the number of threads). The generated dataset is stored at `non_ftc_data.csv`.
+
+The output of this is two datasets `ftc_data.csv` and `non_ftc_data.csv`.
+
+### Modelling
+
 
 
 ## Repository Contents
 
 All of the used code can be found in [`python_proj`](./python_proj/).
 The code is NOT structured chronologically but semantically (sort of).
-This section simply provides an overview of "what is where" and "what does what".
+This section simply provides an overview of "what is where" and "what does what" of the most important files.
+There are more scripts in the repository, but they are not relevant to understanding this repository and served an auxiliary purpose at some point.
+
 Refer to [Replication Steps](#replication-steps) for the chronological replication flow.
+
 When executing any of this code, DON'T rely on the defaults we specified.
 We won't vouch for them and they are most likely outdated.
 
@@ -105,7 +126,11 @@ The rest is used after data collection.
 
 ### Data Preprocessing
 
-...
+- [`data_sorter`](./python_proj/data_preprocessing/data_sorter.py): Using a project name list as input file, specified using `-q`, it merges the `.json` pull request / issue data of all projects into one file containing all the activities in chronological order. Processing a file as a whole instead of many separate files is substantially faster. In addition, sorting the data makes it possible to make some assumptions in the later analyses phases. Specify the output file name using `-n`, specify the used sorting key with `-k` (we used `closed_at`), and specify the number of used threads using `-t` as it's multiprocessed. It does not handle issue and pull request data simultaneously, so specify this with `-d` to either `issues` or `pull-requests`.
+- [`merge_issue_pr_data`](./python_proj/data_preprocessing/merge_issue_pr_data.py): Adds issue data to pull requests. This is necessary as in GitHub, the pull request data structure inherits the issue datastructure (e.g., the submission message, comments, etc. are all issue components, whereas the changes etc. are PR data). As-is the PR data does not contain any of the issue information, for which it must be added. As input, it uses a list of projects, which can be specified using `-f`. The updated pull requests are written to a file with the extention `--with-issue-data` and that the filtered issues are written to a file with the extention `--no-prs`. Because this script is a little scary, because it writes new data files and deletes old issue and pr data, it makes overwriting and deleting the data optional using the `-w` and `-d` flags, respectively, allowing you to do a dry run. (Such that if you add these flags when executing the code, will overwrite and delete entries.)
+- [`sliding_window_3`](./python_proj/data_preprocessing/sliding_window_3.py): Version 3 of the sliding window algorithm. The first one grew obsolete, the second worked well but was single-threaded, and the third a multithreaded one to speed up the dataset generation process substantially (it speeds up from multiple days to a couple of hours). You can specify the input issue and PR datasets using `-pd` and `-id`, respectively. Specify the output file name using `-o`, and the window size with `-w`. You can specify the used threads with `-t`, however, don't set this too high as it's a memory bound process and the process will fail if it runs out of memory. You could use the `--no-sna` flag if you want to disable calculating the social network analysis variables. This will reduce the memory footprint substantially.
+- [`sliding_window_2`](./python_proj/data_preprocessing/sliding_window_2.py): The old version of `sliding_window_3`, and does exactly the same job as the upgraded version. It's largely obsolete, but still used to calculate the "is first time contributor" field. The `-pd`, `-id`, `-o`, and `-w` parameters work exactly the same. All of the variables that can be calculated with `sliding_window_3` have been disabled.
+
 
 ### Modelling
 
