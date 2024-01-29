@@ -1,0 +1,84 @@
+import copy
+from typing import Iterator
+
+import matplotlib.pyplot as plt
+import pandas as pd
+
+from python_proj.utils.util import safe_save_fig
+
+default_plot_settings = {"edgecolor": "black", "color": "#e69d00"}
+
+default_plot_settings_2 = copy.deepcopy(default_plot_settings)
+default_plot_settings_2["color"] = "#56b3e9"
+
+
+def __fix_x_label_fontsize(column):
+    # Adjusts x-label's fontsize to fit the text.
+    fig = plt.gcf()
+    fig_width = fig.get_figwidth()
+    xlabel_fontsize = int(fig_width * 100 / len(column))
+    ax = plt.gca()
+    orig_fontsize = ax.xaxis.label.get_fontsize()
+    ax.xaxis.label.set_fontsize(min(xlabel_fontsize, orig_fontsize))
+
+
+def create_histogram(
+    df: pd.DataFrame, column: str, output_folder: str, show_without_value=None
+):
+    can_create_feature_histograms = True
+
+    if not can_create_feature_histograms:
+        return
+
+    binary_fields = df.select_dtypes(exclude="number").columns
+
+    print(column)
+    plt.clf()
+    entries = df[column]
+
+    if column in binary_fields:
+        entries = df[column].replace({False: 0, True: 1})
+        plt.xticks([0, 1], ["False", "True"])
+        plt.hist(entries, bins=2, **default_plot_settings)
+        plt.ylabel("Frequency")
+    # elif __column in shown_fields_without_zeroes:
+    elif not show_without_value is None:
+        _, bins, _ = plt.hist(
+            entries, bins=30, alpha=1, label="All Data", **default_plot_settings
+        )
+        ax: plt.Axes = plt.gca()
+        ax.set_ylabel("Frequency")
+        ax.set_xlabel(column)
+        __fix_x_label_fontsize(column)
+
+        filtered_data = df[column][df[column] != show_without_value]
+        ax2 = ax.twinx()
+
+        ax2.hist(
+            filtered_data,
+            bins,
+            alpha=0.5,
+            label=f"Excl. {show_without_value}",
+            **default_plot_settings_2,
+        )
+        ax2.set_ylabel(f"Frequency (excl. x = {show_without_value})")
+        ax2.set_zorder(10)
+        plt.tight_layout()
+    else:
+        plt.hist(entries, bins=30, **default_plot_settings)
+        plt.ylabel("Frequency")
+
+    plt.xlabel(column)
+    __fix_x_label_fontsize(column)
+    plt.tight_layout()
+
+    output_path = f"{output_folder}/{column}.png"
+    safe_save_fig(output_path)
+
+
+def create_predictor_histograms(
+    df: pd.DataFrame, output_folder: str, columns: Iterator[str]
+):
+    # Iterate over the columns and generate histograms
+    for column in df.columns[columns]:
+        create_histogram(df, column, output_folder, show_without_value=0)

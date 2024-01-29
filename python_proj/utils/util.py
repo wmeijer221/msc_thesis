@@ -2,28 +2,42 @@
 Implements general utility functions.
 """
 
-import regex as re
-from typing import Any, Tuple, TypeVar, Callable, Iterator, Sequence, Generic
-from numbers import Number
+from datetime import datetime
 import io
-import numpy
+import json
 import math
+from numbers import Number
 import os
+from typing import (
+    Any,
+    Tuple,
+    TypeVar,
+    Callable,
+    Iterator,
+    Sequence,
+    Generic,
+    Dict,
+    List,
+)
+import random
+
 import matplotlib.pyplot as plt
+import numpy
+import regex as re
 
 
-def has_keys(d: dict, keys: list) -> bool:
+def has_keys(d: Dict, keys: list) -> bool:
     return all((key in d for key in keys))
 
 
-def safe_add_list_element(dictionary: dict[Any, list], key, value):
+def safe_add_list_element(dictionary: Dict[Any, list], key, value):
     if key in dictionary:
         dictionary[key].append(value)
     else:
         dictionary[key] = [value]
 
 
-def safe_add_set_element(dictionary: dict[Any, set], key, value):
+def safe_add_set_element(dictionary: Dict[Any, set], key, value):
     if key in dictionary:
         dictionary[key].add(value)
     else:
@@ -31,7 +45,7 @@ def safe_add_set_element(dictionary: dict[Any, set], key, value):
         dictionary[key].add(value)
 
 
-def get_nested(obj: dict, key: list[str]) -> Any | None:
+def get_nested(obj: dict, key: List[str]) -> "Any | None":
     """
     Returns value corresponding to the key by recursively
     searching in the given dictionary.
@@ -48,55 +62,59 @@ def get_nested(obj: dict, key: list[str]) -> Any | None:
     return current
 
 
-def get_nested_many(obj: dict, key: list[str]) -> list[Any] | Any | None:
+def get_nested_many(obj: dict, key: List[str]) -> "List[Any] | Any | None":
     """Same idea as ``get_nested``, however, when a variable is a list it iterates through all of them."""
-    print("Depricated: ``get_nested_many`` should be replaced with ``better_get_nested_many``.")
     current = obj
     for key_index, key_element in enumerate(key):
         if isinstance(current, list):
-            return [get_nested_many(element, key[key_index:])
-                    for element in current]
+            return [get_nested_many(element, key[key_index:]) for element in current]
         if not key_element in current:
             return None
         current = current[key_element]
     return current
 
 
-def better_get_nested_many(obj: dict, key: list[str], raise_on_missing_key: bool = True) -> list[Any]:
+# BUG: Query with Dict[Dict[List[List]]], which should yield a list of lists, doesn't work.
+def better_get_nested_many(
+    obj: dict, key: List[str], raise_on_missing_key: bool = True
+) -> List[Any]:
     """
     Same thing as ``get_nested_many`` but always returns a list.
     """
 
     current = obj
     for key_index, key_element in enumerate(key):
-        if isinstance(current, list):
-            all_inner = [better_get_nested_many(element, key[key_index:], raise_on_missing_key)
-                         for element in current]
+        if isinstance(current, List):
+            all_inner = [
+                better_get_nested_many(element, key[key_index:], raise_on_missing_key)
+                for element in current
+            ]
             combined = []
             for inner in all_inner:
                 combined.extend(inner)
             return combined
         elif not key_element in current:
             if raise_on_missing_key:
-                raise KeyError(
-                    f"Missing key {key_element} in object {current}.")
+                raise KeyError(f"Missing key {key_element} in object {current}.")
             return []
         else:
             current = current[key_element]
-    if isinstance(current, list):
+    if isinstance(current, List):
         return current
     else:
         return [current]
 
 
-def resolve_callables_in_list(coll: Iterator[Any | Callable], *args, **kwargs) -> Iterator[Any]:
+def resolve_callables_in_list(
+    coll: "Iterator[Any | Callable]", *args, **kwargs
+) -> Iterator[Any]:
     for entry in coll:
         if isinstance(entry, Callable):
             entry = entry(*args, **kwargs)
         yield entry
 
 
-def safe_index(list: list, entry: object) -> int:
+def safe_index(list: List, entry: object) -> int:
     try:
         return list.index(entry)
     except ValueError:
@@ -115,20 +133,20 @@ def safe_contains_key(text: str, key: str) -> bool:
         return False
 
 
-def safe_get(source: dict, key: Any, default: Any | None = None) -> Any:
+def safe_get(source: Dict, key: Any, default: "Any | None" = None) -> Any:
     if key in source:
         return source[key]
     return default
 
 
 class OpenMany:
-    def __init__(self, file_paths: list[str], *args, **kwargs) -> None:
-        self.file_paths: list[str] = file_paths
-        self.files: list[io.IOBase] = [None] * len(file_paths)
+    def __init__(self, file_paths: List[str], *args, **kwargs) -> None:
+        self.file_paths: List[str] = file_paths
+        self.files: List[io.IOBase] = [None] * len(file_paths)
         self.__args = args
         self.__kwargs = kwargs
 
-    def __enter__(self) -> list[io.IOBase]:
+    def __enter__(self) -> List[io.IOBase]:
         for index, file_path in enumerate(self.file_paths):
             self.files[index] = open(file_path, *self.__args, **self.__kwargs)
         return self.files
@@ -141,9 +159,9 @@ class OpenMany:
 T = TypeVar("T")
 
 
-def ordered_chain(iterables: list[Iterator[T]],
-                  key: Callable[[T, T], Number]) \
-        -> Iterator[Tuple[int, T]]:
+def ordered_chain(
+    iterables: List[Iterator[T]], key: Callable[[T, T], Number]
+) -> Iterator[Tuple[int, T]]:
     """
     Iterates through multiple generators in a chained fashion,
     iterating through them in an ordered fashion. Assumes the
@@ -161,8 +179,7 @@ def ordered_chain(iterables: list[Iterator[T]],
         return math.inf if entry is None else key(entry)
 
     while stop_iterations != len(iterables):
-        current_idx = numpy.argmin([__key_wrapper(ele)
-                                   for ele in current_elements])
+        current_idx = numpy.argmin([__key_wrapper(ele) for ele in current_elements])
         yield current_idx, current_elements[current_idx]
         try:
             current_elements[current_idx] = next(iterables[current_idx])
@@ -180,20 +197,24 @@ class SafeDict(dict, Generic[_KT, _VT]):
     Standard dictionary data structure that adds a default value to a key if it doesn't exist yet.
     """
 
-    def __init__(self, default_value, default_value_constructor_args: list[Any] | None = None,
-                 default_value_constructor_kwargs: dict[str,
-                                                        Any] | None = None,
-                 initial_mapping: dict[_KT, _VT] | None = None,
-                 delete_when_default: bool = False,
-                 *args, **kwargs):
+    def __init__(
+        self,
+        default_value,
+        default_value_constructor_args: "List[Any] | None" = None,
+        default_value_constructor_kwargs: "Dict[str, Any] | None" = None,
+        initial_mapping: "Dict[_KT, _VT] | None" = None,
+        delete_when_default: bool = False,
+        *args,
+        **kwargs,
+    ):
         """
-        :param default_value: the default value for entries. 
+        :param default_value: the default value for entries.
         If this is a ``type``, it will call said type's constructor, and if it's callable, it will call it.
         :param default_value_constructor_args: The constructor arguments for the default value.
         Only relevant if its constructor is called or the default value is callable.
         :param default_value_constructor_kwargs: Named constructor arguments for the default value.
         Only relevant if its constructor is called.
-        :param map: Can be set to come with a pre-filled mapping. 
+        :param map: Can be set to come with a pre-filled mapping.
         :param *args, **kwargs: Constructor arguments for the inner datastructure of the dictionary.
         These can be anything that can be passed to the constructor of a ``dict``.
         :param delete_when_default: Deletes entries whenever they are equal to the default value to preserve memory.
@@ -205,19 +226,28 @@ class SafeDict(dict, Generic[_KT, _VT]):
             super().__init__(initial_mapping)
 
         self.__default_value: Any = default_value
-        self.__default_value_constructor_args: list = [] if default_value_constructor_args is None \
+        self.__default_value_constructor_args: list = (
+            []
+            if default_value_constructor_args is None
             else default_value_constructor_args
-        self.__default_value_constructor_kwargs: dict = {} if default_value_constructor_kwargs is None \
+        )
+        self.__default_value_constructor_kwargs: dict = (
+            {}
+            if default_value_constructor_kwargs is None
             else default_value_constructor_kwargs
+        )
         self.__delete_when_default: bool = False
 
         if isinstance(default_value, type):
             self.__get_default_value = lambda: self.__default_value(
                 *self.__default_value_constructor_args,
-                **self.__default_value_constructor_kwargs)
+                **self.__default_value_constructor_kwargs,
+            )
         elif isinstance(default_value, Callable):
-            self.__get_default_value = lambda: self.__default_value(*self.__default_value_constructor_args,
-                                                                    **self.__default_value_constructor_kwargs)
+            self.__get_default_value = lambda: self.__default_value(
+                *self.__default_value_constructor_args,
+                **self.__default_value_constructor_kwargs,
+            )
         else:
             self.__get_default_value = lambda: self.__default_value
             self.__delete_when_default: bool = delete_when_default
@@ -245,8 +275,10 @@ def safe_save_fig(output_path):
     plt.savefig(output_path, dpi=400)
 
 
-def subtract_dict(original: dict[Any, Number], subtracted: dict[Any, Number]) -> dict[Any, Number]:
-    ""'Subtracts the values of one dict from another.'""
+def subtract_dict(
+    original: Dict[Any, Number], subtracted: Dict[Any, Number]
+) -> Dict[Any, Number]:
+    "" "Subtracts the values of one dict from another." ""
     key_intersect = set(original.keys()).intersection(subtracted.keys())
     if len(key_intersect) != len(original) or len(key_intersect) != len(subtracted):
         raise ValueError("Elements don't have the same keys.")
@@ -266,10 +298,8 @@ class Counter:
 
 
 def tuple_chain(
-    iterator: Iterator[T],
-    yield_first: bool = False,
-    yield_last: bool = False
-) -> Iterator[Tuple[T | None, T | None]]:
+    iterator: Iterator[T], yield_first: bool = False, yield_last: bool = False
+) -> "Iterator[Tuple[T | None, T | None]]":
     """Returns tuples of entries. Given [a, b, c, d], it outputs [(a,b), (b,c), (c,d)]"""
     if not isinstance(iterator, Iterator):
         iterator = iter(iterator)
@@ -290,8 +320,7 @@ def tuple_chain(
 
 
 def chain_with_intermediary_callback(
-    generator: Iterator[T],
-    callback: Callable[[T], None]
+    generator: Iterator[T], callback: Callable[[T], None]
 ) -> Iterator[T]:
     """Calls the specified function before yielding the entry like normal."""
     for entry in generator:
@@ -305,9 +334,7 @@ def safe_makedirs(dirname: str):
 
 
 def stepped_enumerate(
-    collection: Iterator[T],
-    start: Number = 0,
-    step: Number = 1
+    collection: Iterator[T], start: Number = 0, step: Number = 1
 ) -> Iterator[Tuple[Number, T]]:
     current = start
     for entry in collection:
@@ -315,14 +342,15 @@ def stepped_enumerate(
         current += step
 
 
-def flatten(iterator: Iterator[Iterator | Any]) -> Iterator[Any]:
+def flatten(iterator: "Iterator[Iterator | Any]") -> Iterator[Any]:
     """
     Flattens Iterator with nested Iterators.
     """
 
     for element in iterator:
-        if isinstance(element, Iterator | Sequence) \
-                and not isinstance(element, str):
+        if (
+            isinstance(element, Iterator) or isinstance(element, Sequence)
+        ) and not isinstance(element, str):
             for inner_element in flatten(element):
                 yield inner_element
         else:
@@ -344,8 +372,88 @@ def invert_dict(d: dict) -> dict:
     return {value: key for key, value in d.items()}
 
 
-def flip_dict(A: dict) -> dict:
-    new_dict = dict()
-    for key, value in A.items():
-        new_dict[value] = key
-    return new_dict
+def merge_iterate_through_lists(
+    collections: List[List[T]], sorting_key: Callable[[T], Number]
+) -> Tuple[Number, Iterator[Dict[Number, T]]]:
+    """
+    Applies the same method used in MergeSort to iterate through various lists.
+    If multiple entries have the same key, they are ALL yielded.
+    Assumes that an individual collection has no duplicate sorting keys.
+    """
+    element_pointers = [0] * len(collections)
+    counter = 0
+    counter_max = sum([len(coll) for coll in collections])
+    while counter < counter_max:
+        # Finds the current elements with the lowest sorting key
+        lowest = math.inf
+        collection = {}
+        for collection_index, elements in enumerate(collections):
+            pointer = element_pointers[collection_index]
+            if pointer >= len(elements):
+                continue
+            current: T = elements[pointer]
+            element_value = sorting_key(current)
+            # Creates new collection if a lower value is found.
+            if element_value < lowest:
+                lowest = element_value
+                collection = {collection_index: current}
+            # Appends collection if value is the same.
+            elif element_value == lowest:
+                collection[collection_index] = current
+        # Updates guard and pointers.
+        counter += len(collection)
+        for collection_index in collection.keys():
+            element_pointers[collection_index] += 1
+        yield lowest, collection
+
+
+def get_subfolders(parent_dir) -> Iterator[str]:
+    """Returns the folders in a directory."""
+    return [
+        f"{parent_dir}/{name}"
+        for name in os.listdir(parent_dir)
+        if os.path.isdir(f"{parent_dir}/{name}")
+    ]
+
+
+def iterate_through_nested_folders(base_folder: str, max_depth: int) -> Iterator[str]:
+    """Iterates through all folders with a certain depth from the specified base folder."""
+    yield base_folder
+    sub_folders = get_subfolders(base_folder)
+    if max_depth > 0:
+        for subfolder in sub_folders:
+            for folder in iterate_through_nested_folders(subfolder, max_depth - 1):
+                yield folder
+    else:
+        for folder in get_subfolders(base_folder):
+            yield folder
+
+
+def iterate_through_files_in_nested_folders(
+    base_folder: str, max_depth: int
+) -> Iterator[str]:
+    """Iterates through all of the files that are in the folders with a
+    certain depth from the specified base folder."""
+    for folder in iterate_through_nested_folders(base_folder, max_depth):
+        for file in os.listdir(folder):
+            yield f"{folder}/{file}"
+
+
+def lies_outside_timewindow(
+    timestamp: str, start: datetime, end: datetime, time_format: str
+) -> bool:
+    """Returns true if the provided timestamp lies outside the provided window."""
+    timestamp = datetime.strptime(timestamp, time_format)
+    return timestamp < start and timestamp > end
+
+
+def shuffled_range(start=0, end=100, step=1):
+    lst = list(range(start, end, step))
+    random.shuffle(lst)
+    return lst
+
+
+def load_json(file_path: str) -> dict:
+    with open(file_path, "r", encoding="utf-8") as json_doc:
+        j_data = json.loads(json_doc.read())
+    return j_data

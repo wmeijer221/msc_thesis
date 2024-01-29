@@ -98,7 +98,16 @@ The output of this is two datasets `ftc_data.csv` and `non_ftc_data.csv`, which 
 
 ### Modelling
 
-...
+Each of the modelling scripts can be found in the `/modelling/notebooks` folder.
+Run the preprocessing steps in the following order: 
+- `feature_construction.ipynb` which constructs the `IsFirstTimeContributor`, `SecondDegreeCentrality`, and `LinkIntensity` fields.
+- `subsampling.ipynb` which subsamples the PRs based on project size.
+- `feature_transformation.ipynb` which applies log-transform and feature scaling.
+
+Afterwards, each of the analysis scripts contained in the `random_forest` and `logistic_regression` folders can be ran in any order.
+
+Alternatively, you can run `run_all_notebooks.py` which runs all of the above as plain Python code by transpiling the notebooks and executing them.
+The output of each file is not contained in the `.ipynb` file, however, is stored in an `.out` file that's automatically generated.
 
 ## Repository Contents
 
@@ -141,7 +150,16 @@ The rest is used after data collection.
 
 ### Modelling
 
-...
+Contains all of the Python notebooks contained in this study.
+
+- `preprocessing`: Contains the various data preprocessing scripts, doing feature construction, transformation, and data sampling.
+  - [`feature_construction`](./python_proj/modelling/notebooks/preprocessing/feature_construction.ipynb): Does feature construction, updating the `IsFirstTimeContributor` field, aggregating the `SecondOrderDegree` fields into one, and aggregating the `LinkIntensity` fields.
+  - [`subsampling`](./python_proj/modelling/notebooks/preprocessing/subsampling.ipynb): Subsamples the data points based on the size of projects.
+  - [`feature_transformation`](./python_proj/modelling/notebooks/preprocessing/feature_transformation.ipynb): Applies one-off log-transform to the data and min-max feature scaling.
+  - [`visualization`](./python_proj/modelling/notebooks/preprocessing/visualization.ipynb): Generates histograms for the different features.
+- `logistic_regression`: Contains all of the logistic regression scripts. It has a subfolder per experiment that is performed: the general case, the first-time contributor case, and the non-first-time contributor case. In turn, each folder contains three notebooks, one for the full model, one for the collaboration model, and one for the dependency model.
+- `random_forest`: Contains he random forest model scripts. Follows the same folder structure as `logistic_regression`.
+- [`run_all_notebooks`](./python_proj/modelling/notebooks/run_all_notebooks.py): Runs all of the notebooks included in this project and outputs their results in corresponding `.out` files.
 
 ### Other Code
 
