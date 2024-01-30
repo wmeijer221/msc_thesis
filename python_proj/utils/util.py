@@ -361,11 +361,22 @@ def lies_between(x, start, end) -> bool:
     return x >= start and x <= end
 
 
-def get_matching(collection: Iterator[str], expr: str) -> Iterator[str]:
-    """Returns all entries that match the expression"""
-    for entry in collection:
-        if re.match(expr, entry):
-            yield entry
+def get_matching(collection: Iterator[str], pattern: str) -> Iterator[str]:
+    """Returns all entries that match the expression."""
+
+    def __is_pattern_match(element: str) -> bool:
+        return re.match(pattern, element)
+
+    return filter(__is_pattern_match, collection)
+
+
+def get_non_matching(collection: Iterator[str], pattern: str) -> Iterator[str]:
+    """Returns all entries that do NOT match the expression."""
+
+    def __is_not_pattern_match(element: str) -> bool:
+        return not re.match(pattern, element)
+
+    return filter(__is_not_pattern_match, collection)
 
 
 def invert_dict(d: dict) -> dict:
