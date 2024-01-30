@@ -6,11 +6,14 @@ This repository acts as a _replication package_ to this study, providing little 
 For that type of information and any other unclarities, refer to the paper; specifically the data collection / methodology section.
 Figure 1 in the thesis provides a high-level overview of the data collection process, which might help contextualize the different replication steps / scripts in this repository.
 
+
 ## Contents
 
 - [Ecosystem-wide experience / collaboration and pull request acceptance.](#ecosystem-wide-experience--collaboration-and-pull-request-acceptance)
   - [Contents](#contents)
+  - [Notable Terminology Differences](#notable-terminology-differences)
   - [Installation and set-up](#installation-and-set-up)
+    - [Preliminary data](#preliminary-data)
   - [Replication Steps](#replication-steps)
     - [Raw Data Retrieval](#raw-data-retrieval)
     - [Data Parsing](#data-parsing)
@@ -24,12 +27,33 @@ Figure 1 in the thesis provides a high-level overview of the data collection pro
     - [Other Code](#other-code)
     - [The data folder](#the-data-folder)
 
+## Notable Terminology Differences
+
+In a number of cases does the terminology used in the papers differ from the terminology used in this code.
+This is due to the co-evolution of both ends, which was not entirely synchronous; i.e., the terminology might have changed in the text long after the code was written.
+This holds for the following terms (this list might not be exhaustive):
+
+- _Second-order degree centrality:_ For the most part, the code refers to _first-order degree centrality_. This has been renamed in the paper because it's simply the incorrect term. It has been to _second-order degree centrality_, which is accurate. The thesis does still use the old term.
+- _Downstream dependencies:_ This term has been updated twice. In the code, it's referred to as _dependencies_ (e.g., `DependencyEcosystemExperience`), in the thesis it's referred to as _incoming dependencies_ (or _in-dependencies_), and in the paper it's referred to as _downstream dependencies_. The first update was simply for clarity, and the second to conform with professional jargon. Developer experience of this kind refers to the experience acquired in projects that implement the focal project.
+- _Upstream dependencies:_ This term was updated in the same fashion and for the same reasons as upstream dependencies. In the code, it is called _reverse dependencies_ (e.g., `InverseDependencyEcosystemExperience`), in the thesis it's referred to as _outgoing dependencies_, and in the paper as _upstream dependencies_. Developer experience of this kind refers to the experience acquired in projects that are implemented by the focal project.
+
+The code has NOT been fully updated to reflect these changes in an attempt to avoid accidental errors.
+Therefore, take the differences in terminology in mind when interpreting the results.
+
 ## Installation and set-up
 
-...
+Before trying anything in this project, you should do the following:
 
+- All of the experiments were ran using `python 3.11-bullseye`, and used this inside a VS Code `devcontainer`. In case you want to run the notebooks some version of Jupyter notebooks should be installed, we used Client version `8.2.0`.
 - If you want to store persistent data in a different location than `./data/` (i.e., in the repostory root folder), the environment variable `EXPERIMENT_BASE_PATH` should be set.
 - Usually, when pulling the repository, the `PYTHONPATH` variable isn't set properly. Make sure to update this by installing the project in a container and setting it on startup (like we did), by configuring your venv, or simply by overwriting the variable on your machine (though, this will probably break other projects).
+- Make sure to install the Python requirements prior to running any code, by using `pip install -r ./python_proj/requirements.txt`.
+
+### Preliminary data
+
+This experiment depends, in part, on the data of others.
+You need this data for the [data retrieval](#data-retrieval) and [data preprocessing](#data-preprocessing) steps.
+You don't need them for the [modelling](#modelling) steps.
 
 - Download [Katz dataset](https://doi.org/10.5281/zenodo.3626071) and extract it into the `./data/libraries/` folder.
 - Download the [Golzadeh bot dataset](https://zenodo.org/records/4000388) and extract it at `./data/bot_data/`, s.t. the folder contains the `.csv` file.
@@ -158,7 +182,7 @@ Contains all of the Python notebooks contained in this study.
   - [`feature_transformation`](./python_proj/modelling/notebooks/preprocessing/feature_transformation.ipynb): Applies one-off log-transform to the data and min-max feature scaling.
   - [`visualization`](./python_proj/modelling/notebooks/preprocessing/visualization.ipynb): Generates histograms for the different features.
 - `logistic_regression`: Contains all of the logistic regression scripts. It has a subfolder per experiment that is performed: the general case, the first-time contributor case, and the non-first-time contributor case. In turn, each folder contains three notebooks, one for the full model, one for the collaboration model, and one for the dependency model.
-- `random_forest`: Contains he random forest model scripts. Follows the same folder structure as `logistic_regression`.
+- `random_forest`: Contains he random forest model scripts. It contains three models, a full model, a first-time contributor model, and a non-first-time contributor model.
 - [`run_all_notebooks`](./python_proj/modelling/notebooks/run_all_notebooks.py): Runs all of the notebooks included in this project and outputs their results in corresponding `.out` files.
 
 ### Other Code
