@@ -129,6 +129,7 @@ Run the preprocessing steps in the following order:
 - `feature_transformation.ipynb` which applies log-transform and feature scaling.
 
 Afterwards, each of the analysis scripts contained in the `random_forest` and `logistic_regression` folders can be ran in any order.
+To then generate the feature importance plots, run `feature_importance`, which is located in the `random_forest` folder.
 
 Alternatively, you can run `run_all_notebooks.py` which runs all of the above as plain Python code by transpiling the notebooks and executing them.
 The output of each file is not contained in the `.ipynb` file, however, is stored in an `.out` file that's automatically generated.

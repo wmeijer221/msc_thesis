@@ -29,12 +29,21 @@ def get_nth_parent_dir(path: str, n: int):
 # The order of these is not relevant.
 root = get_nth_parent_dir(__file__, 3)
 
+# Collects logistic regression notebooks.
 lr_notebook_dir = f"{root}/modelling/notebooks/logistic_regression/"
 lr_notebooks = get_notebooks_in_dir(lr_notebook_dir)
 
+# Collects random forest notebooks.
 rf_notebook_dir = f"{root}/modelling/notebooks/random_forest/"
 rf_notebooks = get_notebooks_in_dir(rf_notebook_dir)
 
+
+def __is_not_feature_importance(entry: str) -> bool:
+    return not entry.endswith("feature_importance.ipynb")
+
+
+rf_notebooks = filter(__is_not_feature_importance, rf_notebooks)
+feature_importance_nb = f"{rf_notebook_dir}/feature_importance.ipynb"
 
 # This is hardcoded as for preprocessing the order matters.
 preprocessing_steps = [
@@ -51,6 +60,7 @@ notebook_files = [
     *preprocessing_steps,
     *lr_notebooks,
     *rf_notebooks,
+    feature_importance_nb,
 ]
 print(f"Running {len(notebook_files)} notebooks.")
 
