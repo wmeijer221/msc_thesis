@@ -2,6 +2,8 @@
 Implements general utility functions.
 """
 
+# TODO: Remove this and replace all of it with `wmeijer_utils`.
+
 from datetime import datetime
 import io
 import json
