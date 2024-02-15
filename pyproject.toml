@@ -1,0 +1,3 @@
+
+[mypy-aws_xray_sdk]
+ignore_missing_imports = True
