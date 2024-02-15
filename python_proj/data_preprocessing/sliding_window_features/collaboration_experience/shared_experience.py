@@ -1,10 +1,18 @@
+"""
+Implements shared experience features.
+It counts both intra-project and ecosystem-wide experience.
+"""
+
+from warnings import warn
 
 from numbers import Number
 from typing import Any, Tuple, Callable
 
 from wmeijer_utils.collections.safe_dict import SafeDict
 
-from python_proj.data_preprocessing.sliding_window_features.base import SlidingWindowFeature
+from python_proj.data_preprocessing.sliding_window_features.base import (
+    SlidingWindowFeature,
+)
 from python_proj.utils.exp_utils import get_integrator_key
 from python_proj.utils.util import better_get_nested_many, resolve_callables_in_list
 
@@ -12,14 +20,16 @@ from python_proj.utils.util import better_get_nested_many, resolve_callables_in_
 class SharedExperienceFeature(SlidingWindowFeature):
     """
     Base class for shared experience.
-    It takes source keys, and target keys and adds an entry for 
+    It takes source keys, and target keys and adds an entry for
     connection it can find in a data entry.
     """
 
-    def __init__(self,
-                 nested_source_keys: list[str | Callable[[dict], str]],
-                 nested_target_keys: list[str | Callable[[dict], str]],
-                 is_inversed: bool = False) -> None:
+    def __init__(
+        self,
+        nested_source_keys: list[str | Callable[[dict], str]],
+        nested_target_keys: list[str | Callable[[dict], str]],
+        is_inversed: bool = False,
+    ) -> None:
         super().__init__()
 
         if is_inversed:
@@ -29,12 +39,14 @@ class SharedExperienceFeature(SlidingWindowFeature):
             self._nested_source_keys = nested_source_keys
             self._nested_target_keys = nested_target_keys
 
-        self.__shared_experiences = SafeDict(default_value=SafeDict,
-                                             default_value_constructor_kwargs={
-                                                 'default_value': 0,
-                                                 "delete_when_default": True
-                                             },
-                                             delete_when_default=True)
+        self.__shared_experiences = SafeDict(
+            default_value=SafeDict,
+            default_value_constructor_kwargs={
+                "default_value": 0,
+                "delete_when_default": True,
+            },
+            delete_when_default=True,
+        )
 
     def _get_us_and_vs(self, entry: dict) -> Tuple[list[int], list[int]]:
         """Generates two lists of source and target keys related to this class."""
@@ -66,32 +78,32 @@ class SharedExperienceFeature(SlidingWindowFeature):
         self._handle(entry, -1)
 
     def get_feature(self, entry: dict) -> Any:
-        source_id = entry['user_data']['id']
+        source_id = entry["user_data"]["id"]
         integrator_key = get_integrator_key(entry)
-        target_id = entry[integrator_key]['id']
+        target_id = entry[integrator_key]["id"]
         return self.__shared_experiences[source_id][target_id]
 
 
 # Pull request
 
 
-class SharedExperiencePullRequestSubmittedBySubmitterIntegratedByIntegrator(SharedExperienceFeature):
+class SharedExperiencePullRequestSubmittedBySubmitterIntegratedByIntegrator(
+    SharedExperienceFeature
+):
     """
-    Shared experience feature accounting for pull requests that have been 
+    Shared experience feature accounting for pull requests that have been
     submitted by U and integrated by V.
     """
 
     def __init__(self, is_inversed: bool = False) -> None:
-        super().__init__(
-            ["user_data", "id"],
-            [get_integrator_key, "id"],
-            is_inversed
-        )
+        super().__init__(["user_data", "id"], [get_integrator_key, "id"], is_inversed)
 
 
-class SharedExperiencePullRequestSubmittedByIntegratorIntegratedBySubmitter(SharedExperiencePullRequestSubmittedBySubmitterIntegratedByIntegrator):
+class SharedExperiencePullRequestSubmittedByIntegratorIntegratedBySubmitter(
+    SharedExperiencePullRequestSubmittedBySubmitterIntegratedByIntegrator
+):
     """
-    Shared experience feature accounting for pull requests that have been 
+    Shared experience feature accounting for pull requests that have been
     submitted by V and integrated by U (i.e., the inverse role-distribution).
     """
 
@@ -99,25 +111,29 @@ class SharedExperiencePullRequestSubmittedByIntegratorIntegratedBySubmitter(Shar
         super().__init__(is_inversed=True)
 
 
-class SharedExperiencePullRequestSubmittedBySubmitterCommentedOnByIntegrator(SharedExperienceFeature):
+class SharedExperiencePullRequestSubmittedBySubmitterCommentedOnByIntegrator(
+    SharedExperienceFeature
+):
     def __init__(self, is_inversed: bool = False) -> None:
         super().__init__(
-            ["user_data", "id"],
-            ["comments_data", "user_data", "id"],
-            is_inversed
+            ["user_data", "id"], ["comments_data", "user_data", "id"], is_inversed
         )
 
     def _handle(self, entry: dict, sign: Number):
-        if entry['comments'] > 0:
+        if entry["comments"] > 0:
             super()._handle(entry, sign)
 
 
-class SharedExperiencePullRequestSubmittedByIntegratorCommentedOnBySubmitter(SharedExperiencePullRequestSubmittedBySubmitterCommentedOnByIntegrator):
+class SharedExperiencePullRequestSubmittedByIntegratorCommentedOnBySubmitter(
+    SharedExperiencePullRequestSubmittedBySubmitterCommentedOnByIntegrator
+):
     def __init__(self) -> None:
         super().__init__(is_inversed=True)
 
 
-class SharedExperiencePullRequestDiscussionParticipationByIntegratorAndSubmitter(SharedExperienceFeature):
+class SharedExperiencePullRequestDiscussionParticipationByIntegratorAndSubmitter(
+    SharedExperienceFeature
+):
     """
     Counts the number of times the submitter and integrator have both participated in a pull request discussion.
     This does not need an inverse, as the implementation of the parent class creates edges for every permutation
@@ -128,42 +144,48 @@ class SharedExperiencePullRequestDiscussionParticipationByIntegratorAndSubmitter
         super().__init__(
             ["comments_data", "user_data", "id"],
             ["comments_data", "user_data", "id"],
-            is_inversed
+            is_inversed,
         )
 
     def _handle(self, entry: dict, sign: Number):
-        if entry['comments'] > 0:
+        if entry["comments"] > 0:
             super()._handle(entry, sign)
+
 
 # Issues
 
 
-class SharedExperienceIssueSubmittedBySubmitterCommentedOnByIntegrator \
-        (SharedExperiencePullRequestSubmittedBySubmitterCommentedOnByIntegrator):
+class SharedExperienceIssueSubmittedBySubmitterCommentedOnByIntegrator(
+    SharedExperiencePullRequestSubmittedBySubmitterCommentedOnByIntegrator
+):
     """
-    Is functionally exactly the same as the parent class. 
+    Is functionally exactly the same as the parent class.
     This class is implemented just to give the feature a unique name.
     """
 
 
-class SharedExperienceIssueSubmittedByIntegratorCommentedOnBySubmitter \
-        (SharedExperiencePullRequestSubmittedByIntegratorCommentedOnBySubmitter):
+class SharedExperienceIssueSubmittedByIntegratorCommentedOnBySubmitter(
+    SharedExperiencePullRequestSubmittedByIntegratorCommentedOnBySubmitter
+):
     """
-    Is functionally exactly the same as the parent class. 
+    Is functionally exactly the same as the parent class.
     This class is implemented just to give the feature a unique name.
     """
 
 
-class SharedExperienceIssueDiscussionParticipationByIntegratorAndSubmitter \
-        (SharedExperiencePullRequestDiscussionParticipationByIntegratorAndSubmitter):
+class SharedExperienceIssueDiscussionParticipationByIntegratorAndSubmitter(
+    SharedExperiencePullRequestDiscussionParticipationByIntegratorAndSubmitter
+):
     """
-    Is functionally exactly the same as the parent class. 
+    Is functionally exactly the same as the parent class.
     This class is implemented just to give the feature a unique name.
     """
 
 
 def build_se_features():
     """Factory method to builds all features."""
+
+    warn("This is deprecated", DeprecationWarning, stacklevel=2)
 
     se_pr_sw_features = [
         SharedExperiencePullRequestSubmittedBySubmitterIntegratedByIntegrator(),
@@ -185,20 +207,21 @@ if __name__ == "__main__":
     __se_pr_sw_features, __se_issue_sw_features = build_se_features()
 
     test_entry = {
-        'user_data': {'id': 1235},
-        'merged_by_data': {'id': 4949},
-        'closed_by': {'id': 4949},
-        'comments': 2,
-        'comments_data': [
-            {'user_data': {'id': 1235}},
-            {'user_data': {'id': 4949}},
-            {'user_data': {'id': 2582}}
+        "user_data": {"id": 1235},
+        "merged_by_data": {"id": 4949},
+        "closed_by": {"id": 4949},
+        "comments": 2,
+        "comments_data": [
+            {"user_data": {"id": 1235}},
+            {"user_data": {"id": 4949}},
+            {"user_data": {"id": 2582}},
         ],
-        'merged': True,
+        "merged": True,
     }
 
     import itertools
+
     for f in itertools.chain(__se_pr_sw_features, __se_issue_sw_features):
         q: SlidingWindowFeature = f
         q.add_entry(test_entry)
-        print(f'{q.get_name()}: {q.get_feature(test_entry)}')
+        print(f"{q.get_name()}: {q.get_feature(test_entry)}")
