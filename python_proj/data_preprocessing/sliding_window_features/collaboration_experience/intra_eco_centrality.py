@@ -12,6 +12,7 @@ from networkx import DiGraph
 
 from python_proj.data_preprocessing.sliding_window_features.collaboration_experience.centrality_features import (
     SNAFeature,
+    SNACentralityFeature,
     FirstOrderDegreeCentralityV2,
 )
 
@@ -43,7 +44,7 @@ class SNAFeatureV2(SNAFeature):
     def _build_edge_key(
         self, source_node: int, target_node: int, timestamp: float
     ) -> int:
-        return build_edge_key(source_node, target_node, timestamp, self.edge_label)
+        return _build_edge_key(source_node, target_node, timestamp, self.edge_label)
 
     def _add_remove_edge(
         self, source_node: int, target_node: int, edge_timestamp: float, add_entry: bool
@@ -153,7 +154,7 @@ class IntraProjectSecondOrderDegreeCentrality(FirstOrderDegreeCentralityV2):
         current_repo = get_repository_name_from_source_path(
             self._current_entry[SOURCE_PATH_KEY]
         )
-        edge_key = build_edge_key(source_id, target_id, timestamp, edge_type)
+        edge_key = _build_edge_key(source_id, target_id, timestamp, edge_type)
         edge_repo = self._edge_to_project_mapping[edge_key]
         return current_repo != edge_repo
 
@@ -182,7 +183,7 @@ class EcosystemSecondOrderDegreeCentrality(IntraProjectSecondOrderDegreeCentrali
         )
 
 
-def build_edge_key(
+def _build_edge_key(
     source_node: int, target_node: int, timestamp: float, edge_type: str
 ) -> int:
     """Builds a key based on the given variables."""
@@ -190,7 +191,9 @@ def build_edge_key(
     return hash(key)
 
 
-def build_features() -> Tuple[List[SNAFeatureV2], List[SNAFeatureV2]]:
+def build_intra_eco_centrality_features() -> (
+    Tuple[List[SNAFeature], List[SNAFeature], List[SNACentralityFeature]]
+):
     """Factory methods for the centrality features V2."""
 
     edge_to_project_mapping = dict()

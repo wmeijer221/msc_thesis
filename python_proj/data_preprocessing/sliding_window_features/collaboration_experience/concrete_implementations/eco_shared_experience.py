@@ -79,11 +79,12 @@ class EcosystemSharedExperienceIssueSubmittedByIntegratorCommentedOnBySubmitter(
     """
 
 
-def build_features() -> (
+def build_eco_se_features() -> (
     Tuple[
         List[EcosystemSharedExperienceFeature], List[EcosystemSharedExperienceFeature]
     ]
 ):
+    """Factory method for ecosystem shared experience features"""
     pr_features = [
         EcosystemSharedExperiencePullRequestSubmittedByIntegratorCommentedOnBySubmitter(),
         EcosystemSharedExperiencePullRequestSubmittedByIntegratorIntegratedBySubmitter(),

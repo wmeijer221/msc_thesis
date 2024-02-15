@@ -79,10 +79,11 @@ class IntraProjectSharedExperienceIssueSubmittedByIntegratorCommentedOnBySubmitt
     """
 
 
-def build_features() -> Tuple[
+def build_intra_se_features() -> Tuple[
     List[IntraProjectSharedExperienceFeature],
     List[IntraProjectSharedExperienceFeature],
 ]:
+    """Factory method for intra-project shared experience features."""
     pr_features = [
         IntraProjectSharedExperiencePullRequestSubmittedBySubmitterIntegratedByIntegrator(),
         IntraProjectSharedExperiencePullRequestSubmittedByIntegratorIntegratedBySubmitter(),
