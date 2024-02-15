@@ -56,7 +56,7 @@ class SNAFeatureV2(SNAFeature):
         )
         if add_entry:
             self._edge_to_project_mapping[edge_key] = repo_name
-        else:
+        elif edge_key in self._edge_to_project_mapping:
             del self._edge_to_project_mapping[edge_key]
 
     def add_entry(self, entry: dict):
