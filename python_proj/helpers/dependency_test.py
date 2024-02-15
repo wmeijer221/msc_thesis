@@ -1,5 +1,5 @@
 
-from python_proj.data_preprocessing.sliding_window_features.dependent_ecosystem_experience import safe_load_dependency_map
+from python_proj.data_preprocessing.sliding_window_features.dependency_ecosystem_experience import safe_load_dependency_map
 
 
 dep, inv_dep, proj_to_id = safe_load_dependency_map()

@@ -2,6 +2,8 @@
 Contains utility scripts for multithreading related tasks.
 """
 
+# TODO: Remove this and replace all of it with `wmeijer_utils`.
+
 from typing import Callable, Iterator
 import multiprocessing
 
@@ -20,7 +22,8 @@ class SimpleConsumer(multiprocessing.Process):
         result_queue: multiprocessing.Queue,
         consumer_name: str = "SimpleConsumer",
         print_lifetime_events: bool = True,
-        *args, **kwargs
+        *args,
+        **kwargs,
     ) -> None:
         super().__init__()
         self._on_message_received = on_message_received
@@ -41,24 +44,27 @@ class SimpleConsumer(multiprocessing.Process):
             if isinstance(task, SimpleConsumer.TerminateTask):
                 if self._print_lifetime_events:
                     print(
-                        f'{self._consumer_name}-{self._worker_index}: Received termination task.')
+                        f"{self._consumer_name}-{self._worker_index}: Received termination task."
+                    )
                 is_running = False
                 break
             try:
                 task_kwargs = {
-                    **self._kwargs, **task,
-                    "worker_index": self._worker_index
+                    **self._kwargs,
+                    **task,
+                    "worker_index": self._worker_index,
                 }
                 result = self._on_message_received(*self._args, **task_kwargs)
                 if not result is None:
                     self._result_queue.put(result)
             except Exception as ex:
                 print(
-                    f"{self._consumer_name}-{self._worker_index}: Failed with entry {task}: {ex}.")
+                    f"{self._consumer_name}-{self._worker_index}: Failed with entry {task}: {ex}."
+                )
                 raise
 
         if self._print_lifetime_events:
-            print(f'{self._consumer_name}-{self._worker_index}: Stopped.')
+            print(f"{self._consumer_name}-{self._worker_index}: Stopped.")
 
 
 def parallelize_tasks(
@@ -66,10 +72,11 @@ def parallelize_tasks(
     on_message_received: Callable,
     thread_count: int | None = None,
     return_results: bool = False,
-    *args, **kwargs
+    *args,
+    **kwargs,
 ) -> list | None:
     """
-    Starts a bunch of simple consumer threads that work away on the given tasks. 
+    Starts a bunch of simple consumer threads that work away on the given tasks.
     The tasks are passed through ``task`` parameter; i.e., if it's a dict is not unpacked.
     """
 
@@ -83,21 +90,16 @@ def parallelize_tasks(
 
     # Creates workers.
     for index in range(thread_count):
-        worker = SimpleConsumer(on_message_received,
-                                worklist, index,
-                                result_queue,
-                                *args, **kwargs)
+        worker = SimpleConsumer(
+            on_message_received, worklist, index, result_queue, *args, **kwargs
+        )
         worker.start()
         workers[index] = worker
 
     # Creates tasks.
     total_tasks = len(tasks) if isinstance(tasks, list) else "unknown"
     for task_id, task in enumerate(tasks, start=1):
-        work_task = {
-            'task': task,
-            'task_id': task_id,
-            'total_tasks': total_tasks
-        }
+        work_task = {"task": task, "task_id": task_id, "total_tasks": total_tasks}
         worklist.put(work_task)
 
     # Kills workers.
@@ -122,7 +124,8 @@ def parallelize_tasks_2(
     on_message_received: Callable,
     thread_count: int = 1,
     return_results: bool = False,
-    *args, **kwargs
+    *args,
+    **kwargs,
 ):
     executor = ExecutorService(thread_count, return_results, *args, **kwargs)
     executor.start()
@@ -132,7 +135,7 @@ def parallelize_tasks_2(
             task_callable=on_message_received,
             task=task,
             task_id=task_id,
-            total_tasks=total_tasks
+            total_tasks=total_tasks,
         )
     executor.stop()
     results = executor.get_results()
@@ -145,7 +148,8 @@ class ExecutorService:
         thread_count: int = 1,
         return_results: bool = False,
         print_lifetime_events: bool = True,
-        *args, **kwargs
+        *args,
+        **kwargs,
     ):
         if thread_count < 1:
             raise ValueError("There's a minimum of 1 thread.")
@@ -170,10 +174,12 @@ class ExecutorService:
         for index in range(self._thread_count):
             worker = SimpleConsumer(
                 self.do_task,
-                self._worklist, index,
+                self._worklist,
+                index,
                 result_queue=self._result_queue,
                 print_lifetime_events=self._print_lifetime_events,
-                *self._args, **self._kwargs
+                *self._args,
+                **self._kwargs,
             )
             worker.start()
             self._workers[index] = worker
@@ -183,9 +189,9 @@ class ExecutorService:
 
     def submit(self, task_callable: Callable, *targs, **tkwargs):
         task_wrapper = {
-            'task_callable': task_callable,
-            'targs': targs,
-            'tkwargs': tkwargs
+            "task_callable": task_callable,
+            "targs": targs,
+            "tkwargs": tkwargs,
         }
         self._worklist.put(task_wrapper)
 

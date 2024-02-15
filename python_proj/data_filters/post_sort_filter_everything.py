@@ -124,6 +124,7 @@ def __stage_remove_duplicates(input_name_final_datasets: str,
     reload(exp_utils)
     exp_utils.load_paths_for_eco()
     # HACK: loading data path after this will definitely break it.
+    # HACK: The only reason this is reloaded is to deal with issues vs. PRs. This is way too implicit.
     exp_utils.CHRONOLOGICAL_DATASET_PATH = partial(
         exp_utils.CHRONOLOGICAL_DATASET_PATH, data_type='issues')
     filter_unique([input_name_final_datasets], output_name_final_datasets)

@@ -22,7 +22,7 @@ import python_proj.utils.exp_utils as exp_utils
 from python_proj.utils.util import OpenMany
 from python_proj.utils.arg_utils import get_argv, safe_get_argv
 
-from python_proj.data_preprocessing.sliding_window_features.dependent_ecosystem_experience import safe_load_dependency_map
+from python_proj.data_preprocessing.sliding_window_features.dependency_ecosystem_experience import safe_load_dependency_map
 
 
 def get_dependency_periphery(

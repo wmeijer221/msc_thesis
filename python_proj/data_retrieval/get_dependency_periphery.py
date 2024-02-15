@@ -21,6 +21,7 @@ def get_dependency_periphery():
     # TODO: include the repository dependencies somehow?
     dependencies_path = f"{exp_utils.BASE_PATH}libraries/{eco}-libraries-1.6.0-2020-01-12/dependencies-1.6.0-2020-01-12.csv"
     dependencies_file = open(dependencies_path, "r", encoding='utf-8')
+    # TODO: this script should probably use the `dependency_loading` code used in the dependency features code instead of re-doing everything itself.
     dependencies_reader = reader(dependencies_file)
 
     fields = [
@@ -72,7 +73,7 @@ def get_dependency_periphery():
     projects_that_core_depends_on = set()
     projects_that_depend_on_core = set()
     for entry in dependencies_reader:
-        # Only conosiders intra-ecosystem dependencies.
+        # Only considers intra-ecosystem dependencies.
         if entry[focal_dependency_platform_index].lower() != eco \
                 or entry[other_dependency_platform_index].lower() != eco:
             continue

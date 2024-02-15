@@ -1,9 +1,11 @@
 """
-Implements sorting alorithm to iterate through time series event gathered with GrimoireLab chronologically.
+Implements sorting alorithm to iterate through time series 
+event gathered with GrimoireLab chronologically.
 
-It speeds up the whole process by generating buckets of data based on dd-mm-yy timestamps, which are then 
-sorted in parallel.
-Ultimately, these sorted files are then merged into one chronological data file.
+It speeds up the whole process by generating buckets of data based 
+on dd-mm-yy timestamps, which are then sorted in parallel.
+Ultimately, these sorted files are then merged into one 
+chronological data file.
 """
 
 from datetime import datetime

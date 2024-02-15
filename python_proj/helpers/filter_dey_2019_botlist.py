@@ -7,7 +7,7 @@ For this script to work, download the dataset and extract it at the file path us
 
 import sys
 import csv
-from dataclasses import dataclass
+from pydantic.dataclasses import dataclass
 from dataclasses_json import dataclass_json
 import json
 from csv import reader

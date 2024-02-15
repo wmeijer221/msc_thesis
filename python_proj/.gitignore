@@ -133,3 +133,5 @@ data/*
 
 # Other repositories.
 bitbucket
+
+*.out
