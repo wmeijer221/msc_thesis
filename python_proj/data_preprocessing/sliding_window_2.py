@@ -16,7 +16,7 @@ import python_proj.utils.exp_utils as exp_utils
 
 import python_proj.data_preprocessing.sliding_window_features as swf
 from python_proj.data_preprocessing.sliding_window_features import Feature, SlidingWindowFeature
-from python_proj.data_preprocessing.sliding_window_features.centrality_features import SNAFeature
+from python_proj.data_preprocessing.sliding_window_features.collaboration_experience.centrality_features import SNAFeature
 from python_proj.utils.arg_utils import safe_get_argv, get_argv
 from python_proj.utils.util import *
 

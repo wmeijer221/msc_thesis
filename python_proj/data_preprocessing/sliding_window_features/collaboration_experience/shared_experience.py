@@ -2,9 +2,11 @@
 from numbers import Number
 from typing import Any, Tuple, Callable
 
+from wmeijer_utils.collections.safe_dict import SafeDict
+
 from python_proj.data_preprocessing.sliding_window_features.base import SlidingWindowFeature
 from python_proj.utils.exp_utils import get_integrator_key
-from python_proj.utils.util import better_get_nested_many, SafeDict, resolve_callables_in_list
+from python_proj.utils.util import better_get_nested_many, resolve_callables_in_list
 
 
 class SharedExperienceFeature(SlidingWindowFeature):
@@ -21,11 +23,11 @@ class SharedExperienceFeature(SlidingWindowFeature):
         super().__init__()
 
         if is_inversed:
-            self.__nested_source_keys = nested_target_keys
-            self.__nested_target_keys = nested_source_keys
+            self._nested_source_keys = nested_target_keys
+            self._nested_target_keys = nested_source_keys
         else:
-            self.__nested_source_keys = nested_source_keys
-            self.__nested_target_keys = nested_target_keys
+            self._nested_source_keys = nested_source_keys
+            self._nested_target_keys = nested_target_keys
 
         self.__shared_experiences = SafeDict(default_value=SafeDict,
                                              default_value_constructor_kwargs={
@@ -43,8 +45,8 @@ class SharedExperienceFeature(SlidingWindowFeature):
             nodes = better_get_nested_many(entry, list(resolved_nested_key))
             return nodes
 
-        source_ids = __get_nodes(self.__nested_source_keys)
-        target_ids = __get_nodes(self.__nested_target_keys)
+        source_ids = __get_nodes(self._nested_source_keys)
+        target_ids = __get_nodes(self._nested_target_keys)
 
         return source_ids, target_ids
 

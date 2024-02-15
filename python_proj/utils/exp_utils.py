@@ -14,6 +14,8 @@ import math
 from python_proj.utils.arg_utils import safe_get_argv
 from python_proj.utils.util import OpenMany, ordered_chain
 
+SOURCE_PATH_KEY = "__source_path"
+
 # Default argv keys.
 ECO_KEY = "-e"
 DATA_SOURCE_KEY = "-d"
@@ -301,6 +303,9 @@ def get_owner_and_repo_from_source_path(source_path) -> tuple[str, str]:
     owner_repo = file_name.split("--")
     return (owner_repo[0], owner_repo[1])
 
+def get_repository_name_from_source_path(source_path) -> str:
+    owner, repo = get_owner_and_repo_from_source_path(source_path)
+    return f'{owner}/{repo}'
 
 def log_transform(number: Number) -> Number:
     """Applies log-tranfsorm on the number."""
