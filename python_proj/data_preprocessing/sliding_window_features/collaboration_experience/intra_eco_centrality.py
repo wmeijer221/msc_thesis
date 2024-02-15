@@ -210,7 +210,7 @@ def build_intra_eco_centrality_features() -> (
         IssueCommenterToSubmitterV2(graph, edge_to_project_mapping),
     ]
 
-    activity_graphs = [pr_graph, *issue_graph]
+    activity_graphs = [*pr_graph, *issue_graph]
 
     centr_features = [
         IntraProjectSecondOrderDegreeCentrality(
