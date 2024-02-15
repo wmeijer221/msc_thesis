@@ -256,7 +256,7 @@ class FirstOrderDegreeCentralityV2(SNACentralityFeature):
             for connecting_edge_type, timestamped_connecting_edges in edge_data.items():
 
                 # HACK: This is only here to get the intra vs. ecosystem experience subclasses to work.
-                # If the connecting edge type is ignored, it's not counted.
+                # If the connecting edge type is ignored, it's not considered.
                 timestamped_connecting_edges = [
                     timestamp
                     for timestamp in timestamped_connecting_edges

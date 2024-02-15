@@ -9,7 +9,6 @@ overriding only the behaviors necessary to make the additional checks.
 
 from typing import Callable, Tuple, List
 from networkx import DiGraph
-from itertools import chain
 
 from python_proj.data_preprocessing.sliding_window_features.collaboration_experience.centrality_features import (
     SNAFeature,
@@ -42,9 +41,9 @@ class SNAFeatureV2(SNAFeature):
         self._current_entry: None | dict = None
 
     def _build_edge_key(
-        self, source_node: int, target_node: int, timemstamp: float
+        self, source_node: int, target_node: int, timestamp: float
     ) -> int:
-        return build_edge_key(source_node, target_node, timemstamp, self.edge_label)
+        return build_edge_key(source_node, target_node, timestamp, self.edge_label)
 
     def _add_remove_edge(
         self, source_node: int, target_node: int, edge_timestamp: float, add_entry: bool
@@ -176,15 +175,18 @@ class EcosystemSecondOrderDegreeCentrality(IntraProjectSecondOrderDegreeCentrali
         timestamp: float,
         edge_type: str,
     ) -> bool:
+        # Inverts the result from the intra-project filter, as anything that's
+        # not intra-project must be in the rest of the ecosystem.
         return not super().is_ignored_connecting_edge(
             source_id, target_id, timestamp, edge_type
         )
 
 
 def build_edge_key(
-    source_node: int, target_node: int, timemstamp: float, edge_type: str
+    source_node: int, target_node: int, timestamp: float, edge_type: str
 ) -> int:
-    key = f"{source_node}::{target_node}::{timemstamp}::{edge_type}"
+    """Builds a key based on the given variables."""
+    key = f"{source_node}:{target_node}:{timestamp}:{edge_type}"
     return hash(key)
 
 
