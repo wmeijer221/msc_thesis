@@ -201,27 +201,3 @@ def build_se_features():
     ]
 
     return se_pr_sw_features, se_issue_sw_features
-
-
-if __name__ == "__main__":
-    __se_pr_sw_features, __se_issue_sw_features = build_se_features()
-
-    test_entry = {
-        "user_data": {"id": 1235},
-        "merged_by_data": {"id": 4949},
-        "closed_by": {"id": 4949},
-        "comments": 2,
-        "comments_data": [
-            {"user_data": {"id": 1235}},
-            {"user_data": {"id": 4949}},
-            {"user_data": {"id": 2582}},
-        ],
-        "merged": True,
-    }
-
-    import itertools
-
-    for f in itertools.chain(__se_pr_sw_features, __se_issue_sw_features):
-        q: SlidingWindowFeature = f
-        q.add_entry(test_entry)
-        print(f"{q.get_name()}: {q.get_feature(test_entry)}")
