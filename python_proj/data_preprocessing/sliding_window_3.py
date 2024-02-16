@@ -16,6 +16,8 @@ import json
 import os
 from typing import Tuple, Iterator, Callable
 from wmeijer_utils.collections.safe_dict import SafeDict
+from wmeijer_utils.collections.dict_access import subtract_dict, add_dict
+from wmeijer_utils.iterators import limit
 
 import python_proj.data_preprocessing.sliding_window_features as swf
 from python_proj.utils.arg_utils import safe_get_argv, get_argv, get_argv_flag
@@ -287,7 +289,10 @@ def __handle_chunk(
     # output path name.
     chunk_name = os.path.basename(current_chunk)
     output_path = base_path + chunk_name
-    print(f'Task-{task_id}: Outputting in "{output_path}".')
+    edge_count_output_path = f"{base_path}{chunk_name}_edgecount"
+    print(
+        f'Task-{task_id}: Outputting in "{output_path}" and "{edge_count_output_path}".'
+    )
 
     # Selects output features
     output_features, all_features = __get_output_features(
@@ -298,6 +303,8 @@ def __handle_chunk(
     window, window_keys = __create_window_from_file(
         previous_chunk, issue_sw_features, pr_sw_features
     )
+
+    edge_count_previous_chunk = swf.get_total_count_from_features(all_features)
 
     print(f'Task-{task_id}: Loaded previous chunk: "{previous_chunk}".')
 
@@ -318,6 +325,12 @@ def __handle_chunk(
                     output_features,
                     csv_writer,
                 )
+
+    # Stores the edge count.
+    edge_count = swf.get_total_count_from_features(all_features)
+    edge_count = subtract_dict(edge_count, edge_count_previous_chunk)
+    with open(edge_count_output_path, "w+", encoding="utf-8") as output_file:
+        output_file.write(json.dumps(edge_count))
 
     # Calls the features' close function if there is one.
     for feature in all_features:
@@ -346,7 +359,7 @@ def __create_header(features: list[Feature]) -> Iterator[str]:
 
 def __merge_chunk_results(
     output_path: str,
-    chunk_file_names: str,
+    chunk_file_names: Iterator[str],
     chunk_output_base_path: str,
     output_features: list[Feature],
     delete_chunk: bool = True,
@@ -358,16 +371,29 @@ def __merge_chunk_results(
         header = __create_header(output_features)
         csv_writer.writerow(header)
 
+        total_edge_counts: "dict | None" = None
+
         # Merge entries.
         for chunk_file in chunk_file_names:
             file_name = os.path.basename(chunk_file)
             chunk_output_path = chunk_output_base_path + file_name
             print(f'Merging "{chunk_output_path}".')
+            # Merges chunk
             with open(chunk_output_path, "r", encoding="utf-8") as input_file:
                 output_file.writelines(input_file)
             if delete_chunk:
                 os.remove(chunk_output_path)
+            # Merges edge count chunk
+            chunk_count_output_path = f"{chunk_output_path}_edgecount"
+            with open(chunk_count_output_path, "r", encoding="utf-8") as input_file:
+                edge_counts = json.loads(input_file.read())
+                if total_edge_counts is None:
+                    total_edge_counts = edge_counts
+                else:
+                    total_edge_counts = add_dict(total_edge_counts, edge_counts)
+
     print(f'Output path: "{output_path}".')
+    print(f"Total SNAFeature edge counts:\n{json.dumps(total_edge_counts,indent=2)}")
 
 
 def create_sliding_window_dataset(
@@ -381,6 +407,7 @@ def create_sliding_window_dataset(
     ],
     window_size_in_days: int,
     thread_count: int,
+    chunk_count: int = -1,
 ):
     """
     Creates sliding window dataset using a multithreaded solution.
@@ -406,6 +433,10 @@ def create_sliding_window_dataset(
         chunk_generator, chunk_file_names.append
     )
     chunk_generator = tuple_chain(chunk_generator, yield_first=True)
+
+    if chunk_count > 0:
+        print(f"Only processing first {chunk_count} chunks. This is for testing.")
+        chunk_generator = limit(chunk_generator, chunk_count)
 
     # Selects output features
     # NOTE: they're loaded before the parallelization so that the
@@ -545,6 +576,11 @@ def cmd_create_sliding_window_dataset():
 
     use_sna = not get_argv_flag("--no-sna")
 
+    # This is a debug setting.
+    test_chunk_count = safe_get_argv(
+        key="--test-chunk-count", default=-1, data_type=int
+    )
+
     create_sliding_window_dataset(
         output_path,
         chunk_base_path,
@@ -554,6 +590,7 @@ def cmd_create_sliding_window_dataset():
         partial(all_features_factory, use_sna=use_sna),
         window_size_in_days,
         thread_count,
+        test_chunk_count,
     )
 
     deltatime = datetime.now() - start

@@ -10,7 +10,7 @@ from itertools import product
 
 from collections import deque
 import datetime as dt
-from typing import Any, Tuple, Callable, Iterator
+from typing import Any, Dict, Tuple, Callable, Iterator
 import networkx as nx
 
 import python_proj.utils.exp_utils as exp_utils
@@ -365,3 +365,7 @@ def build_centrality_features():
     # ])
 
     return pr_graph, issue_graph, global_centrality_measures, local_centrality_measures
+
+
+def get_total_count_from_features(features: list[SNAFeature]) -> Dict[str, int]:
+    return {feature.get_name(): feature.total_edge_count for feature in features}
