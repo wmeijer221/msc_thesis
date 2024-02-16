@@ -56,7 +56,14 @@ class IntraProjectSharedExperienceFeature(SharedExperienceFeature):
         source_ids = self._get_nodes(entry, self._nested_source_keys)
         target_ids = self._get_nodes(entry, self._nested_target_keys)
         repo_name = get_repository_name_from_source_path(entry[SOURCE_PATH_KEY])
-        for source_id, target_id in product(source_ids, target_ids):
+        # Creates pairs of nodes between nodes if they are not equal.
+        pairs = product(source_ids, target_ids)
+        pairs = (
+            (source_id, target_id)
+            for source_id, target_id in pairs
+            if source_id != target_id
+        )
+        for source_id, target_id in pairs:
             self._shared_experience[source_id][target_id][repo_name] += sign
 
     def get_feature(self, entry: dict) -> int:
