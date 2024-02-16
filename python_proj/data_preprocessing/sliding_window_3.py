@@ -15,6 +15,7 @@ import itertools
 import json
 import os
 from typing import Tuple, Iterator, Callable
+from wmeijer_utils.collections.safe_dict import SafeDict
 
 import python_proj.data_preprocessing.sliding_window_features as swf
 from python_proj.utils.arg_utils import safe_get_argv, get_argv, get_argv_flag
@@ -244,7 +245,25 @@ def __get_output_features(
     output_features = [
         feature for feature in all_features if feature.is_output_feature()
     ]
+    for index, feature in enumerate(
+        itertools.chain(issue_sw_features, pr_sw_features, pr_features), start=1
+    ):
+        print(
+            f"\tFeature {index:0>2}: (output: {feature.is_output_feature()}) {feature.get_name()}"
+        )
     return list(output_features), all_features
+
+
+def __test_feature_uniqueness(all_features: list[Feature]):
+    count = SafeDict(default_value=0)
+    for feature in all_features:
+        t = feature.__class__.__name__
+        count[t] += 1
+    are_unique = all(value == 1 for value in count.values())
+    if are_unique:
+        print("All features are unique.")
+    else:
+        raise ValueError("Some features are added twice.")
 
 
 def __handle_chunk(
@@ -396,12 +415,8 @@ def create_sliding_window_dataset(
         pr_features, pr_sw_features, issue_sw_features
     )
     print(f"Loaded {len(output_features)}/{len(all_features)} output features:")
-    for index, feature in enumerate(
-        itertools.chain(issue_sw_features, pr_sw_features, pr_features), start=1
-    ):
-        print(
-            f"\tFeature {index:0>2}: (output: {feature.is_output_feature()}) {feature.get_name()}"
-        )
+
+    __test_feature_uniqueness(all_features)
 
     # Runs all tasks.
     parallelize_tasks(

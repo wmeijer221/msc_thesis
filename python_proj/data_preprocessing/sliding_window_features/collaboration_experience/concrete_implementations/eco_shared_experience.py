@@ -116,7 +116,7 @@ def build_eco_se_features() -> (
 ):
     """Factory method for ecosystem shared experience features"""
     pr_features = [
-        EcosystemSharedExperiencePullRequestSubmittedByIntegratorCommentedOnBySubmitter(),
+        EcosystemSharedExperiencePullRequestSubmittedBySubmitterIntegratedByIntegrator(),
         EcosystemSharedExperiencePullRequestSubmittedByIntegratorIntegratedBySubmitter(),
         EcosystemSharedExperiencePullRequestSubmittedBySubmitterCommentedOnByIntegrator(),
         EcosystemSharedExperiencePullRequestSubmittedByIntegratorCommentedOnBySubmitter(),
