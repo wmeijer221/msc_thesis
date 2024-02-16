@@ -367,5 +367,9 @@ def build_centrality_features():
     return pr_graph, issue_graph, global_centrality_measures, local_centrality_measures
 
 
-def get_total_count_from_features(features: list[SNAFeature]) -> Dict[str, int]:
-    return {feature.get_name(): feature.total_edge_count for feature in features}
+def get_total_count_from_sna_features(features: list[Feature]) -> Dict[str, int]:
+    return {
+        feature.get_name(): feature.total_edge_count
+        for feature in features
+        if isinstance(feature, SNAFeature)
+    }

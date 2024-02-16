@@ -304,7 +304,7 @@ def __handle_chunk(
         previous_chunk, issue_sw_features, pr_sw_features
     )
 
-    edge_count_previous_chunk = swf.get_total_count_from_features(all_features)
+    edge_count_previous_chunk = swf.get_total_count_from_sna_features(all_features)
 
     print(f'Task-{task_id}: Loaded previous chunk: "{previous_chunk}".')
 
@@ -327,7 +327,7 @@ def __handle_chunk(
                 )
 
     # Stores the edge count.
-    edge_count = swf.get_total_count_from_features(all_features)
+    edge_count = swf.get_total_count_from_sna_features(all_features)
     edge_count = subtract_dict(edge_count, edge_count_previous_chunk)
     with open(edge_count_output_path, "w+", encoding="utf-8") as output_file:
         output_file.write(json.dumps(edge_count))
