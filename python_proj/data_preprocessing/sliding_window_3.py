@@ -255,6 +255,11 @@ def __get_output_features(
 
 
 def __test_feature_uniqueness(all_features: list[Feature]):
+    """
+    Tests whether the features are unique and raises an error if they aren't.
+    It's mostly here to test whether you made a typo in any of the feature
+    factory methods to prevent wasting a ridiculous amount of time.
+    """
     count = SafeDict(default_value=0)
     for feature in all_features:
         t = feature.__class__.__name__
@@ -263,6 +268,7 @@ def __test_feature_uniqueness(all_features: list[Feature]):
     if are_unique:
         print("All features are unique.")
     else:
+        print(json.dumps(count, indent=2))
         raise ValueError("Some features are added twice.")
 
 
