@@ -245,12 +245,6 @@ def __get_output_features(
     output_features = [
         feature for feature in all_features if feature.is_output_feature()
     ]
-    for index, feature in enumerate(
-        itertools.chain(issue_sw_features, pr_sw_features, pr_features), start=1
-    ):
-        print(
-            f"\tFeature {index:0>2}: (output: {feature.is_output_feature()}) {feature.get_name()}"
-        )
     return list(output_features), all_features
 
 
@@ -421,6 +415,12 @@ def create_sliding_window_dataset(
         pr_features, pr_sw_features, issue_sw_features
     )
     print(f"Loaded {len(output_features)}/{len(all_features)} output features:")
+    for index, feature in enumerate(
+        itertools.chain(issue_sw_features, pr_sw_features, pr_features), start=1
+    ):
+        print(
+            f"\tFeature {index:0>2}: (output: {feature.is_output_feature()}) {feature.get_name()}"
+        )
 
     __test_feature_uniqueness(all_features)
 
