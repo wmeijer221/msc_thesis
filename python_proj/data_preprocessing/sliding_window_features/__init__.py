@@ -30,5 +30,5 @@ from python_proj.data_preprocessing.sliding_window_features.collaboration_experi
     build_intra_eco_centrality_features,
 )
 from python_proj.data_preprocessing.sliding_window_features.collaboration_experience.centrality_features import (
-    get_total_count_from_features,
+    get_total_count_from_sna_features,
 )
