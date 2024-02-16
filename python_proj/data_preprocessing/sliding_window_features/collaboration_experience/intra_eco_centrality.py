@@ -126,7 +126,7 @@ class IssueCommenterToCommenterV2(PRCommenterToCommenterV2):
     """Only here for the name."""
 
 
-class IntraProjectSecondOrderDegreeCentrality(FirstOrderDegreeCentralityV2):
+class IntraProjectSecondOrderInDegreeCentrality(FirstOrderDegreeCentralityV2):
     """
     Second-order degree centrality feature,
     only considering intra-project connecting edges.
@@ -137,7 +137,7 @@ class IntraProjectSecondOrderDegreeCentrality(FirstOrderDegreeCentralityV2):
         graph: DiGraph,
         edge_to_project_mapping: dict,
         edge_types: List[SNAFeature],
-        count_in_degree: bool,
+        count_in_degree: bool = True,
     ) -> None:
         super().__init__(graph, edge_types, count_in_degree)
         self._edge_to_project_mapping = edge_to_project_mapping
@@ -163,7 +163,22 @@ class IntraProjectSecondOrderDegreeCentrality(FirstOrderDegreeCentralityV2):
         return super().get_feature(entry)
 
 
-class EcosystemSecondOrderDegreeCentrality(IntraProjectSecondOrderDegreeCentrality):
+class IntraProjectSecondOrderOutDegreeCentrality(
+    IntraProjectSecondOrderInDegreeCentrality
+):
+    """Here for the name."""
+
+    def __init__(
+        self,
+        graph: DiGraph,
+        edge_to_project_mapping: dict,
+        edge_types: List[SNAFeature],
+        count_in_degree: bool = False,
+    ) -> None:
+        super().__init__(graph, edge_to_project_mapping, edge_types, count_in_degree)
+
+
+class EcosystemSecondOrderInDegreeCentrality(IntraProjectSecondOrderInDegreeCentrality):
     """
     Second-order degree centrality feature,
     only considering ecosystem connecting edges.
@@ -181,6 +196,19 @@ class EcosystemSecondOrderDegreeCentrality(IntraProjectSecondOrderDegreeCentrali
         return not super().is_ignored_connecting_edge(
             source_id, target_id, timestamp, edge_type
         )
+
+
+class EcosystemSecondOrderOutDegreeCentrality(EcosystemSecondOrderInDegreeCentrality):
+    """Here for the name"""
+
+    def __init__(
+        self,
+        graph: DiGraph,
+        edge_to_project_mapping: dict,
+        edge_types: List[SNAFeature],
+        count_in_degree: bool = False,
+    ) -> None:
+        super().__init__(graph, edge_to_project_mapping, edge_types, count_in_degree)
 
 
 def _build_edge_key(
@@ -213,17 +241,17 @@ def build_intra_eco_centrality_features() -> (
     activity_graphs = [*pr_graph, *issue_graph]
 
     centr_features = [
-        IntraProjectSecondOrderDegreeCentrality(
-            graph, edge_to_project_mapping, activity_graphs, count_in_degree=True
+        IntraProjectSecondOrderInDegreeCentrality(
+            graph, edge_to_project_mapping, activity_graphs
         ),
-        IntraProjectSecondOrderDegreeCentrality(
-            graph, edge_to_project_mapping, activity_graphs, count_in_degree=False
+        IntraProjectSecondOrderOutDegreeCentrality(
+            graph, edge_to_project_mapping, activity_graphs
         ),
-        EcosystemSecondOrderDegreeCentrality(
-            graph, edge_to_project_mapping, activity_graphs, count_in_degree=True
+        EcosystemSecondOrderInDegreeCentrality(
+            graph, edge_to_project_mapping, activity_graphs
         ),
-        EcosystemSecondOrderDegreeCentrality(
-            graph, edge_to_project_mapping, activity_graphs, count_in_degree=False
+        EcosystemSecondOrderOutDegreeCentrality(
+            graph, edge_to_project_mapping, activity_graphs
         ),
     ]
 
