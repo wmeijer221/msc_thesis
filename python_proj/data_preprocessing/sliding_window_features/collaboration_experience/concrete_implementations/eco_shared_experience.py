@@ -58,6 +58,27 @@ class EcosystemSharedExperiencePullRequestSubmittedByIntegratorCommentedOnBySubm
         super().__init__(is_inversed=True)
 
 
+class EcosystemSharedExperiencePullRequestDiscussionParticipationByIntegratorAndSubmitter(
+    EcosystemSharedExperienceFeature
+):
+    """
+    Counts the number of times the submitter and integrator have both participated in a pull request discussion.
+    This does not need an inverse, as the implementation of the parent class creates edges for every permutation
+    of commenters; i.e., (u, v) and (v, u) are both added here.
+    """
+
+    def __init__(self, is_inversed: bool = False) -> None:
+        super().__init__(
+            ["comments_data", "user_data", "id"],
+            ["comments_data", "user_data", "id"],
+            is_inversed,
+        )
+
+    def _handle(self, entry: dict, sign: Number):
+        if entry["comments"] > 0:
+            super()._handle(entry, sign)
+
+
 # Issues
 
 
@@ -79,6 +100,15 @@ class EcosystemSharedExperienceIssueSubmittedByIntegratorCommentedOnBySubmitter(
     """
 
 
+class EcosystemSharedExperienceIssueDiscussionParticipationByIntegratorAndSubmitter(
+    EcosystemSharedExperiencePullRequestDiscussionParticipationByIntegratorAndSubmitter
+):
+    """
+    Is functionally exactly the same as the parent class.
+    This class is implemented just to give the feature a unique name.
+    """
+
+
 def build_eco_se_features() -> (
     Tuple[
         List[EcosystemSharedExperienceFeature], List[EcosystemSharedExperienceFeature]
@@ -90,9 +120,11 @@ def build_eco_se_features() -> (
         EcosystemSharedExperiencePullRequestSubmittedByIntegratorIntegratedBySubmitter(),
         EcosystemSharedExperiencePullRequestSubmittedBySubmitterCommentedOnByIntegrator(),
         EcosystemSharedExperiencePullRequestSubmittedByIntegratorCommentedOnBySubmitter(),
+        EcosystemSharedExperiencePullRequestDiscussionParticipationByIntegratorAndSubmitter(),
     ]
     iss_features = [
         EcosystemSharedExperienceIssueSubmittedBySubmitterCommentedOnByIntegrator(),
         EcosystemSharedExperienceIssueSubmittedByIntegratorCommentedOnBySubmitter(),
+        EcosystemSharedExperienceIssueDiscussionParticipationByIntegratorAndSubmitter(),
     ]
     return pr_features, iss_features

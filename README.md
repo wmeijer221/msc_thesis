@@ -116,7 +116,7 @@ The output of this will be two data files, both called `sorted_filtered_min_5_pr
 ### Dataset Generation
 
 - Run `sliding_window_2.py -m s -pd sorted_filtered_min_5_prs_no_dupes_no_invalid -id sorted_filtered_min_5_prs_no_dupes_no_invalid -o ftc_data -w 90` which generates a dataset that only contains the independent variable "is first time contributor". This is done separately as `sliding_window_3` is multithreaded and can't calculate this correctly. It stores the output at `ftc_data.csv`.
-- Run `sliding_window_3.py -pd sorted_filtered_min_5_prs_no_dupes_no_invalid -id sorted_filtered_min_5_prs_no_dupes_no_invalid -o non_ftc_data -w 90 -t 8` which generates the rest of the features multithreadedly (this is quite memory intensive, so you probably can't just max out the number of threads). The generated dataset is stored at `non_ftc_data.csv`.
+- Run `sliding_window_3.py -pd sorted_filtered_min_5_prs_no_dupes_no_invalid -id sorted_filtered_min_5_prs_no_dupes_no_invalid -o non_ftc_data -w 90 -t 12` which generates the rest of the features multithreadedly. This is quite memory intensive, so you probably can't just max out the number of threads. In our experiment, each thread used approximately 6.5% = 15GB of the available RAM. RAM usage only becomes problematic at the the later stages, as the last few chunks are substantially larger than the first few. The generated dataset is stored at `non_ftc_data.csv`.
 
 The output of this is two datasets `ftc_data.csv` and `non_ftc_data.csv`, which are input for the data modelling / inference process.
 

@@ -3,7 +3,6 @@ Extends SharedExperience to distinguish between
 intra-project and ecosystem-wide experience.
 """
 
-from typing import List, Tuple
 from typing import Callable
 from itertools import product
 
