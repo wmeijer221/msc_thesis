@@ -21,7 +21,7 @@ class SharedExperienceFeature(SlidingWindowFeature):
     """
     Base class for shared experience.
     It takes source keys, and target keys and adds an entry for
-    connection it can find in a data entry.
+    connection it can find in a data entry. It ignored self-loops.
     """
 
     def __init__(
