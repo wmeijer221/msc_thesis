@@ -82,5 +82,28 @@ def create_predictor_histograms(
     df: pd.DataFrame, output_folder: str, columns: Iterator[str]
 ):
     # Iterate over the columns and generate histograms
-    for column in df.columns[columns]:
+    for column in columns:
         create_histogram(df, column, output_folder, show_without_value=0)
+
+
+from wmeijer_utils.multithreading import parallelize_tasks
+from functools import partial
+
+
+def execute_partial(task, my_partial_task, *args, **kwargs):
+    my_partial_task(columns=[task])
+
+
+def create_predictor_histograms_in_parallel(
+    df: pd.DataFrame, output_folder: str, columns: Iterator[str]
+):
+    """
+    For those who want many figures, but don't
+    have the time to create them sequentially.
+    """
+    partial_task = partial(
+        create_predictor_histograms, df=df, output_folder=output_folder
+    )
+    parallelize_tasks(
+        list(columns), execute_partial, thread_count=8, my_partial_task=partial_task
+    )
