@@ -6,11 +6,15 @@ This repository acts as a _replication package_ to this study, providing little 
 For that type of information and any other unclarities, refer to the paper; specifically the data collection / methodology section.
 Figure 1 in the thesis provides a high-level overview of the data collection process, which might help contextualize the different replication steps / scripts in this repository.
 
+Note, depending on what study you are trying to replicate, you might need a different version of the code.
+Please refer to [The Release Page](https://github.com/wmeijer221/msc_thesis/releases) for details.
+To make sure you are using the latest version of the code, refer to that page as well.
 
 ## Contents
 
 - [Ecosystem-wide experience / collaboration and pull request acceptance.](#ecosystem-wide-experience--collaboration-and-pull-request-acceptance)
   - [Contents](#contents)
+  - [Replication Package Contents](#replication-package-contents)
   - [Notable Terminology Differences](#notable-terminology-differences)
   - [Installation and set-up](#installation-and-set-up)
     - [Preliminary data](#preliminary-data)
@@ -26,6 +30,31 @@ Figure 1 in the thesis provides a high-level overview of the data collection pro
     - [Modelling](#modelling-1)
     - [Other Code](#other-code)
     - [The data folder](#the-data-folder)
+
+## Replication Package Contents
+
+The replication package provided as part of this study contains the code and data necessary to replicate (parts) of this study.
+The package can be downloaded [here]().
+Because this study uses datasets created by others, it does **NOT** contain everything necessary to run the complete pipeline.
+For notes on how to acquire these, please refer to [Preliminary Data](#preliminary-data).
+For additional details on where data should be stored when replicating this study, refer to [The Data Folder](#the-data-folder).
+
+The replication package contains the following:
+
+- This repository.
+- `non_ftc_data.csv` (700MB): Contains the dataset ouputted by the sliding window algorithm. No preprocessing has been applied to this data. It can be used as input data for the [Modelling](#modelling) phase. Please store this in the `./data/final_data/` folder.
+- Raw development activity data in `./development_activities/`
+  - `pulls_sorted_started_26_05_23_min_5_prs_no_invalid_no_dupes.json` (11GB): Contains the raw API data of all the pull requests used in this study. This data has already been filtered. This is the output of the [Data Parsing](#data-parsing) phase. It can be used as input for the [Dataset Generation](#dataset-generation) phase. Please store this in the `./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/` folder.
+  - `issues_sorted_started_26_05_23_min_5_prs_no_invalid_no_dupes.json` (11GB): Contains the raw API data of all the issues used in this study. This data has already been filtered. This is the output of the [Data Parsing](#data-parsing) phase. It can be used as input for the [Dataset Generation](#dataset-generation) phase.  Please store this in the `./data/libraries/npm-libraries-1.6.0-2020-01-12/issues/` folder.
+- Project filter files (14MB) in `./project_filters/`. These files contain the names of the projects of which development activity data was queried. It is the input for the [Data Retrieval](#data-retrieval) phase. Store these in the `./data/libraries/npm-libraries-1.6.0-2020-01-12/predictors/` folder.
+  - `included_projects_popular_dl.csv`: The sample of projects with sufficient NPM downloads.
+  - `./included_projects_popular.csv`: The sample of projects with sufficient downloads and at least 5 pull requests. (This is a subset of `included_projects_popular_dl`).
+  - `included_projects_popular_outgoing_dependencies_without_popular.csv`: The sample of projects that the popular projects depend on; i.e., their upstream projects.
+  - `included_projects_popular_incoming_dependencies_without_popular.csv`: The sample of projects that depend on the popular projects; i.e., their downstream projects. (This is only used to sample from as it contains too many projects to query data for.)
+  - `included_projects_popular_incoming_dependencies_sample_1.csv`: The first random sample of `included_projects_popular_incoming_dependencies_without_popular`.
+  - `included_projects_popular_incoming_dependencies_sample_2.csv`: The second random sample of `included_projects_popular_incoming_dependencies_without_popular`.
+
+_The paper refers to a number of bots that were added to a manually built blacklist; these are not stored in a file, but can be found in the `filter_for_blacklist` method [in here](./python_proj/data_filters/post_sort_filters.py)._
 
 ## Notable Terminology Differences
 
@@ -45,7 +74,7 @@ Therefore, take the differences in terminology in mind when interpreting the res
 Before trying anything in this project, you should do the following:
 
 - All of the experiments were ran using `python 3.11-bullseye`, and used this inside a VS Code `devcontainer`. In case you want to run the notebooks some version of Jupyter notebooks should be installed, we used Client version `8.2.0`.
-- If you want to store persistent data in a different location than `./data/` (i.e., in the repostory root folder), the environment variable `EXPERIMENT_BASE_PATH` should be set.
+- If you want to store persistent data in a different location than `./data/` (i.e., in the repostory root folder), the environment variable `EXPERIMENT_BASE_PATH` should be set. For simplicity, the readme assumes you don't change this.
 - Usually, when pulling the repository, the `PYTHONPATH` variable isn't set properly. Make sure to update this by installing the project in a container and setting it on startup (like we did), by configuring your venv, or simply by overwriting the variable on your machine (though, this will probably break other projects).
 - Make sure to install the Python requirements prior to running any code, by using `pip install -r ./python_proj/requirements.txt`.
 
@@ -65,7 +94,6 @@ You don't need them for the [modelling](#modelling) steps.
 
 The following steps are necessary to replicate this study.
 You can skip steps in case you have access to raw or processed data.
-
 
 Some of the steps use multithreaded solutions and allow you to specify the number of used threads. 
 This can most commonly be done using the `-t` commandline parameter, such that `-t 4` runs the process with four threads. 
@@ -115,7 +143,7 @@ The output of this will be two data files, both called `sorted_filtered_min_5_pr
 
 ### Dataset Generation
 
-- Run `sliding_window_3.py -pd sorted_filtered_min_5_prs_no_dupes_no_invalid -id sorted_filtered_min_5_prs_no_dupes_no_invalid -o non_ftc_data -w 90 -t 12` which generates the rest of the features multithreadedly. This is quite memory intensive, so you probably can't just max out the number of threads. In our experiment, each thread used approximately 6.5% = 15GB of the available RAM. RAM usage only becomes problematic at the the later stages, as the last few chunks are substantially larger than the first few. The generated dataset is stored at `non_ftc_data.csv`.
+- Run `sliding_window_3.py -pd sorted_filtered_min_5_prs_no_dupes_no_invalid -id sorted_filtered_min_5_prs_no_dupes_no_invalid -o non_ftc_data -w 90 -t 12` which generates the rest of the features multithreadedly. This is quite memory intensive, so you probably can't just max out the number of threads. In our experiment, each thread used approximately 6.5% = 15GB of the available RAM. RAM usage only becomes problematic at the the later stages, as the last few chunks are substantially larger than the first few. The generated dataset is stored at `non_ftc_data.csv`. This process is slow; the last run took almost 15 hours to complete.
 
 The output of this is two datasets `ftc_data.csv` and `non_ftc_data.csv`, which are input for the data modelling / inference process.
 
