@@ -73,10 +73,15 @@ Therefore, take the differences in terminology in mind when interpreting the res
 
 Before trying anything in this project, you should do the following:
 
-- All of the experiments were ran using `python 3.11-bullseye`, and used this inside a VS Code `devcontainer`. In case you want to run the notebooks some version of Jupyter notebooks should be installed, we used Client version `8.2.0`.
-- If you want to store persistent data in a different location than `./data/` (i.e., in the repostory root folder), the environment variable `EXPERIMENT_BASE_PATH` should be set. For simplicity, the readme assumes you don't change this.
-- Usually, when pulling the repository, the `PYTHONPATH` variable isn't set properly. Make sure to update this by installing the project in a container and setting it on startup (like we did), by configuring your venv, or simply by overwriting the variable on your machine (though, this will probably break other projects).
+- All of the experiments were ran using `python 3.11-bullseye`, and used this inside a VS Code `devcontainer`.
+  In case you want to run the notebooks some version of Jupyter notebooks should be installed, we used Client version `8.2.0`.
+- If you want to store persistent data in a different location than `./data/` (i.e., in the repostory root folder), the environment variable `EXPERIMENT_BASE_PATH` should be set.
+  For simplicity, the readme assumes you don't change this.
+- Usually, when pulling the repository, the `PYTHONPATH` variable isn't set properly.
+  Make sure to update this by installing the project in a container and setting it on startup (like we did), by configuring your venv, or simply by overwriting the variable on your machine (though, this will probably break other projects).
+  (If you are using a devcontainer, this step isn't necessary.)
 - Make sure to install the Python requirements prior to running any code, by using `pip install -r ./python_proj/requirements.txt`.
+  (If you are using a devcontainer, this step isn't necessary.)
 
 ### Preliminary data
 
