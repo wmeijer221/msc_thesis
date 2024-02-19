@@ -201,6 +201,8 @@ class EcosystemSecondOrderInDegreeCentrality(IntraProjectSecondOrderInDegreeCent
 class EcosystemSecondOrderOutDegreeCentrality(EcosystemSecondOrderInDegreeCentrality):
     """Here for the name"""
 
+    # TODO: Because In-/Out Degree is now determined by inheritence, the output name contains "In" / "Out" twice, which is unnecessary.
+
     def __init__(
         self,
         graph: DiGraph,
