@@ -6,9 +6,9 @@ intra-project and ecosystem-wide experience.
 from typing import Callable
 from itertools import product
 
-from wmeijer_utils.collections.safe_dict import SafeDict
-from wmeijer_utils.collections.dict_access import better_get_nested_many
-from wmeijer_utils.collections.list_access import resolve_callables_in_list
+from wmutils.collections.safe_dict import SafeDict
+from wmutils.collections.dict_access import better_get_nested_many
+from wmutils.collections.list_access import resolve_callables_in_list
 
 from python_proj.utils.exp_utils import (
     get_repository_name_from_source_path,

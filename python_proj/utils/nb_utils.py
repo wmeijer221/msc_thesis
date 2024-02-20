@@ -1,4 +1,4 @@
-# TODO: Remove this and replace all of it with `wmeijer_utils`.
+# TODO: Remove this and replace all of it with `wmutils`.
 
 import copy
 from typing import Iterator
@@ -86,7 +86,7 @@ def create_predictor_histograms(
         create_histogram(df, column, output_folder, show_without_value=0)
 
 
-from wmeijer_utils.multithreading import parallelize_tasks
+from wmutils.multithreading import parallelize_tasks
 from functools import partial
 
 

@@ -15,9 +15,9 @@ import itertools
 import json
 import os
 from typing import Tuple, Iterator, Callable
-from wmeijer_utils.collections.safe_dict import SafeDict
-from wmeijer_utils.collections.dict_access import subtract_dict, add_dict
-from wmeijer_utils.iterators import limit
+from wmutils.collections.safe_dict import SafeDict
+from wmutils.collections.dict_access import subtract_dict, add_dict
+from wmutils.iterators import limit
 
 import python_proj.data_preprocessing.sliding_window_features as swf
 from python_proj.utils.arg_utils import safe_get_argv, get_argv, get_argv_flag

@@ -8,7 +8,7 @@ from warnings import warn
 from numbers import Number
 from typing import Any, Tuple, Callable
 
-from wmeijer_utils.collections.safe_dict import SafeDict
+from wmutils.collections.safe_dict import SafeDict
 
 from python_proj.data_preprocessing.sliding_window_features.base import (
     SlidingWindowFeature,
