@@ -29,7 +29,9 @@ def get_nth_parent_dir(path: str, n: int):
     return path
 
 
-def get_notebooks(root: str, do_preprocessing: bool, do_logit: bool, do_rf: bool):
+def get_notebooks(
+    root: str, do_preprocessing: bool, do_logit: bool, do_rf: bool, do_obfuscate: bool
+):
     # Collects logistic regression notebooks.
     lr_notebook_dir = f"{root}/python_proj/modelling/notebooks/logistic_regression/"
     lr_notebooks = get_notebooks_in_dir(lr_notebook_dir)
@@ -47,12 +49,22 @@ def get_notebooks(root: str, do_preprocessing: bool, do_logit: bool, do_rf: bool
 
     # This is hardcoded as for preprocessing the order matters.
     preproc_notebooks = [
-        "feature_construction.ipynb",
-        "subsampling.ipynb",
-        "feature_transformation.ipynb",
+        "feature_construction",
+        "subsampling",
+        "feature_transformation",
     ]
+
+    if do_obfuscate:
+        # If we need to obfuscate, the preprocessing pipeline
+        # is prepended with this process.
+        preproc_notebooks = [
+            "feature_construction",
+            "data_obfuscation",
+            *preproc_notebooks,
+        ]
+
     preproc_notebooks = [
-        f"{root}/python_proj/modelling/notebooks/preprocessing/{file}"
+        f"{root}/python_proj/modelling/notebooks/preprocessing/{file}.ipynb"
         for file in preproc_notebooks
     ]
 
@@ -86,10 +98,11 @@ def execute_notebooks(notebook_files: List[str], root: str):
 
 
 if __name__ == "__main__":
+    do_obfuscate = "--no-obfuscate" not in argv
     do_preprocessing = "--no-preproc" not in argv
     do_logit = "--no-logit" not in argv
     do_rf = "--no-rf" not in argv
-    print(f"{do_preprocessing=}, {do_logit=}, {do_rf=}")
+    print(f"{do_obfuscate=}, {do_preprocessing=}, {do_logit=}, {do_rf=}")
 
     root = os.environ.get("PYTHONPATH")
     print(f"{root=}")

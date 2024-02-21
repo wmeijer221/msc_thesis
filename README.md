@@ -42,7 +42,7 @@ For additional details on where data should be stored when replicating this stud
 The replication package contains the following:
 
 - This repository.
-- `non_ftc_data.csv` (700MB): Contains the dataset ouputted by the sliding window algorithm. No preprocessing has been applied to this data. It can be used as input data for the [Modelling](#modelling) phase. Please store this in the `./data/final_data/` folder.
+- `non_ftc_data.csv` (700MB): Contains the dataset ouputted by the sliding window algorithm. No preprocessing has been applied to this data. It can be used as input data for the [Modelling](#modelling) phase. Please store this in the `./data/final_data/` folder. For the sake of privacy, project IDs and PR numbers have been removed from this data. Contributor IDs have been anonymized by assigning a random number.
 - Raw development activity data in `./development_activities/`
   - `pulls_sorted_started_26_05_23_min_5_prs_no_invalid_no_dupes.json` (11GB): Contains the raw API data of all the pull requests used in this study. This data has already been filtered. This is the output of the [Data Parsing](#data-parsing) phase. It can be used as input for the [Dataset Generation](#dataset-generation) phase. Please store this in the `./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/` folder.
   - `issues_sorted_started_26_05_23_min_5_prs_no_invalid_no_dupes.json` (11GB): Contains the raw API data of all the issues used in this study. This data has already been filtered. This is the output of the [Data Parsing](#data-parsing) phase. It can be used as input for the [Dataset Generation](#dataset-generation) phase.  Please store this in the `./data/libraries/npm-libraries-1.6.0-2020-01-12/issues/` folder.
@@ -164,8 +164,7 @@ Run the preprocessing steps in the following order:
 Afterwards, each of the analysis scripts contained in the `random_forest` and `logistic_regression` folders can be ran in any order.
 To then generate the feature importance plots, run `feature_importance`, which is located in the `random_forest` folder.
 
-Alternatively, you can run `run_all_notebooks.py` which runs all of the above as plain Python code by transpiling the notebooks and executing them.
-The output of each file is not contained in the `.ipynb` file, however, is stored in an `.out` file that's automatically generated.
+Alternatively, you can run `run_all_notebooks.py --no-obfuscation` which runs all of the above as plain Python code. This skips the data obfuscation steps.
 
 ## Repository Contents
 
@@ -217,7 +216,7 @@ Contains all of the Python notebooks contained in this study.
   - [`visualization`](./python_proj/modelling/notebooks/preprocessing/visualization.ipynb): Generates histograms for the different features.
 - `logistic_regression`: Contains all of the logistic regression scripts. It has a subfolder per experiment that is performed: the general case, the first-time contributor case, and the non-first-time contributor case. In turn, each folder contains three notebooks, one for the full model, one for the collaboration model, and one for the dependency model.
 - `random_forest`: Contains he random forest model scripts. It contains three models, a full model, a first-time contributor model, and a non-first-time contributor model.
-- [`run_all_notebooks`](./python_proj/modelling/notebooks/run_all_notebooks.py): Runs all of the notebooks included in this project and outputs their results in corresponding `.out` files.
+- [`run_all_notebooks`](./python_proj/modelling/notebooks/run_all_notebooks.py): Runs all of the notebooks included in this project. You can skip steps of the pipeline, by using the `--no-obfuscate`, `--no-preproc`, `--no-logit`, and `--no-rf` flags.
 
 ### Other Code
 
