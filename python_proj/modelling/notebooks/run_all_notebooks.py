@@ -95,6 +95,6 @@ if __name__ == "__main__":
     print(f"{root=}")
 
     nbs = get_notebooks(root, do_preprocessing, do_logit, do_rf)
-    nbs = [f"{root}/python_proj/modelling/notebooks/test.ipynb", *nbs]
+    # nbs = [f"{root}/python_proj/modelling/notebooks/test.ipynb", *nbs]
     print(f"Notebooks ({len(nbs)}):", json.dumps(nbs, indent=2))
     execute_notebooks(nbs, root)
