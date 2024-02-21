@@ -63,6 +63,7 @@ This is due to the co-evolution of both ends, which was not entirely synchronous
 This holds for the following terms (this list might not be exhaustive):
 
 - _Second-order degree centrality:_ For the most part, the code refers to _first-order degree centrality_. This has been renamed in the paper because it's simply the incorrect term. It has been to _second-order degree centrality_, which is accurate. The thesis does still use the old term.
+- _Link Strength:_ the scripts refer to link strength as link intensity; these are synonyms.
 - _Downstream dependencies:_ This term has been updated twice. In the code, it's referred to as _dependencies_ (e.g., `DependencyEcosystemExperience`), in the thesis it's referred to as _incoming dependencies_ (or _in-dependencies_), and in the paper it's referred to as _downstream dependencies_. The first update was simply for clarity, and the second to conform with professional jargon. Developer experience of this kind refers to the experience acquired in projects that implement the focal project.
 - _Upstream dependencies:_ This term was updated in the same fashion and for the same reasons as upstream dependencies. In the code, it is called _reverse dependencies_ (e.g., `InverseDependencyEcosystemExperience`), in the thesis it's referred to as _outgoing dependencies_, and in the paper as _upstream dependencies_. Developer experience of this kind refers to the experience acquired in projects that are implemented by the focal project.
 
