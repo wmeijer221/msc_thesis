@@ -95,6 +95,7 @@ def execute_notebooks(notebook_files: List[str], root: str):
             ep.preprocess(nb, {"metadata": {"path": root}})
             nb_file.seek(0)
             nbformat.write(nb, nb_file)
+            nb_file.truncate()
 
 
 if __name__ == "__main__":
@@ -110,4 +111,5 @@ if __name__ == "__main__":
     nbs = get_notebooks(root, do_preprocessing, do_logit, do_rf, do_obfuscate)
     # nbs = [f"{root}/python_proj/modelling/notebooks/test.ipynb", *nbs]
     print(f"Notebooks ({len(nbs)}):", json.dumps(nbs, indent=2))
-    execute_notebooks(nbs, root)
+    if "-y" in argv or input("Execute these notebooks? (y/n)\n").lower().startswith("y"):
+        execute_notebooks(nbs, root)
