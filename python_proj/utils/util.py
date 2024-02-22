@@ -2,7 +2,7 @@
 Implements general utility functions.
 """
 
-# TODO: Remove this and replace all of it with `wmeijer_utils`.
+# TODO: Remove this and replace all of it with `wmutils`.
 
 from datetime import datetime
 import io

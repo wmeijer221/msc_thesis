@@ -1,21 +1,37 @@
+"""
+Implements global centrality features for the collaboration network.
+It counts both intra-project and ecosystem-wide experience.
+"""
 
+from warnings import warn
 
 import itertools
+from itertools import product
 
 from collections import deque
 import datetime as dt
-from typing import Any, Tuple, Callable, Iterator
+from typing import Any, Dict, Tuple, Callable, Iterator
 import networkx as nx
 
 import python_proj.utils.exp_utils as exp_utils
-from python_proj.data_preprocessing.sliding_window_features import SlidingWindowFeature, Feature
-from python_proj.utils.util import better_get_nested_many, resolve_callables_in_list, stepped_enumerate
+from python_proj.data_preprocessing.sliding_window_features import (
+    SlidingWindowFeature,
+    Feature,
+)
+from python_proj.utils.util import (
+    better_get_nested_many,
+    resolve_callables_in_list,
+    stepped_enumerate,
+)
 
 
 class SNAFeature(SlidingWindowFeature):
-    def __init__(self, graph: nx.DiGraph,
-                 nested_source_keys: list[str | Callable[[dict], str]],
-                 nested_target_keys: list[str | Callable[[dict], str]]) -> None:
+    def __init__(
+        self,
+        graph: nx.DiGraph,
+        nested_source_keys: list[str | Callable[[dict], str]],
+        nested_target_keys: list[str | Callable[[dict], str]],
+    ) -> None:
         super().__init__()
 
         self._graph = graph
@@ -34,17 +50,15 @@ class SNAFeature(SlidingWindowFeature):
             if not self._graph.has_node(node):
                 self._graph.add_node(node)
 
-    def _add_remove_edge(self,
-                         source_node: int, target_node: int,
-                         edge_timestamp: float,
-                         add_entry: bool):
+    def _add_remove_edge(
+        self, source_node: int, target_node: int, edge_timestamp: float, add_entry: bool
+    ):
         """Adds a single edge, ignoring self-loops."""
         if source_node == target_node:
             return
 
         # Grabs all edge data.
-        edge_data = self._graph.get_edge_data(
-            source_node, target_node, default={})
+        edge_data = self._graph.get_edge_data(source_node, target_node, default={})
 
         # Adds queue if not existing yet.
         if self.edge_label not in edge_data:
@@ -77,21 +91,21 @@ class SNAFeature(SlidingWindowFeature):
         if nx.is_isolate(self._graph, target_node):
             self._graph.remove_node(target_node)
 
-    def _add_remove_edges(self,
-                          sources: int | list[int],
-                          targets: int | list[int],
-                          edge_timestamp: float,
-                          add_entries: bool):
+    def _add_remove_edges(
+        self,
+        sources: int | list[int],
+        targets: int | list[int],
+        edge_timestamp: float,
+        add_entries: bool,
+    ):
         """Adds multiple edges, pairwise."""
         if isinstance(sources, int):
             sources = [sources]
         if isinstance(targets, int):
             targets = [targets]
         self._add_nodes(itertools.chain(sources, targets))
-        for source in sources:
-            for target in targets:
-                self._add_remove_edge(source, target,
-                                      edge_timestamp, add_entries)
+        for source, target in product(sources, targets):
+            self._add_remove_edge(source, target, edge_timestamp, add_entries)
 
     def _get_us_and_vs(self, entry: dict) -> Tuple[list[int], list[int]]:
         def __get_nodes(nested_key: list[str | Callable[[dict], str]]) -> list[int]:
@@ -107,15 +121,13 @@ class SNAFeature(SlidingWindowFeature):
 
     def add_entry(self, entry: dict):
         sources, targets = self._get_us_and_vs(entry)
-        edge_timestamp: dt.datetime = entry['__dt_closed_at']
-        self._add_remove_edges(sources, targets,
-                               edge_timestamp.timestamp(), True)
+        edge_timestamp: dt.datetime = entry["__dt_closed_at"]
+        self._add_remove_edges(sources, targets, edge_timestamp.timestamp(), True)
 
     def remove_entry(self, entry: dict):
         sources, targets = self._get_us_and_vs(entry)
-        edge_timestamp: dt.datetime = entry['__dt_closed_at']
-        self._add_remove_edges(sources, targets,
-                               edge_timestamp.timestamp(), False)
+        edge_timestamp: dt.datetime = entry["__dt_closed_at"]
+        self._add_remove_edges(sources, targets, edge_timestamp.timestamp(), False)
 
     def is_output_feature(self) -> bool:
         return False
@@ -126,41 +138,43 @@ class SNAFeature(SlidingWindowFeature):
 
 class PRIntegratorToSubmitter(SNAFeature):
     def __init__(self, graph: nx.DiGraph) -> None:
-        super().__init__(graph,
-                         [exp_utils.get_integrator_key, 'id'],
-                         ['user_data', 'id'])
+        super().__init__(
+            graph, [exp_utils.get_integrator_key, "id"], ["user_data", "id"]
+        )
 
 
 class PRCommenterToSubmitter(SNAFeature):
     def __init__(self, graph: nx.DiGraph) -> None:
-        super().__init__(graph,
-                         ['comments_data', 'user_data', 'id'],
-                         ['user_data', 'id'])
+        super().__init__(
+            graph, ["comments_data", "user_data", "id"], ["user_data", "id"]
+        )
 
     def add_entry(self, entry: dict):
-        if entry['comments'] == 0:
+        if entry["comments"] == 0:
             return
         super().add_entry(entry)
 
     def remove_entry(self, entry: dict):
-        if entry['comments'] == 0:
+        if entry["comments"] == 0:
             return
         super().remove_entry(entry)
 
 
 class PRCommenterToCommenter(SNAFeature):
     def __init__(self, graph: nx.DiGraph) -> None:
-        super().__init__(graph,
-                         ['comments_data', 'user_data', 'id'],
-                         ['comments_data', 'user_data', 'id'])
+        super().__init__(
+            graph,
+            ["comments_data", "user_data", "id"],
+            ["comments_data", "user_data", "id"],
+        )
 
     def add_entry(self, entry: dict):
-        if entry['comments'] == 0:
+        if entry["comments"] == 0:
             return
         super().add_entry(entry)
 
     def remove_entry(self, entry: dict):
-        if entry['comments'] == 0:
+        if entry["comments"] == 0:
             return
         super().remove_entry(entry)
 
@@ -185,98 +199,99 @@ class SNACentralityFeature(Feature):
         raise NotImplementedError()
 
 
-class HITSCentrality(SNACentralityFeature):
-    def get_feature(self, entry: dict) -> str:
-        submitter_id = entry['user_data']['id']
-        if not self._graph.has_node(submitter_id):
-            return 0.0, 0.0
-
-        hubs, authorities = nx.hits(self._graph)
-        return hubs[submitter_id], authorities[submitter_id]
-
-    def get_name(self) -> str:
-        base_name = super().get_name()
-        hub_name = base_name + ".hub"
-        auth_name = base_name + ".auth"
-        return hub_name, auth_name
-
-
-class PageRankCentrality(SNACentralityFeature):
-    def get_feature(self, entry: dict) -> str:
-        submitter_id = entry['user_data']['id']
-        if not self._graph.has_node(submitter_id):
-            return 0.0
-
-        pagreank = nx.pagerank(self._graph)
-        return pagreank[submitter_id]
-
-
 class FirstOrderDegreeCentralityV2(SNACentralityFeature):
     """
     Improves on the original first-order degree centrality by calculating
-    everything in one go instead of separately, by iterating through the 
+    everything in one go instead of separately, by iterating through the
     existing data rather than the interesting data which might or might not
     be there, and by not iterating through the data multiple times.
     It's a little more unintuitive, but about 3 to 4 times quicker.
     """
 
     def __init__(
-        self, graph: nx.DiGraph,
-        edge_types: list[SNAFeature],
-        count_in_degree: bool
+        self, graph: nx.DiGraph, edge_types: list[SNAFeature], count_in_degree: bool
     ) -> None:
         super().__init__(graph)
 
         # Determines whether the in- or out-degree is used.
         self._count_in_degree = count_in_degree
-        self._get_exp_edge_data = self._graph.in_edges if count_in_degree \
-            else self._graph.out_edges
+        self._get_exp_edge_data = (
+            self._graph.in_edges if count_in_degree else self._graph.out_edges
+        )
 
         # Creates an enumerated dict to track edge types.
         # The index is used to generate the output vector.
         self._edges: dict[str, int] = {
-            edge.get_name(): i for i, edge in enumerate(edge_types)}
+            edge.get_name(): i for i, edge in enumerate(edge_types)
+        }
 
     def get_name(self) -> Iterator[str]:
         base_name = super().get_name()
         in_out = "In" if self._count_in_degree else "Out"
         for connecting_edge in self._edges.keys():
             for experience_edge in self._edges.keys():
-                yield f'{base_name}({connecting_edge}.{experience_edge}-{in_out})'
+                yield f"{base_name}({connecting_edge}.{experience_edge}-{in_out})"
+
+    def is_ignored_connecting_edge(
+        self, source_id: int, target_id: int, timestamp: float, edge_type: str
+    ) -> bool:
+        """Returns true if the edge should be ignored."""
+        # HACK: This is only here to get the intra vs. ecosystem experience subclasses to work.
+        return False
 
     def get_feature(self, entry: dict) -> list[int]:
-        submitter_id = entry['user_data']['id']
+        submitter_id = entry["user_data"]["id"]
 
         # Allocates the output vector.
         total_degree = [0] * (len(self._edges) ** 2)
 
         # Iterates through all incoming edges.
         in_edges = self._graph.in_edges(nbunch=[submitter_id])
-        for (neighbour_id, _) in in_edges:
+        for neighbour_id, _ in in_edges:
             edge_data = self._graph.get_edge_data(
-                neighbour_id, submitter_id, default={})
+                neighbour_id, submitter_id, default={}
+            )
 
             # Iterates through all of the edge types with the current neighbor.
             for connecting_edge_type, timestamped_connecting_edges in edge_data.items():
+
+                # HACK: This is only here to get the intra vs. ecosystem experience subclasses to work.
+                # If the connecting edge type is ignored, it's not considered.
+                timestamped_connecting_edges = [
+                    timestamp
+                    for timestamp in timestamped_connecting_edges
+                    if not self.is_ignored_connecting_edge(
+                        neighbour_id, submitter_id, timestamp, connecting_edge_type
+                    )
+                ]
+
                 # If the key is not tracked, it is skipped.
                 if connecting_edge_type not in self._edges:
                     continue
-                connecting_edge_index = len(self._edges) \
-                    * self._edges[connecting_edge_type]
+                connecting_edge_index = (
+                    len(self._edges) * self._edges[connecting_edge_type]
+                )
                 timestamped_edge_count = len(timestamped_connecting_edges)
 
                 # Creates first-order (fo) edge iterator in which
                 # submitter is not involved.
                 fo_edges = self._get_exp_edge_data(neighbour_id)
-                fo_edges = [(fo_source, fo_target)for (fo_source, fo_target) in fo_edges
-                            if fo_source != submitter_id and fo_target != submitter_id]
+                fo_edges = [
+                    (fo_source, fo_target)
+                    for (fo_source, fo_target) in fo_edges
+                    if fo_source != submitter_id and fo_target != submitter_id
+                ]
 
                 # Iterates through all first-order edges.
-                for (fo_source, fo_target) in fo_edges:
+                for fo_source, fo_target in fo_edges:
                     fo_edge_data = self._graph.get_edge_data(
-                        fo_source, fo_target, default={})
+                        fo_source, fo_target, default={}
+                    )
 
-                    for experience_edge_type, timestamped_experience_edges in fo_edge_data.items():
+                    for (
+                        experience_edge_type,
+                        timestamped_experience_edges,
+                    ) in fo_edge_data.items():
                         # If it's not tracked, it's skipped.
                         if experience_edge_type not in self._edges:
                             continue
@@ -288,12 +303,21 @@ class FirstOrderDegreeCentralityV2(SNACentralityFeature):
                         # it will be, by definition, counted for the rest as well, so it's just
                         # multiplied by the number of relevant edges intead.
                         degree = 0
-                        for remaining_connected_edge_count, connecting_edge_timestamp in \
-                            stepped_enumerate(timestamped_connecting_edges,
-                                              start=timestamped_edge_count,
-                                              step=-1):
-                            for experience_edge_timestamp in timestamped_experience_edges:
-                                if experience_edge_timestamp >= connecting_edge_timestamp:
+                        for (
+                            remaining_connected_edge_count,
+                            connecting_edge_timestamp,
+                        ) in stepped_enumerate(
+                            timestamped_connecting_edges,
+                            start=timestamped_edge_count,
+                            step=-1,
+                        ):
+                            for (
+                                experience_edge_timestamp
+                            ) in timestamped_experience_edges:
+                                if (
+                                    experience_edge_timestamp
+                                    >= connecting_edge_timestamp
+                                ):
                                     break
 
                                 # Adds the weight.
@@ -309,30 +333,28 @@ class FirstOrderDegreeCentralityV2(SNACentralityFeature):
 def build_centrality_features():
     """Factory method for centrality features."""
 
+    warn("This is deprecated", DeprecationWarning, stacklevel=2)
+
     # TODO: replace this with a ``MultiDiGraph``
     graph = nx.DiGraph()
 
     pr_graph = [
         PRIntegratorToSubmitter(graph),
         PRCommenterToSubmitter(graph),
-        PRCommenterToCommenter(graph)
+        PRCommenterToCommenter(graph),
     ]
 
-    issue_graph = [
-        IssueCommenterToCommenter(graph),
-        IssueCommenterToSubmitter(graph)
-    ]
+    issue_graph = [IssueCommenterToCommenter(graph), IssueCommenterToSubmitter(graph)]
 
-    global_centrality_measures = [
-        PageRankCentrality(graph),
-        HITSCentrality(graph)
-    ]
+    global_centrality_measures = []
 
     local_centrality_measures = [
-        FirstOrderDegreeCentralityV2(graph, itertools.chain(
-            pr_graph, issue_graph), count_in_degree=True),
-        FirstOrderDegreeCentralityV2(graph, itertools.chain(
-            pr_graph, issue_graph), count_in_degree=False),
+        FirstOrderDegreeCentralityV2(
+            graph, itertools.chain(pr_graph, issue_graph), count_in_degree=True
+        ),
+        FirstOrderDegreeCentralityV2(
+            graph, itertools.chain(pr_graph, issue_graph), count_in_degree=False
+        ),
     ]
 
     # local_centrality_measures.extend([
@@ -343,3 +365,11 @@ def build_centrality_features():
     # ])
 
     return pr_graph, issue_graph, global_centrality_measures, local_centrality_measures
+
+
+def get_total_count_from_sna_features(features: list[Feature]) -> Dict[str, int]:
+    return {
+        feature.get_name(): feature.total_edge_count
+        for feature in features
+        if isinstance(feature, SNAFeature)
+    }

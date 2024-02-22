@@ -6,11 +6,15 @@ This repository acts as a _replication package_ to this study, providing little 
 For that type of information and any other unclarities, refer to the paper; specifically the data collection / methodology section.
 Figure 1 in the thesis provides a high-level overview of the data collection process, which might help contextualize the different replication steps / scripts in this repository.
 
+Note, depending on what study you are trying to replicate, you might need a different version of the code.
+Please refer to [The Release Page](https://github.com/wmeijer221/msc_thesis/releases) for details.
+To make sure you are using the latest version of the code, refer to that page as well.
 
 ## Contents
 
 - [Ecosystem-wide experience / collaboration and pull request acceptance.](#ecosystem-wide-experience--collaboration-and-pull-request-acceptance)
   - [Contents](#contents)
+  - [Replication Package Contents](#replication-package-contents)
   - [Notable Terminology Differences](#notable-terminology-differences)
   - [Installation and set-up](#installation-and-set-up)
     - [Preliminary data](#preliminary-data)
@@ -27,6 +31,31 @@ Figure 1 in the thesis provides a high-level overview of the data collection pro
     - [Other Code](#other-code)
     - [The data folder](#the-data-folder)
 
+## Replication Package Contents
+
+The replication package provided as part of this study contains the code and data necessary to replicate (parts) of this study.
+The package can be downloaded [here]().
+Because this study uses datasets created by others, it does **NOT** contain everything necessary to run the complete pipeline.
+For notes on how to acquire these, please refer to [Preliminary Data](#preliminary-data).
+For additional details on where data should be stored when replicating this study, refer to [The Data Folder](#the-data-folder).
+
+The replication package contains the following:
+
+- This repository.
+- `non_ftc_data_obfuscated.csv` (700MB): Contains the dataset ouputted by the sliding window algorithm. No preprocessing has been applied to this data. It can be used as input data for the [Modelling](#modelling) phase. Please store this in the `./data/final_data/` folder. For the sake of privacy, user IDs and PR numbers have been removed from this data, project IDs have been replaced with a arbitrary number. The results presented in the paper have been generated with the obfuscated dataset.
+- Raw development activity data in `./development_activities/`
+  - `pulls_sorted_started_26_05_23_min_5_prs_no_invalid_no_dupes.json` (11GB): Contains the raw API data of all the pull requests used in this study. This data has already been filtered. This is the output of the [Data Parsing](#data-parsing) phase. It can be used as input for the [Dataset Generation](#dataset-generation) phase. Please store this in the `./data/libraries/npm-libraries-1.6.0-2020-01-12/pull-requests/` folder.
+  - `issues_sorted_started_26_05_23_min_5_prs_no_invalid_no_dupes.json` (11GB): Contains the raw API data of all the issues used in this study. This data has already been filtered. This is the output of the [Data Parsing](#data-parsing) phase. It can be used as input for the [Dataset Generation](#dataset-generation) phase.  Please store this in the `./data/libraries/npm-libraries-1.6.0-2020-01-12/issues/` folder.
+- Project filter files (14MB) in `./project_filters/`. These files contain the names of the projects of which development activity data was queried. It is the input for the [Data Retrieval](#data-retrieval) phase. Store these in the `./data/libraries/npm-libraries-1.6.0-2020-01-12/predictors/` folder.
+  - `included_projects_popular_dl.csv`: The sample of projects with sufficient NPM downloads.
+  - `./included_projects_popular.csv`: The sample of projects with sufficient downloads and at least 5 pull requests. (This is a subset of `included_projects_popular_dl`).
+  - `included_projects_popular_outgoing_dependencies_without_popular.csv`: The sample of projects that the popular projects depend on; i.e., their upstream projects.
+  - `included_projects_popular_incoming_dependencies_without_popular.csv`: The sample of projects that depend on the popular projects; i.e., their downstream projects. (This is only used to sample from as it contains too many projects to query data for.)
+  - `included_projects_popular_incoming_dependencies_sample_1.csv`: The first random sample of `included_projects_popular_incoming_dependencies_without_popular`.
+  - `included_projects_popular_incoming_dependencies_sample_2.csv`: The second random sample of `included_projects_popular_incoming_dependencies_without_popular`.
+
+_The paper refers to a number of bots that were added to a manually built blacklist; these are not stored in a file, but can be found in the `filter_for_blacklist` method [in here](./python_proj/data_filters/post_sort_filters.py)._
+
 ## Notable Terminology Differences
 
 In a number of cases does the terminology used in the papers differ from the terminology used in this code.
@@ -34,6 +63,7 @@ This is due to the co-evolution of both ends, which was not entirely synchronous
 This holds for the following terms (this list might not be exhaustive):
 
 - _Second-order degree centrality:_ For the most part, the code refers to _first-order degree centrality_. This has been renamed in the paper because it's simply the incorrect term. It has been to _second-order degree centrality_, which is accurate. The thesis does still use the old term.
+- _Link Strength:_ the scripts refer to link strength as link intensity; these are synonyms.
 - _Downstream dependencies:_ This term has been updated twice. In the code, it's referred to as _dependencies_ (e.g., `DependencyEcosystemExperience`), in the thesis it's referred to as _incoming dependencies_ (or _in-dependencies_), and in the paper it's referred to as _downstream dependencies_. The first update was simply for clarity, and the second to conform with professional jargon. Developer experience of this kind refers to the experience acquired in projects that implement the focal project.
 - _Upstream dependencies:_ This term was updated in the same fashion and for the same reasons as upstream dependencies. In the code, it is called _reverse dependencies_ (e.g., `InverseDependencyEcosystemExperience`), in the thesis it's referred to as _outgoing dependencies_, and in the paper as _upstream dependencies_. Developer experience of this kind refers to the experience acquired in projects that are implemented by the focal project.
 
@@ -44,10 +74,15 @@ Therefore, take the differences in terminology in mind when interpreting the res
 
 Before trying anything in this project, you should do the following:
 
-- All of the experiments were ran using `python 3.11-bullseye`, and used this inside a VS Code `devcontainer`. In case you want to run the notebooks some version of Jupyter notebooks should be installed, we used Client version `8.2.0`.
+- All of the experiments were ran using `python 3.11-bullseye`, and used this inside a VS Code `devcontainer`.
+  In case you want to run the notebooks some version of Jupyter notebooks should be installed, we used Client version `8.2.0`.
 - If you want to store persistent data in a different location than `./data/` (i.e., in the repostory root folder), the environment variable `EXPERIMENT_BASE_PATH` should be set.
-- Usually, when pulling the repository, the `PYTHONPATH` variable isn't set properly. Make sure to update this by installing the project in a container and setting it on startup (like we did), by configuring your venv, or simply by overwriting the variable on your machine (though, this will probably break other projects).
+  For simplicity, the readme assumes you don't change this.
+- Usually, when pulling the repository, the `PYTHONPATH` variable isn't set properly.
+  Make sure to update this by installing the project in a container and setting it on startup (like we did), by configuring your venv, or simply by overwriting the variable on your machine (though, this will probably break other projects).
+  (If you are using a devcontainer, this step isn't necessary.)
 - Make sure to install the Python requirements prior to running any code, by using `pip install -r ./python_proj/requirements.txt`.
+  (If you are using a devcontainer, this step isn't necessary.)
 
 ### Preliminary data
 
@@ -65,7 +100,6 @@ You don't need them for the [modelling](#modelling) steps.
 
 The following steps are necessary to replicate this study.
 You can skip steps in case you have access to raw or processed data.
-
 
 Some of the steps use multithreaded solutions and allow you to specify the number of used threads. 
 This can most commonly be done using the `-t` commandline parameter, such that `-t 4` runs the process with four threads. 
@@ -115,8 +149,7 @@ The output of this will be two data files, both called `sorted_filtered_min_5_pr
 
 ### Dataset Generation
 
-- Run `sliding_window_2.py -m s -pd sorted_filtered_min_5_prs_no_dupes_no_invalid -id sorted_filtered_min_5_prs_no_dupes_no_invalid -o ftc_data -w 90` which generates a dataset that only contains the independent variable "is first time contributor". This is done separately as `sliding_window_3` is multithreaded and can't calculate this correctly. It stores the output at `ftc_data.csv`.
-- Run `sliding_window_3.py -pd sorted_filtered_min_5_prs_no_dupes_no_invalid -id sorted_filtered_min_5_prs_no_dupes_no_invalid -o non_ftc_data -w 90 -t 8` which generates the rest of the features multithreadedly (this is quite memory intensive, so you probably can't just max out the number of threads). The generated dataset is stored at `non_ftc_data.csv`.
+- Run `sliding_window_3.py -pd sorted_filtered_min_5_prs_no_dupes_no_invalid -id sorted_filtered_min_5_prs_no_dupes_no_invalid -o non_ftc_data -w 90 -t 12` which generates the rest of the features multithreadedly. This is quite memory intensive, so you probably can't just max out the number of threads. In our experiment, each thread used approximately 6.5% = 15GB of the available RAM. RAM usage only becomes problematic at the the later stages, as the last few chunks are substantially larger than the first few. The generated dataset is stored at `non_ftc_data.csv`. This process is slow; the last run took almost 15 hours to complete.
 
 The output of this is two datasets `ftc_data.csv` and `non_ftc_data.csv`, which are input for the data modelling / inference process.
 
@@ -127,12 +160,13 @@ Run the preprocessing steps in the following order:
 - `feature_construction.ipynb` which constructs the `IsFirstTimeContributor`, `SecondDegreeCentrality`, and `LinkIntensity` fields.
 - `subsampling.ipynb` which subsamples the PRs based on project size.
 - `feature_transformation.ipynb` which applies log-transform and feature scaling.
+- `visualization.ipynb` generates plots of the data.
 
 Afterwards, each of the analysis scripts contained in the `random_forest` and `logistic_regression` folders can be ran in any order.
 To then generate the feature importance plots, run `feature_importance`, which is located in the `random_forest` folder.
 
-Alternatively, you can run `run_all_notebooks.py` which runs all of the above as plain Python code by transpiling the notebooks and executing them.
-The output of each file is not contained in the `.ipynb` file, however, is stored in an `.out` file that's automatically generated.
+Alternatively, you can run `run_all_notebooks.py --no-obfuscation` which runs all of the above as plain Python code.
+This skips the data obfuscation steps and takes about 3 hours to complete.
 
 ## Repository Contents
 
@@ -182,9 +216,11 @@ Contains all of the Python notebooks contained in this study.
   - [`subsampling`](./python_proj/modelling/notebooks/preprocessing/subsampling.ipynb): Subsamples the data points based on the size of projects.
   - [`feature_transformation`](./python_proj/modelling/notebooks/preprocessing/feature_transformation.ipynb): Applies one-off log-transform to the data and min-max feature scaling.
   - [`visualization`](./python_proj/modelling/notebooks/preprocessing/visualization.ipynb): Generates histograms for the different features.
+  - [`rare_events`](./python_proj/modelling/notebooks/preprocessing/rare_events.ipynb): Can be used to study how zero-inflated fields are.
+  - [`feature_obfuscation`](./python_proj/modelling/notebooks/preprocessing/data_obfuscation.ipynb): Used to obfuscate personally identifiable information in the dataset.
 - `logistic_regression`: Contains all of the logistic regression scripts. It has a subfolder per experiment that is performed: the general case, the first-time contributor case, and the non-first-time contributor case. In turn, each folder contains three notebooks, one for the full model, one for the collaboration model, and one for the dependency model.
 - `random_forest`: Contains he random forest model scripts. It contains three models, a full model, a first-time contributor model, and a non-first-time contributor model.
-- [`run_all_notebooks`](./python_proj/modelling/notebooks/run_all_notebooks.py): Runs all of the notebooks included in this project and outputs their results in corresponding `.out` files.
+- [`run_all_notebooks`](./python_proj/modelling/notebooks/run_all_notebooks.py): Runs all of the notebooks included in this project. You can skip steps of the pipeline, by using the `--no-obfuscate`, `--no-preproc`, `--no-logit`, and `--no-rf` flags.
 
 ### Other Code
 

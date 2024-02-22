@@ -2,7 +2,7 @@
 Contains utility scripts for multithreading related tasks.
 """
 
-# TODO: Remove this and replace all of it with `wmeijer_utils`.
+# TODO: Remove this and replace all of it with `wmutils`.
 
 from typing import Callable, Iterator
 import multiprocessing
