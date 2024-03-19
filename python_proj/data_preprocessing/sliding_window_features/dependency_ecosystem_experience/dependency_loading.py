@@ -5,7 +5,7 @@ you should probably use `safe_load_dependency_map()`.
 """
 
 from os import path
-from typing import Tuple
+from typing import Tuple, Iterator
 
 from csv import reader
 import datetime
@@ -192,6 +192,7 @@ def safe_load_dependency_map() -> Tuple[SafeDict[int, set[int]], dict[str, int]]
     loads it from the filesystem if it hasn't been loaded yet.
     """
 
+    # TODO: One of these functions lies about its return type, returning lists instead of sets as the inner dictionary value.
     if DEPENDENCY_MAP is None or PROJECT_NAME_TO_ID is None:
         return load_dependency_map()
     else:
@@ -206,7 +207,7 @@ def calculate_transitive_dependency_map(
     i.e., cascading dependencies.
     """
 
-    # Changes inner type to set instead of list.
+    # HACK: Changes inner type to set instead of list.
     for key in dependencies.keys():
         dependencies[key] = set(dependencies[key])
 
@@ -215,6 +216,7 @@ def calculate_transitive_dependency_map(
     iter = 0
     while not_converged:
         iter += 1
+        print(f'Starting iteration {iter}/{max_iter}.')
         not_converged = __calculate_transitive_dependency_map(dependencies)
         if iter >= max_iter:
             print(f"Could not converge in {max_iter} iterations.")
@@ -240,6 +242,8 @@ def __calculate_transitive_dependency_map(
         old_dep_count = len(deps)
 
         for dep_id in deps:
+            if dep_id not in dependencies:
+                continue
             cascade_deps = dependencies[dep_id]
             dependencies[project_id] = dependencies[project_id].union(cascade_deps)
 
@@ -248,3 +252,47 @@ def __calculate_transitive_dependency_map(
             was_updated = True
 
     return was_updated
+
+
+def filter_dependencies(
+    included_projects: Iterator[int | str], map_name_to_id: bool = False
+) -> Tuple[SafeDict[int, set[int]], dict[str, int]]:
+    """
+    Filters all dependency fromm the singleton dependency
+    map that are not included in the provided list. Returns
+    the updated singletons.
+    """
+    global DEPENDENCY_MAP, PROJECT_NAME_TO_ID
+
+    dependency_map, project_name_to_id = safe_load_dependency_map()
+
+    # HACK: Changes inner type to set instead of list.
+    for key in dependency_map.keys():
+        dependency_map[key] = set(dependency_map[key])
+
+    # Applies project name to id mapping.
+    if map_name_to_id:
+        included_projects = set(
+            project_name_to_id[proj_name.lower()]
+            for proj_name in included_projects
+            if proj_name.lower() in project_name_to_id
+        )
+        print(f"No. included projects after mapping: {len(included_projects)}.")
+
+    # Filters to-be singletons
+    dependency_map = {
+        proj_id: dependency_map[proj_id].intersection(included_projects)
+        for proj_id in included_projects
+        if proj_id in dependency_map
+    }
+    project_name_to_id = {
+        proj_name: proj_id
+        for proj_name, proj_id in project_name_to_id.items()
+        if proj_id in included_projects
+    }
+
+    # Overwrites singletons.
+    DEPENDENCY_MAP = dependency_map
+    PROJECT_NAME_TO_ID = project_name_to_id
+
+    return dependency_map, project_name_to_id
