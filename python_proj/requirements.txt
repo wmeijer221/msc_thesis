@@ -61,6 +61,7 @@ marshmallow-enum==1.5.1
 matplotlib==3.7.1
 matplotlib-inline==0.1.6
 mdit-py-plugins==0.4.0
+mdurl==0.1.2
 mistune==3.0.2
 multidict==6.0.4
 mypy-extensions==1.0.0
@@ -136,5 +137,5 @@ wcwidth==0.2.6
 webencodings==0.5.1
 websockets==10.4
 widgetsnbextension==4.0.8
-wmutils==0.10.0
+wmutils==0.11.0
 yarl==1.9.2
