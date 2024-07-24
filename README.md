@@ -217,7 +217,7 @@ Contains all of the Python notebooks contained in this study.
   - [`feature_transformation`](./python_proj/modelling/notebooks/preprocessing/feature_transformation.ipynb): Applies one-off log-transform to the data and min-max feature scaling.
   - [`visualization`](./python_proj/modelling/notebooks/preprocessing/visualization.ipynb): Generates histograms for the different features.
   - [`rare_events`](./python_proj/modelling/notebooks/preprocessing/rare_events.ipynb): Can be used to study how zero-inflated fields are.
-  - [`feature_obfuscation`](./python_proj/modelling/notebooks/preprocessing/data_obfuscation.ipynb): Used to obfuscate personally identifiable information in the dataset.
+  - [`data_obfuscation`](./python_proj/modelling/notebooks/preprocessing/data_obfuscation.ipynb): Used to obfuscate personally identifiable information in the dataset.
 - `logistic_regression`: Contains all of the logistic regression scripts. It has a subfolder per experiment that is performed: the general case, the first-time contributor case, and the non-first-time contributor case. In turn, each folder contains three notebooks, one for the full model, one for the collaboration model, and one for the dependency model.
 - `random_forest`: Contains he random forest model scripts. It contains three models, a full model, a first-time contributor model, and a non-first-time contributor model.
 - [`run_all_notebooks`](./python_proj/modelling/notebooks/run_all_notebooks.py): Runs all of the notebooks included in this project. You can skip steps of the pipeline, by using the `--no-obfuscate`, `--no-preproc`, `--no-logit`, and `--no-rf` flags.

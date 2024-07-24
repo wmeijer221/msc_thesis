@@ -14,6 +14,7 @@
 		}
 	},
 	"containerEnv": {
-		"PYTHONPATH": "/workspaces/msc_thesis/"
+		"PYTHONPATH": "/workspaces/msc_thesis/",
+		"EXPERIMENT_BASE_PATH": "/workspaces/msc_thesis/data/"
 	}
 }
