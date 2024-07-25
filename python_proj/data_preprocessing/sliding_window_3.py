@@ -66,6 +66,7 @@ def __create_data_chunk_stream(
             chunk_start_timestamp = timestamp
 
         chunk_delta = timestamp - chunk_start_timestamp
+        current_chunk_name = current_chunk_file.name
         if chunk_delta > window_size:
             chunk_start_timestamp = timestamp
             current_chunk_file.close()

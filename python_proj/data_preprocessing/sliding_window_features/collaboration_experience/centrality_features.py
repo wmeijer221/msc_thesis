@@ -52,10 +52,13 @@ class SNAFeature(SlidingWindowFeature):
 
     def _add_remove_edge(
         self, source_node: int, target_node: int, edge_timestamp: float, add_entry: bool
-    ):
-        """Adds a single edge, ignoring self-loops."""
+    ) -> bool:
+        """
+        Adds a single edge, ignoring self-loops.
+        Returns true if the edge was added.
+        """
         if source_node == target_node:
-            return
+            return False
 
         # Grabs all edge data.
         edge_data = self._graph.get_edge_data(source_node, target_node, default={})
@@ -90,6 +93,8 @@ class SNAFeature(SlidingWindowFeature):
             self._graph.remove_node(source_node)
         if nx.is_isolate(self._graph, target_node):
             self._graph.remove_node(target_node)
+
+        return True
 
     def _add_remove_edges(
         self,

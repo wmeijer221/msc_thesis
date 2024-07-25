@@ -9,6 +9,7 @@ overriding only the behaviors necessary to make the additional checks.
 
 from typing import Callable, Tuple, List
 from networkx import DiGraph
+import hashlib
 
 from python_proj.data_preprocessing.sliding_window_features.collaboration_experience.centrality_features import (
     SNAFeature,
@@ -48,16 +49,28 @@ class SNAFeatureV2(SNAFeature):
 
     def _add_remove_edge(
         self, source_node: int, target_node: int, edge_timestamp: float, add_entry: bool
-    ):
-        super()._add_remove_edge(source_node, target_node, edge_timestamp, add_entry)
-        edge_key = self._build_edge_key(source_node, target_node, edge_timestamp)
+    ) -> bool:
+        added = super()._add_remove_edge(
+            source_node, target_node, edge_timestamp, add_entry)
+        if not added:
+            return False
+
+        edge_key = self._build_edge_key(
+            source_node, target_node, edge_timestamp)
         repo_name = get_repository_name_from_source_path(
             self._current_entry[SOURCE_PATH_KEY]
         )
+
+        is_duplicate_edge = add_entry and edge_key in self._edge_to_project_mapping
+        if is_duplicate_edge:
+            return False
+
         if add_entry:
             self._edge_to_project_mapping[edge_key] = repo_name
         elif edge_key in self._edge_to_project_mapping:
             del self._edge_to_project_mapping[edge_key]
+
+        return True
 
     def add_entry(self, entry: dict):
         self._current_entry = entry
@@ -218,7 +231,11 @@ def _build_edge_key(
 ) -> int:
     """Builds a key based on the given variables."""
     key = f"{source_node}:{target_node}:{timestamp}:{edge_type}"
-    return hash(key)
+    key = key.encode(encoding='utf-8')
+    m = hashlib.sha256()
+    m.update(key)
+    h = m.hexdigest()
+    return h
 
 
 def build_intra_eco_centrality_features() -> (

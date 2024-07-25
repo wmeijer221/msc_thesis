@@ -10,7 +10,6 @@ from typing import Iterator
 from numbers import Number
 import math
 
-
 from python_proj.utils.arg_utils import safe_get_argv
 from python_proj.utils.util import OpenMany, ordered_chain
 
@@ -269,6 +268,7 @@ def iterate_through_multiple_chronological_datasets(dataset_names: list[str],
             dataset_type = dataset_types[file_idx]
             entry["__data_type"] = dataset_type
             yield entry
+        print(f"Finished iterating through all {index + 1} chronological data entries.")
 
 
 def iterate_through_multiple_chronological_issue_pr_datasets(

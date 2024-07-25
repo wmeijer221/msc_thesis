@@ -72,6 +72,7 @@ def parallelize_tasks(
     on_message_received: Callable,
     thread_count: int | None = None,
     return_results: bool = False,
+    use_threaded_task_producer: bool = False,
     *args,
     **kwargs,
 ) -> list | None:
@@ -97,14 +98,40 @@ def parallelize_tasks(
         workers[index] = worker
 
     # Creates tasks.
-    total_tasks = len(tasks) if isinstance(tasks, list) else "unknown"
-    for task_id, task in enumerate(tasks, start=1):
-        work_task = {"task": task, "task_id": task_id, "total_tasks": total_tasks}
-        worklist.put(work_task)
+    def __create_work(task, pushtarget, thread_count, tasks, *args, **kwargs):
+        total_tasks = len(tasks) if isinstance(tasks, list) else "unknown"
+        for task_id, task in enumerate(tasks, start=1):
+            work_task = {"task": task, "task_id": task_id,
+                         "total_tasks": total_tasks}
+            pushtarget.put(work_task)
+        # Kills workers.
+        for _ in range(thread_count):
+            pushtarget.put(SimpleConsumer.TerminateTask())
+        # kills main thread consumer
+        if thread_count == -1:
+            pushtarget.put(SimpleConsumer.TerminateTask())
 
-    # Kills workers.
-    for _ in range(thread_count):
-        worklist.put(SimpleConsumer.TerminateTask())
+    producer_worklist = multiprocessing.JoinableQueue()
+    producer_worklist.put({"task": "push_task"})
+    producer_worklist.put(SimpleConsumer.TerminateTask())
+    task_producer = SimpleConsumer(
+        __create_work, producer_worklist, 0, None,
+        consumer_name="TaskProducer",
+        pushtarget=worklist, thread_count=thread_count, tasks=tasks)
+    if use_threaded_task_producer:
+        task_producer.start()
+    else:
+        task_producer.run()
+
+    if thread_count == -1:
+        print("Running parallelization in main thread.")
+        worker = SimpleConsumer(
+            on_message_received, worklist, 0, result_queue, consumer_name="MainThreadConsumer", *args, **kwargs
+        )
+        worker.run()
+
+    if use_threaded_task_producer:
+        task_producer.join()
 
     # Waits until workers terminate.
     for worker in workers:
