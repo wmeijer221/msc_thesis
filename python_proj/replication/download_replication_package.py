@@ -7,6 +7,7 @@ import shutil
 
 from wmutils.file import safe_makedirs
 
+# TODO: This does not download libraries.io data. This is essential for replicating the dataset generation process. Otherwise it'll just crash.
 
 REPLICATION_PACKAGE_URL = "https://liuonline-my.sharepoint.com/:u:/g/personal/wilme33_liu_se/EROtYfFq6A9Dh8PelvVe_5YBQMA4mQNybv_M4wJbZTrDqg?e=2wJQSo"
 
