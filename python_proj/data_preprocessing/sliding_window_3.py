@@ -469,7 +469,8 @@ def create_sliding_window_dataset(
 
     # Prunes all chunk data files.
     for file in chunk_file_names:
-        os.remove(file)
+        if os.path.exists(file):
+            os.remove(file)
 
     __merge_chunk_results(
         output_path, chunk_file_names, chunk_output_base_path, output_features
