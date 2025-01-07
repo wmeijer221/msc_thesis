@@ -1,6 +1,7 @@
 # Ecosystem-wide experience / collaboration and pull request acceptance.
 
-This repository contains all of the code used to produce the master's thesis work: Willem Meijer. 2023. _The Influence of Ecosystem-Wide Experience and Collaboration on Pull Request Acceptance in Open-Source Software Ecosystems._ Master’s thesis. University of Groningen. [https://fse.studenttheses.ub.rug.nl/31331/](https://fse.studenttheses.ub.rug.nl/31331/).
+This repository contains all of the code used to produce the article Meijer, W., Riveni, M., & Rastogi, A. (2024). Ecosystem-wide influences on pull request decisions: insights from NPM. arXiv preprint arXiv:2410.14695. [https://doi.org/10.48550/arXiv.2410.14695](https://doi.org/10.48550/arXiv.2410.14695).
+This is a revision of the master thesis work: Willem Meijer. 2023. _The Influence of Ecosystem-Wide Experience and Collaboration on Pull Request Acceptance in Open-Source Software Ecosystems._ Master’s thesis. University of Groningen. [https://fse.studenttheses.ub.rug.nl/31331/](https://fse.studenttheses.ub.rug.nl/31331/).
 
 This repository acts as a _replication package_ to this study, providing little to no explicit information regarding design decisions.
 For that type of information and any other unclarities, refer to the paper; specifically the data collection / methodology section.
