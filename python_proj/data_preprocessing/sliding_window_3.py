@@ -8,6 +8,8 @@ the method at the bottom of this script for the relevant command line
 parameters.
 """
 
+from python_proj.data_preprocessing.sliding_window_features.collaboration_experience.no_bots.norm_so_degree_centrality import build_so_degree_features
+from python_proj.data_preprocessing.sliding_window_features.collaboration_experience.no_bots.link_strength import build_eco_se_features
 from collections import deque
 import csv
 from datetime import datetime, timedelta
@@ -209,7 +211,8 @@ def __output_row(
     """
 
     meta_data = __get_preamble(new_entry)
-    predictors = [feature.get_feature(new_entry) for feature in output_features]
+    predictors = [feature.get_feature(new_entry)
+                  for feature in output_features]
     predictors = flatten(predictors)
     data_point = itertools.chain(meta_data, predictors)
     csv_writer.writerow(data_point)
@@ -235,7 +238,8 @@ def __handle_new_entry(
     if is_pr:
         __output_row(new_entry, csv_writer, output_features)
 
-    __add_entry(new_entry, window_keys, window, pr_sw_features, issue_sw_features)
+    __add_entry(new_entry, window_keys, window,
+                pr_sw_features, issue_sw_features)
 
 
 def __get_output_features(
@@ -243,7 +247,8 @@ def __get_output_features(
     pr_sw_features: list[SlidingWindowFeature],
     issue_sw_features: list[SlidingWindowFeature],
 ) -> list[Feature]:
-    all_features: list[Feature] = [*pr_features, *pr_sw_features, *issue_sw_features]
+    all_features: list[Feature] = [
+        *pr_features, *pr_sw_features, *issue_sw_features]
     output_features = [
         feature for feature in all_features if feature.is_output_feature()
     ]
@@ -282,7 +287,8 @@ def __handle_chunk(
     start_time = datetime.now()
 
     previous_chunk, current_chunk = task
-    print(f"Task-{task_id}: Starting with chunks: {previous_chunk=}, {current_chunk=}")
+    print(
+        f"Task-{task_id}: Starting with chunks: {previous_chunk=}, {current_chunk=}")
 
     issue_sw_features, pr_sw_features, pr_features = feature_factory()
 
@@ -304,7 +310,8 @@ def __handle_chunk(
         previous_chunk, issue_sw_features, pr_sw_features
     )
 
-    edge_count_previous_chunk = swf.get_total_count_from_sna_features(all_features)
+    edge_count_previous_chunk = swf.get_total_count_from_sna_features(
+        all_features)
 
     print(f'Task-{task_id}: Loaded previous chunk: "{previous_chunk}".')
 
@@ -350,7 +357,8 @@ def __create_header(features: list[Feature]) -> Iterator[str]:
     necessary (in case one feature implementation) yields multiple results).
     """
 
-    meta_header = ["ID", "Project Name", "Submitter ID", "PR Number", "Closed At"]
+    meta_header = ["ID", "Project Name",
+                   "Submitter ID", "PR Number", "Closed At"]
     feature_header = [feature.get_name() for feature in features]
     feature_header = flatten(feature_header)
     header = itertools.chain(meta_header, feature_header)
@@ -390,10 +398,12 @@ def __merge_chunk_results(
                 if total_edge_counts is None:
                     total_edge_counts = edge_counts
                 else:
-                    total_edge_counts = add_dict(total_edge_counts, edge_counts)
+                    total_edge_counts = add_dict(
+                        total_edge_counts, edge_counts)
 
     print(f'Output path: "{output_path}".')
-    print(f"Total SNAFeature edge counts:\n{json.dumps(total_edge_counts,indent=2)}")
+    print(
+        f"Total SNAFeature edge counts:\n{json.dumps(total_edge_counts,indent=2)}")
 
 
 def create_sliding_window_dataset(
@@ -435,7 +445,8 @@ def create_sliding_window_dataset(
     chunk_generator = tuple_chain(chunk_generator, yield_first=True)
 
     if chunk_count > 0:
-        print(f"Only processing first {chunk_count} chunks. This is for testing.")
+        print(
+            f"Only processing first {chunk_count} chunks. This is for testing.")
         chunk_generator = limit(chunk_generator, chunk_count)
 
     # Selects output features
@@ -487,8 +498,9 @@ def all_features_factory(
     other_pr = swf.build_other_features()
     control_sw, control = swf.build_control_variables()
     ip_issue, ip_pr = swf.build_intra_project_features()
-    intra_se_pr, intra_se_issue = swf.build_intra_se_features()
-    eco_se_pr, eco_se_issue = swf.build_eco_se_features()
+    # intra_se_pr, intra_se_issue = swf.build_intra_se_features()
+    # eco_se_pr, eco_se_issue = swf.build_eco_se_features()
+    eco_se_pr, eco_se_issue = build_eco_se_features()
     eco_pr, eco_issue = swf.build_eco_experience()
     deco_pr, deco_issue, ideco_pr, ideco_issue = swf.build_deco_features()
 
@@ -497,7 +509,8 @@ def all_features_factory(
             sna_pr_graph,
             sna_issue_graph,
             local_centrality_measures,
-        ) = swf.build_intra_eco_centrality_features()
+        ) = build_so_degree_features()
+        # ) = swf.build_intra_eco_centrality_features()
     else:
         print("Skipping SNA features.")
         (
@@ -508,7 +521,7 @@ def all_features_factory(
 
     issue_sw_features = [
         *ip_issue,
-        *intra_se_issue,
+        # *intra_se_issue,
         *eco_se_issue,
         *eco_issue,
         *deco_issue,
@@ -519,7 +532,7 @@ def all_features_factory(
     pr_sw_features = [
         *control_sw,
         *ip_pr,
-        *intra_se_pr,
+        # *intra_se_pr,
         *eco_se_pr,
         *eco_pr,
         *deco_pr,
