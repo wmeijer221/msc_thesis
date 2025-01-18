@@ -164,13 +164,13 @@ def get_bot_ids():
     # Loads bot IDs and bans them.
     bot_path = Path(exp_utils.BASE_PATH).absolute() \
         .joinpath("bot_data").joinpath("all_bot_ids.csv").absolute()
-    print(f'Loading bot IDs from "{str(bot_path)}"')
+    print(f'Loading bot IDs from "{str(bot_path)}".')
     with open(bot_path, 'r', encoding='utf-8') as bot_file:
         csv_reader = csv.reader(bot_file)
         # skips header
         _ = next(csv_reader)
         bot_ids = {int(row[0]) for row in csv_reader}
-    print(f'Loaded list of {len(bot_ids)} bots IDs to ban from SO-degree.')
+    print(f'Loaded list of {len(bot_ids)} bot IDs.')
     return bot_ids
 
 

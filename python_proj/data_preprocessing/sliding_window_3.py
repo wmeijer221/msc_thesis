@@ -387,19 +387,21 @@ def __merge_chunk_results(
             chunk_output_path = chunk_output_base_path + file_name
             print(f'Merging "{chunk_output_path}".')
             # Merges chunk
-            with open(chunk_output_path, "r", encoding="utf-8") as input_file:
-                output_file.writelines(input_file)
-            if delete_chunk:
-                os.remove(chunk_output_path)
+            if os.path.exists(chunk_output_path):
+                with open(chunk_output_path, "r", encoding="utf-8") as input_file:
+                    output_file.writelines(input_file)
+                if delete_chunk:
+                    os.remove(chunk_output_path)
             # Merges edge count chunk
             chunk_count_output_path = f"{chunk_output_path}_edgecount"
-            with open(chunk_count_output_path, "r", encoding="utf-8") as input_file:
-                edge_counts = json.loads(input_file.read())
-                if total_edge_counts is None:
-                    total_edge_counts = edge_counts
-                else:
-                    total_edge_counts = add_dict(
-                        total_edge_counts, edge_counts)
+            if os.path.exists(chunk_output_path):
+                with open(chunk_count_output_path, "r", encoding="utf-8") as input_file:
+                    edge_counts = json.loads(input_file.read())
+                    if total_edge_counts is None:
+                        total_edge_counts = edge_counts
+                    else:
+                        total_edge_counts = add_dict(
+                            total_edge_counts, edge_counts)
 
     print(f'Output path: "{output_path}".')
     print(
@@ -418,6 +420,8 @@ def create_sliding_window_dataset(
     window_size_in_days: int,
     thread_count: int,
     chunk_count: int = -1,
+    delete_chunk_results: bool = True,
+    skip_first_n_chunks: int = 0
 ):
     """
     Creates sliding window dataset using a multithreaded solution.
@@ -444,10 +448,22 @@ def create_sliding_window_dataset(
     )
     chunk_generator = tuple_chain(chunk_generator, yield_first=True)
 
-    if chunk_count > 0:
+    if chunk_count > 0 or skip_first_n_chunks > 0:
+        chunk_count = max(chunk_count, 1)
         print(
-            f"Only processing first {chunk_count} chunks. This is for testing.")
-        chunk_generator = limit(chunk_generator, chunk_count)
+            f"Only processing a subset of chunks [{skip_first_n_chunks}, {skip_first_n_chunks+chunk_count}]. This is for testing.")
+        chunk_generator = itertools.islice(
+            chunk_generator, skip_first_n_chunks, skip_first_n_chunks + chunk_count)
+
+    # if chunk_count > 0:
+    #     print(
+    #         f"Only processing first {chunk_count} chunks. This is for testing.")
+    #     chunk_generator = limit(chunk_generator, chunk_count)
+    # if skip_first_n_chunks > 0:
+    #     print(
+    #         f"Skipping the first {skip_first_n_chunks} chunks. This is for testing.")
+    #     chunk_generator = itertools.islice(
+    #         chunk_generator, start=skip_first_n_chunks, )
 
     # Selects output features
     # NOTE: they're loaded before the parallelization so that the
@@ -482,7 +498,7 @@ def create_sliding_window_dataset(
         os.remove(file)
 
     __merge_chunk_results(
-        output_path, chunk_file_names, chunk_output_base_path, output_features
+        output_path, chunk_file_names, chunk_output_base_path, output_features, delete_chunk_results
     )
 
     print("Done!")
@@ -498,10 +514,12 @@ def all_features_factory(
     other_pr = swf.build_other_features()
     control_sw, control = swf.build_control_variables()
     ip_issue, ip_pr = swf.build_intra_project_features()
-    # intra_se_pr, intra_se_issue = swf.build_intra_se_features()
-    # eco_se_pr, eco_se_issue = swf.build_eco_se_features()
-    eco_se_pr, eco_se_issue = build_eco_se_features()
-    eco_pr, eco_issue = swf.build_eco_experience()
+    # NOTE: These are the old ones, used in the paper.
+    intra_se_pr, intra_se_issue = swf.build_intra_se_features()
+    eco_se_pr, eco_se_issue = swf.build_eco_se_features()
+    # NOTE: These two lines are the potential replacement of the old ones.
+    # eco_se_pr, eco_se_issue = build_eco_se_features()
+    # eco_pr, eco_issue = swf.build_eco_experience()
     deco_pr, deco_issue, ideco_pr, ideco_issue = swf.build_deco_features()
 
     if use_sna:
@@ -509,8 +527,8 @@ def all_features_factory(
             sna_pr_graph,
             sna_issue_graph,
             local_centrality_measures,
-        ) = build_so_degree_features()
-        # ) = swf.build_intra_eco_centrality_features()
+        # ) = build_so_degree_features()
+        ) = swf.build_intra_eco_centrality_features()
     else:
         print("Skipping SNA features.")
         (
@@ -521,9 +539,9 @@ def all_features_factory(
 
     issue_sw_features = [
         *ip_issue,
-        # *intra_se_issue,
+        *intra_se_issue,
         *eco_se_issue,
-        *eco_issue,
+        # *eco_issue,
         *deco_issue,
         *ideco_issue,
         *sna_issue_graph,
@@ -532,9 +550,9 @@ def all_features_factory(
     pr_sw_features = [
         *control_sw,
         *ip_pr,
-        # *intra_se_pr,
+        *intra_se_pr,
         *eco_se_pr,
-        *eco_pr,
+        # *eco_pr,
         *deco_pr,
         *ideco_pr,
         *sna_pr_graph,
