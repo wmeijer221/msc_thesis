@@ -27,6 +27,7 @@ defusedxml==0.7.1
 dnspython==2.3.0
 docutils==0.17.1
 dulwich==0.20.50
+et_xmlfile==2.0.0
 executing==1.2.0
 fastjsonschema==2.19.1
 feedparser==6.0.10
@@ -72,6 +73,7 @@ nest-asyncio==1.5.6
 networkx==3.1
 numba==0.57.1
 numpy==1.24.2
+openpyxl==3.1.5
 packaging==23.0
 pandas==2.0.1
 pandocfilters==1.5.1

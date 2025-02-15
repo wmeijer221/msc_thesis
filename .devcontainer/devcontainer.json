@@ -9,7 +9,8 @@
 				"ms-toolsai.jupyter",
 				"yzhang.markdown-all-in-one",
 				"ms-python.python",
-				"Gruntfuggly.todo-tree"
+				"Gruntfuggly.todo-tree",
+				"ms-toolsai.datawrangler"
 			]
 		}
 	},
