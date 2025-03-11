@@ -67,6 +67,7 @@ This holds for the following terms (this list might not be exhaustive):
 - _Link Strength:_ the scripts refer to link strength as link intensity; these are synonyms.
 - _Downstream dependencies:_ This term has been updated twice. In the code, it's referred to as _dependencies_ (e.g., `DependencyEcosystemExperience`), in the thesis it's referred to as _incoming dependencies_ (or _in-dependencies_), and in the paper it's referred to as _downstream dependencies_. The first update was simply for clarity, and the second to conform with professional jargon. Developer experience of this kind refers to the experience acquired in projects that implement the focal project.
 - _Upstream dependencies:_ This term was updated in the same fashion and for the same reasons as upstream dependencies. In the code, it is called _reverse dependencies_ (e.g., `InverseDependencyEcosystemExperience`), in the thesis it's referred to as _outgoing dependencies_, and in the paper as _upstream dependencies_. Developer experience of this kind refers to the experience acquired in projects that are implemented by the focal project.
+- _Project Newcomers:_ The paper talks about newcomers. In the code, this is referred to as "first-time contributors". These are synonyms.
 
 The code has NOT been fully updated to reflect these changes in an attempt to avoid accidental errors.
 Therefore, take the differences in terminology in mind when interpreting the results.
@@ -222,6 +223,7 @@ Contains all of the Python notebooks contained in this study.
 - `logistic_regression`: Contains all of the logistic regression scripts. It has a subfolder per experiment that is performed: the general case, the first-time contributor case, and the non-first-time contributor case. In turn, each folder contains three notebooks, one for the full model, one for the collaboration model, and one for the dependency model.
 - `random_forest`: Contains he random forest model scripts. It contains three models, a full model, a first-time contributor model, and a non-first-time contributor model.
 - [`run_all_notebooks`](./python_proj/modelling/notebooks/run_all_notebooks.py): Runs all of the notebooks included in this project. You can skip steps of the pipeline, by using the `--no-obfuscate`, `--no-preproc`, `--no-logit`, and `--no-rf` flags.
+- [`auxiliary_analysis`](./python_proj/modelling/auxiliary_analysis.ipynb): Contains additional analysis steps added for the qualitative analysis. Added in version 1.2.0.
 
 ### Other Code
 
