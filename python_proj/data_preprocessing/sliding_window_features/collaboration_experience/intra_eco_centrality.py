@@ -50,8 +50,7 @@ class SNAFeatureV2(SNAFeature):
         self, source_node: int, target_node: int, edge_timestamp: float, add_entry: bool
     ):
         super()._add_remove_edge(source_node, target_node, edge_timestamp, add_entry)
-        edge_key = self._build_edge_key(
-            source_node, target_node, edge_timestamp)
+        edge_key = self._build_edge_key(source_node, target_node, edge_timestamp)
         repo_name = get_repository_name_from_source_path(
             self._current_entry[SOURCE_PATH_KEY]
         )
@@ -199,7 +198,6 @@ class EcosystemSecondOrderInDegreeCentrality(IntraProjectSecondOrderInDegreeCent
         )
 
 
-@DeprecationWarning
 class EcosystemSecondOrderOutDegreeCentrality(EcosystemSecondOrderInDegreeCentrality):
     """Here for the name"""
 

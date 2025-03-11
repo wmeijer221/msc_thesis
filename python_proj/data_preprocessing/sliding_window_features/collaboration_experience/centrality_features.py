@@ -30,14 +30,13 @@ class SNAFeature(SlidingWindowFeature):
         self,
         graph: nx.DiGraph,
         nested_source_keys: list[str | Callable[[dict], str]],
-        nested_target_keys: list[str | Callable[[dict], str]]
+        nested_target_keys: list[str | Callable[[dict], str]],
     ) -> None:
         super().__init__()
 
         self._graph = graph
         self.__nested_source_keys = nested_source_keys
         self.__nested_target_keys = nested_target_keys
-        self.__banned_nodes = set()
 
         self.edge_label = self.__class__.__name__
 
@@ -51,27 +50,15 @@ class SNAFeature(SlidingWindowFeature):
             if not self._graph.has_node(node):
                 self._graph.add_node(node)
 
-    def set_banned_nodes(self, banned_nodes: list[int]):
-        assert not banned_nodes is None
-        self.__banned_nodes = set(banned_nodes)
-
     def _add_remove_edge(
         self, source_node: int, target_node: int, edge_timestamp: float, add_entry: bool
-    ) -> bool:
-        """
-        Adds or removes a single edge, ignoring self-loops and banned nodes.
-        Return true if the node was successfully processed.
-        """
-
+    ):
+        """Adds a single edge, ignoring self-loops."""
         if source_node == target_node:
-            return False
-
-        if source_node in self.__banned_nodes or target_node in self.__banned_nodes:
-            return False
+            return
 
         # Grabs all edge data.
-        edge_data = self._graph.get_edge_data(
-            source_node, target_node, default={})
+        edge_data = self._graph.get_edge_data(source_node, target_node, default={})
 
         # Adds queue if not existing yet.
         if self.edge_label not in edge_data:
@@ -104,8 +91,6 @@ class SNAFeature(SlidingWindowFeature):
         if nx.is_isolate(self._graph, target_node):
             self._graph.remove_node(target_node)
 
-        return True
-
     def _add_remove_edges(
         self,
         sources: int | list[int],
@@ -137,14 +122,12 @@ class SNAFeature(SlidingWindowFeature):
     def add_entry(self, entry: dict):
         sources, targets = self._get_us_and_vs(entry)
         edge_timestamp: dt.datetime = entry["__dt_closed_at"]
-        self._add_remove_edges(
-            sources, targets, edge_timestamp.timestamp(), True)
+        self._add_remove_edges(sources, targets, edge_timestamp.timestamp(), True)
 
     def remove_entry(self, entry: dict):
         sources, targets = self._get_us_and_vs(entry)
         edge_timestamp: dt.datetime = entry["__dt_closed_at"]
-        self._add_remove_edges(
-            sources, targets, edge_timestamp.timestamp(), False)
+        self._add_remove_edges(sources, targets, edge_timestamp.timestamp(), False)
 
     def is_output_feature(self) -> bool:
         return False
@@ -361,8 +344,7 @@ def build_centrality_features():
         PRCommenterToCommenter(graph),
     ]
 
-    issue_graph = [IssueCommenterToCommenter(
-        graph), IssueCommenterToSubmitter(graph)]
+    issue_graph = [IssueCommenterToCommenter(graph), IssueCommenterToSubmitter(graph)]
 
     global_centrality_measures = []
 
