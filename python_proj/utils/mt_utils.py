@@ -83,32 +83,46 @@ def parallelize_tasks(
     if thread_count is None:
         thread_count = min(len(tasks), 8)
 
+    use_main_thread = thread_count == -1
+    if use_main_thread:
+        print(f"Executing tasks in main thread instead because {thread_count=}.")
+
     worklist = multiprocessing.JoinableQueue()
     workers: list[SimpleConsumer] = [None] * thread_count
 
     result_queue = multiprocessing.Queue() if return_results else None
 
     # Creates workers.
-    for index in range(thread_count):
-        worker = SimpleConsumer(
-            on_message_received, worklist, index, result_queue, *args, **kwargs
-        )
-        worker.start()
-        workers[index] = worker
+    if not use_main_thread:
+        for index in range(thread_count):
+            worker = SimpleConsumer(
+                on_message_received, worklist, index, result_queue, *args, **kwargs
+            )
+            worker.start()
+            workers[index] = worker
 
     # Creates tasks.
     total_tasks = len(tasks) if isinstance(tasks, list) else "unknown"
     for task_id, task in enumerate(tasks, start=1):
-        work_task = {"task": task, "task_id": task_id, "total_tasks": total_tasks}
+        work_task = {"task": task, "task_id": task_id,
+                     "total_tasks": total_tasks}
         worklist.put(work_task)
 
-    # Kills workers.
-    for _ in range(thread_count):
+    if use_main_thread:
         worklist.put(SimpleConsumer.TerminateTask())
+        main_worker = SimpleConsumer(
+            on_message_received, worklist, -1, result_queue, *args, **kwargs
+        )
+        main_worker.run()
 
-    # Waits until workers terminate.
-    for worker in workers:
-        worker.join()
+    if not use_main_thread:
+        # Kills workers.
+        for _ in range(thread_count):
+            worklist.put(SimpleConsumer.TerminateTask())
+
+        # Waits until workers terminate.
+        for worker in workers:
+            worker.join()
 
     # Returns the results if necessary.
     if not return_results:
